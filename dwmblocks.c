@@ -249,9 +249,9 @@ void sighandler(int signum)
 
 void buttonhandler(int sig, siginfo_t *si, void *ucontext)
 {
-	char button[2] = {'0' + si->si_value.sival_int & 0xff, '\0'};
+    char button[2] = {'0' + (si->si_value.sival_int & 7), '\0'};
 	pid_t process_id = getpid();
-	sig = si->si_value.sival_int >> 8;
+    sig = (si->si_value.sival_int >> 3) - 34;   // And this line
 	if (fork() == 0)
 	{
 		const Block *current;
