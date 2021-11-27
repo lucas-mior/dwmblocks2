@@ -2,18 +2,22 @@
 static const Block blocks[] = {
 	/*Icon*/  /*Command*/    /*Update Interval*/    /*Update Signal*/
 	{"", "cat /tmp/ric 2>/dev/null",   0,    10},
-	{"", "0notmounted.sh",             0,    11},
-	{"", "0mounted.sh",                0,    12},
-	{"", "0phone.sh",                  0,    13},
-	{"", "musica.sh",                  0,    14},
-	{"", "vol.sh",                     0,    15},
-	{"", "mic.sh",                     0,    16},
-	{"", "bril.sh",                    0,    17},
-	{"", "news.sh",                    0,    18},
-	{"", "horario.sh",                 1,    19},
-	{"", "1memory.sh",                60,    20},
-	{"", "1cpu.sh",                   60,    21},
-	{"", "bateria.sh",                60,    22},
+	{"", "clipout.sh",                 0,    11},
+	{"", "0ydl.sh",                    0,    12},
+	{"", "0notmounted.sh",             0,    13},
+	{"", "0mounted.sh",                0,    14},
+	{"", "0phone.sh",                  0,    15},
+	{"", "musica.sh",                  0,    16},
+	{"", "vol.sh",                     0,    17},
+	{"", "mic.sh",                     0,    18},
+	{"", "bril.sh",                    0,    19},
+	/* {"", "news.sh",                    0,    20}, */
+	{"", "rorario",                    1,    21},
+	{"", "1memory.sh",                60,    22},
+	{"", "1cpu.sh",                   60,    23},
+	{"", "1internet.sh",              60,    24},
+	/* {"", "1bluetooth.sh",             60,    25}, */
+	{"", "bateria.awk /sys/class/power_supply/BAT0/uevent", 60,    26},
 };
 
 //Sets delimiter between status commands. NULL character ('\0') means no delimiter.
