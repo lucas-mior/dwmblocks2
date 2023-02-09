@@ -22,12 +22,12 @@ void remove_all(char *str, char to_remove);
 void getcmds(int time);
 #ifndef __OpenBSD__
 void getsigcmds(int signal);
-void setupsignals();
+void setupsignals(void);
 void sighandler(int signum);
 #endif
 int getstatus(char *str, char *last);
-void setroot();
-void statusloop();
+void setroot(void);
+void statusloop(void);
 void termhandler(int signum);
 
 
@@ -39,7 +39,7 @@ static Window root;
 static char statusbar[LENGTH(blocks)][CMDLENGTH] = {0};
 static char statusstr[2][256];
 static int statusContinue = 1;
-static void (*writestatus) () = setroot;
+static void (*writestatus) (void) = setroot;
 
 void replace(char *str, char old, char new)
 {
@@ -84,7 +84,7 @@ void getcmd(const Block *block, char *output)
 		output++;
 	}
 	char *cmd = block->command;
-	FILE *cmdf = popen(cmd,"r");
+	FILE *cmdf = popen(cmd, "r");
 	if (!cmdf){
         //printf("failed to run: %s, %d\n", block->command, errno);
 		return;
@@ -141,7 +141,7 @@ void getsigcmds(int signal)
 	}
 }
 
-void setupsignals()
+void setupsignals(void)
 {
 	struct sigaction sa;
 
@@ -181,7 +181,7 @@ int getstatus(char *str, char *last)
 	return strcmp(str, last);//0 if they are the same
 }
 
-void setroot()
+void setroot(void)
 {
 	if (!getstatus(statusstr[0], statusstr[1]))//Only set root if text has changed.
 		return;
@@ -195,7 +195,7 @@ void setroot()
 	XCloseDisplay(dpy);
 }
 
-void pstdout()
+void pstdout(void)
 {
 	if (!getstatus(statusstr[0], statusstr[1]))//Only write out if text has changed.
 		return;
@@ -204,7 +204,7 @@ void pstdout()
 }
 
 
-void statusloop()
+void statusloop(void)
 {
 #ifndef __OpenBSD__
 	setupsignals();
@@ -275,6 +275,7 @@ void buttonhandler(int sig, siginfo_t *si, void *ucontext)
 
 void termhandler(int signum)
 {
+	(void) signum;
 	statusContinue = 0;
 	exit(0);
 }
