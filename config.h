@@ -1,3 +1,5 @@
+#include "dwmblocks.h"
+
 //Modify this file to change what commands output to your statusbar, and recompile using the make command.
 static const Block blocks[] = {
 	/*Icon*/  /*Command*/    /*Update Interval*/    /*Update Signal*/
@@ -15,7 +17,7 @@ static const Block blocks[] = {
 	{"", "rorario",                    1,    21},
 	{"", "1memory.sh",                60,    22},
 	{"", "1cpu.sh",                   60,    23},
-	{"", "1internet.sh",              60,    24},
+	{"", "internet.awk /sys/class/net/*/operstate", 60,    24},
 	/* {"", "1bluetooth.sh",             60,    25}, */
 	{"", "bateria.awk /sys/class/power_supply/BAT0/uevent", 60,    26},
 };

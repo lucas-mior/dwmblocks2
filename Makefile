@@ -5,7 +5,7 @@ CC = gcc
 
 dwmblocks: dwmblocks.o
 	$(CC) dwmblocks.o -lX11 -o dwmblocks
-dwmblocks.o: dwmblocks.c config.h
+dwmblocks.o: dwmblocks.c config.h dwmblocks.h
 	$(CC) -c dwmblocks.c
 clean:
 	rm -f *.o *.gch dwmblocks

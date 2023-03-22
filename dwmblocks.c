@@ -9,12 +9,6 @@
 #define LENGTH(X) (sizeof(X) / sizeof (X[0]))
 #define CMDLENGTH		50
 
-typedef struct {
-	char* icon;
-	char* command;
-	unsigned int interval;
-	unsigned int signal;
-} Block;
 void sighandler(int num);
 void buttonhandler(int sig, siginfo_t *si, void *ucontext);
 void replace(char *str, char old, char new);
