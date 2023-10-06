@@ -16,11 +16,9 @@ void buttonhandler(int sig, siginfo_t *si, void *ucontext);
 void replace(char *str, char old, char new);
 void remove_all(char *str, char to_remove);
 void getcmds(int time);
-#ifndef __OpenBSD__
 void getsigcmds(int signal);
 void setupsignals(void);
 void sighandler(int signum);
-#endif
 int getstatus(char *str, char *last);
 void setroot(void);
 void statusloop(void);
@@ -76,7 +74,7 @@ void getcmd(const Block *block, char *output) {
     FILE *cmdf = popen(cmd, "r");
     if (!cmdf) {
         fprintf(stderr, "Failed to run %s: %s\n",
-                         block->command, errno);
+                         block->command, strerror(errno));
         return;
     }
     char tmpstr[CMDLENGTH] = "";
@@ -112,7 +110,6 @@ void getcmds(int time) {
     return;
 }
 
-#ifndef __OpenBSD__
 void getsigcmds(int signal) {
     const Block *current;
     for (uint i = 0; i < LENGTH(blocks); i++) {
@@ -146,7 +143,6 @@ void setupsignals(void) {
     sigaction(SIGCHLD, &sigchld_action, NULL);
 
 }
-#endif
 
 int getstatus(char *str, char *last) {
     strcpy(last, str);
@@ -177,9 +173,7 @@ void pstdout(void) {
 }
 
 void statusloop(void) {
-#ifndef __OpenBSD__
     setupsignals();
-#endif
     // first figure out the default wait interval by finding the
     // greatest common denominator of the intervals
     unsigned int interval = -1;
@@ -210,7 +204,6 @@ void statusloop(void) {
     }
 }
 
-#ifndef __OpenBSD__
 void sighandler(int signum) {
     getsigcmds(signum-SIGRTMIN);
     writestatus();
@@ -237,8 +230,6 @@ void buttonhandler(int sig, siginfo_t *si, void *ucontext) {
         exit(EXIT_SUCCESS);
     }
 }
-
-#endif
 
 void termhandler(int signum) {
     (void) signum;
