@@ -186,6 +186,7 @@ void button_handler(int sig, siginfo_t *si, void *ucontext) {
             if (block->signal == sig)
                 break;
         }
+		// TODO: simplify this kill command
         snprintf(kill_command, sizeof (kill_command),
 				 "%s && kill -%d %d", block->command, block->signal+34, process_id);
         command[0] = "/bin/sh";
