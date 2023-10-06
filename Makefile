@@ -1,19 +1,45 @@
-.POSIX:
+PREFIX ?= /usr/local
 
-PREFIX = /usr/local
-CC = clang
+objs = dwmblocks.o
 
-dwmblocks: dwmblocks.o
-	$(CC) -D_DEFAULT_SOURCE -Weverything -Wno-unsafe-buffer-usage dwmblocks.o -lX11 -o dwmblocks
-dwmblocks.o: dwmblocks.c config.h dwmblocks.h
-	$(CC) -D_DEFAULT_SOURCE -c -Weverything -Wno-unsafe-buffer-usage dwmblocks.c
-clean:
-	rm -f *.o *.gch dwmblocks
-install: dwmblocks
-	mkdir -p $(DESTDIR)$(PREFIX)/bin
-	cp -f dwmblocks $(DESTDIR)$(PREFIX)/bin
-	chmod 755 $(DESTDIR)$(PREFIX)/bin/dwmblocks
-uninstall:
+.PHONY: all clean install uninstall
+.SUFFIXES:
+.SUFFIXES: .c .o
+
+all: release
+
+$(objs): Makefile dwmblocks.h
+dwmblocks.o: dwmblocks.c dwmblocks.h
+
+CFLAGS += -std=c99 -D_DEFAULT_SOURCE
+CFLAGS += -Wextra -Wall
+LDFLAGS += -lX11
+
+clang: CC=clang
+clang: clean
+clang: CFLAGS += -Weverything -Wno-unsafe-buffer-usage
+clang: release
+
+release: CFLAGS += -O2
+release: dwmblocks
+
+debug: CFLAGS += -g -fsanitize=undefined
+debug: clean
+debug: dwmblocks
+
+dwmblocks: $(objs) dwmblocks.c
+	ctags --kinds-C=+l *.h *.c
+	vtags.sed tags > .tags.vim
+	$(CC) $(CFLAGS) -o $@ $(objs) $(LDFLAGS)
+
+.c.o:
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+install: all
+	install -Dm755 dwmblocks $(DESTDIR)$(PREFIX)/bin/dwmblocks
+
+uninstall: all
 	rm -f $(DESTDIR)$(PREFIX)/bin/dwmblocks
 
-.PHONY: clean install uninstall
+clean:
+	rm -rf ./dwmblocks *.o
