@@ -193,6 +193,7 @@ void button_handler(int sig, siginfo_t *si, void *ucontext) {
 		command[1] = "-c";
 		command[2] = kill_command;
 		command[3] = NULL;
+
         setenv("BLOCK_BUTTON", button, 1);
         setsid();
         execvp(command[0], command);
