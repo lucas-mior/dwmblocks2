@@ -204,7 +204,7 @@ FILE *popen_no_shell(char *command) {
     pid_t pid;
 
     char *c = command;
-    char *argv[5] = { command, NULL };
+    char *argv[4] = { command, NULL };
     bool expects_parsing = false;
 
     if (pipe(pipefd) < 0) {
@@ -236,9 +236,10 @@ FILE *popen_no_shell(char *command) {
         execvp(argv[0], argv);
         fprintf(stderr, "Error executing %s: %s\n",
                         argv[0], strerror(errno));
-        exit(1);
+        exit(EXIT_FAILURE);
     case -1:
-        exit(1);
+        fprintf(stderr, "Error forking: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
     default:
         close(pipefd[1]);
         return fdopen(pipefd[0], "r");
