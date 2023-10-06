@@ -10,27 +10,14 @@
 #include <X11/Xlib.h>
 
 #include "dwmblocks.h"
+#include "blocks.h"
 
 Display *display;
 int screen;
 Window root;
 static char status_bar[LENGTH(blocks)][CMDLENGTH] = {0};
 static char status_str[2][512];
-static const char *delim = " ";
-
-void remove_all(char *str, char to_remove) {
-    char *read = str;
-    char *write = str;
-    while (*read) {
-        if (*read != to_remove) {
-            *write = *read;
-			write += 1;
-        }
-        read += 1;
-    }
-    *write = '\0';
-    return;
-}
+static const char delim = ' ';
 
 int greatest_common_denominator(int a, int b) {
     int temp;
@@ -47,7 +34,7 @@ void get_block_output(const Block *block, char *output) {
 	FILE *command_pipe;
     char *s;
     int e;
-	int length;
+	size_t length;
 
     if (block->signal) {
         output[0] = (char) block->signal;
@@ -65,14 +52,19 @@ void get_block_output(const Block *block, char *output) {
     } while (!s && e == EINTR);
     pclose(command_pipe);
 
-    strcpy(output, tmpstr);
-    remove_all(output, '\n');
+    length = strcspn(tmpstr, "\n");
+    memcpy(output, tmpstr, length);
 
-    length = (int) strlen(output);
-    if ((length > 0 && block != &blocks[LENGTH(blocks) - 1])) {
-        strcat(output, delim);
+	while (output[length-1] == delim) {
+		output[length-1] = delim;
+		length -= 1;
+		if (length == 1)
+			break;
+	}
+    if ((length > 0) && (block != &blocks[LENGTH(blocks) - 1])) {
+        output[length] = delim;
     }
-    length += strlen(delim);
+    length += 1;
     output[length] = '\0';
     return;
 }
@@ -181,7 +173,7 @@ void signal_handler(int signum) {
 
 void button_handler(int sig, siginfo_t *si, void *ucontext) {
     char button[2] = {'0' + (si->si_value.sival_int & 7), '\0'};
-	char shcmd[1024];
+	char kill_command[1024];
 	char *command[4];
     pid_t process_id = getpid();
     (void) ucontext;
@@ -193,11 +185,11 @@ void button_handler(int sig, siginfo_t *si, void *ucontext) {
             if (block->signal == sig)
                 break;
         }
-        snprintf(shcmd, sizeof (shcmd),
+        snprintf(kill_command, sizeof (kill_command),
 				 "%s && kill -%d %d", block->command, block->signal+34, process_id);
         command[0] = "/bin/sh";
 		command[1] = "-c";
-		command[2] = shcmd;
+		command[2] = kill_command;
 		command[3] = NULL;
         setenv("BLOCK_BUTTON", button, 1);
         setsid();
