@@ -55,8 +55,8 @@ void get_block_output(const Block *block, char *output) {
     length = strcspn(tmpstr, "\n");
     memcpy(output, tmpstr, length);
 
-	while (output[length-1] == delim) {
-		output[length-1] = delim;
+	while (output[length - 1] == delim) {
+		output[length - 1] = delim;
 		length -= 1;
 		if (length == 1)
 			break;
@@ -122,7 +122,7 @@ int get_status(char *str, char *last) {
         if (i == LENGTH(blocks) - 1)
             strcat(str, " ");
     }
-    str[strlen(str)-1] = '\0';
+    str[strlen(str) - 1] = '\0';
     return strcmp(str, last);
 }
 
@@ -133,7 +133,6 @@ void setroot(void) {
     XFlush(display);
     return;
 }
-
 
 void status_loop(void) {
     int interrupted = 0;
@@ -206,11 +205,10 @@ FILE *popen_no_shell(char *command) {
     char *argv[5] = { command, NULL };
     bool expects_parsing = false;
 
-    if (pipe(pipefd) == -1) {
+    if (pipe(pipefd) < 0) {
         perror("pipe");
         return NULL;
     }
-
 
     while (*c) {
         if ((*c == ' ') || (*c == '\t')) {
