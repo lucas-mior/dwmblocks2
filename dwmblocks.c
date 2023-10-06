@@ -12,26 +12,13 @@
 #define CMDLENGTH 100UL
 
 #include "dwmblocks.h"
-
-static void button_handler(int, siginfo_t *, void *);
-static void remove_all(char *, char);
-static void get_block_output(const Block *, char *);
-static void get_block_outputs(int);
-static void get_signal_commands(int);
-static void setup_signals(void);
-static void signal_handler(int);
-static int get_status(char *, char *);
-static void setroot(void);
-static void status_loop(void) __attribute__((noreturn));
-static int greatest_common_denominator(int, int);
-
 #include "config.h"
 
-static Display *dpy;
-static int screen;
-static Window root;
-static char statusbar[LENGTH(blocks)][CMDLENGTH] = {0};
-static char statusstr[2][512];
+Display *dpy;
+int screen;
+Window root;
+char statusbar[LENGTH(blocks)][CMDLENGTH] = {0};
+char statusstr[2][512];
 
 void remove_all(char *str, char to_remove) {
     char *read = str;
@@ -221,21 +208,4 @@ void button_handler(int sig, siginfo_t *si, void *ucontext) {
         execvp(command[0], command);
         exit(EXIT_SUCCESS);
     }
-}
-
-int main(int argc, char **argv) {
-    if ((dpy = XOpenDisplay(NULL)) == NULL) {
-        fprintf(stderr, "Error opening X display\n");
-        exit(EXIT_FAILURE);
-    }
-    screen = DefaultScreen(dpy);
-    root = RootWindow(dpy, screen);
-
-    for (int i = 0; i < argc; i += 1) {
-        if (!strcmp("-d", argv[i])) {
-			i += 1;
-            delim = argv[i];
-		}
-    }
-    status_loop();
 }

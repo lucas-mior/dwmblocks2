@@ -27,10 +27,10 @@ debug: CFLAGS += -g -fsanitize=undefined
 debug: clean
 debug: dwmblocks
 
-dwmblocks: $(objs) dwmblocks.c
+dwmblocks: $(objs) main.c
 	ctags --kinds-C=+l *.h *.c
 	vtags.sed tags > .tags.vim
-	$(CC) $(CFLAGS) -o $@ $(objs) $(LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ $(objs) main.c $(LDFLAGS)
 
 .c.o:
 	$(CC) $(CFLAGS) -c -o $@ $<
