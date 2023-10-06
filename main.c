@@ -15,12 +15,12 @@
 #define CMDLENGTH 100UL
 
 int main(void) {
-    if ((dpy = XOpenDisplay(NULL)) == NULL) {
+    if ((display = XOpenDisplay(NULL)) == NULL) {
         fprintf(stderr, "Error opening X display\n");
         exit(EXIT_FAILURE);
     }
-    screen = DefaultScreen(dpy);
-    root = RootWindow(dpy, screen);
+    screen = DefaultScreen(display);
+    root = RootWindow(display, screen);
 
     status_loop();
 }

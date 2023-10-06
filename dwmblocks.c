@@ -12,7 +12,7 @@
 #include "dwmblocks.h"
 #include "config.h"
 
-Display *dpy;
+Display *display;
 int screen;
 Window root;
 char statusbar[LENGTH(blocks)][CMDLENGTH] = {0};
@@ -139,8 +139,8 @@ int get_status(char *str, char *last) {
 void setroot(void) {
     if (!get_status(statusstr[0], statusstr[1]))
         return;
-    XStoreName(dpy, root, statusstr[0]);
-    XFlush(dpy);
+    XStoreName(display, root, statusstr[0]);
+    XFlush(display);
     return;
 }
 
