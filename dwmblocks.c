@@ -15,7 +15,7 @@
 Display *display;
 int screen;
 Window root;
-char statusbar[LENGTH(blocks)][CMDLENGTH] = {0};
+char status_bar[LENGTH(blocks)][CMDLENGTH] = {0};
 char statusstr[2][512];
 static const char *delim = " ";
 
@@ -66,8 +66,7 @@ void get_block_output(const Block *block, char *output) {
     } while (!s && e == EINTR);
     pclose(command_pipe);
 
-    strcpy(output, block->icon);
-    strcpy(output + strlen(block->icon), tmpstr);
+    strcpy(output, tmpstr);
     remove_all(output, '\n');
 
     length = (int) strlen(output);
@@ -84,7 +83,7 @@ void get_block_outputs(int time) {
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
         block = blocks + i;
         if ((block->interval != 0 && time % block->interval == 0) || time == -1) {
-            get_block_output(block, statusbar[i]);
+            get_block_output(block, status_bar[i]);
         }
     }
     return;
@@ -95,7 +94,7 @@ void get_signal_commands(int signal) {
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
         block = blocks + i;
         if (block->signal == signal) {
-            get_block_output(block, statusbar[i]);
+            get_block_output(block, status_bar[i]);
         }
     }
     return;
@@ -128,7 +127,7 @@ int get_status(char *str, char *last) {
     strcpy(last, str);
     str[0] = '\0';
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
-        strcat(str, statusbar[i]);
+        strcat(str, status_bar[i]);
         if (i == LENGTH(blocks) - 1)
             strcat(str, " ");
     }
