@@ -17,6 +17,7 @@ int screen;
 Window root;
 char statusbar[LENGTH(blocks)][CMDLENGTH] = {0};
 char statusstr[2][512];
+static const char *delim = " ";
 
 void remove_all(char *str, char to_remove) {
     char *read = str;
@@ -61,7 +62,7 @@ void get_block_output(const Block *block, char *output) {
     }
     do {
         errno = 0;
-        s = fgets(tmpstr, (int) (CMDLENGTH - strlen(delim) + 1), command_pipe);
+        s = fgets(tmpstr, CMDLENGTH, command_pipe);
         e = errno;
     } while (!s && e == EINTR);
     pclose(command_pipe);

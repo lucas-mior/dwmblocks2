@@ -45,8 +45,6 @@ static Block blocks[] = {
 		 "/sys/class/power_*/BAT0/uevent", 60,    26},
 };
 
-static const char *delim = " ";
-
 int get_status(char *, char *);
 int greatest_common_denominator(int, int);
 void button_handler(int, siginfo_t *, void *);
