@@ -182,10 +182,16 @@ void button_handler(int sig, siginfo_t *si, void *ucontext) {
     if (fork() == 0) {
         Block *block = NULL;
         for (uint i = 0; i < LENGTH(blocks); i += 1) {
-            block = &blocks[i];
-            if (block->signal == sig)
+            if (blocks[i].signal == sig) {
+				block = &blocks[i];
                 break;
+			}
         }
+		if (!block) {
+			fprintf(stderr, "No block configured for signal %d\n", sig);
+			exit(EXIT_SUCCESS);
+		}
+
 		// TODO: simplify this kill command
         snprintf(kill_command, sizeof (kill_command),
 				 "%s && kill -%d %d", block->command, block->signal+34, process_id);
