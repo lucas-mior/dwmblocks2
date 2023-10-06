@@ -50,6 +50,8 @@ void get_block_output(const Block *block, char *output) {
         s = fgets(tmpstr, CMDLENGTH, command_pipe);
         e = errno;
     } while (!s && e == EINTR);
+	// TODO: Check if pclose() is right here, because
+	// popen_no_shell uses pipe() and fdopen()
     pclose(command_pipe);
 
     length = strcspn(tmpstr, "\n");
@@ -238,7 +240,7 @@ FILE *popen_no_shell(char *command) {
     case -1:
         exit(1);
     default:
-        close(pipefd[1]); // Close write end in parent
-        return fdopen(pipefd[0], "r"); // Return a file stream for reading
+        close(pipefd[1]);
+        return fdopen(pipefd[0], "r");
     }
 }
