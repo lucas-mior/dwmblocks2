@@ -9,11 +9,11 @@
 #include <errno.h>
 #include <X11/Xlib.h>
 
-#define LENGTH(X) (sizeof (X) / sizeof (X[0]))
-#define CMDLENGTH 100UL
-
 #ifndef DWMBLOCKS_H
 #define DWMBLOCKS_H
+
+#define LENGTH(X) (sizeof (X) / sizeof (X[0]))
+#define CMDLENGTH 100UL
 
 typedef struct {
 	char *command;

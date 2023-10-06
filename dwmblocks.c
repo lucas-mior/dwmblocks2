@@ -19,6 +19,37 @@ static char status_bar[LENGTH(blocks)][CMDLENGTH] = {0};
 static char status_str[2][512];
 static const char delim = ' ';
 
+void status_loop(void) {
+    int interrupted = 0;
+    int interval = -1;
+    int idx = 0;
+    struct timespec sleep_time;
+	struct timespec to_sleep;
+
+    setup_signals();
+    for (uint i = 0; i < LENGTH(blocks); i += 1) {
+        if (blocks[i].interval) {
+            interval = greatest_common_denominator(blocks[i].interval, interval);
+        }
+    }
+	sleep_time.tv_sec = interval;
+	sleep_time.tv_nsec = 0;
+    to_sleep = sleep_time;
+
+    get_block_outputs(-1);
+    while (true) {
+        interrupted = nanosleep(&to_sleep, &to_sleep);
+        if (interrupted == -1) {
+			printf("dwmblocks is on interrupt loop!\n");
+            continue;
+        }
+        get_block_outputs(idx);
+        setroot();
+        idx += interval;
+        to_sleep = sleep_time;
+    }
+}
+
 int greatest_common_denominator(int a, int b) {
     int temp;
     while (b > 0) {
@@ -32,8 +63,8 @@ int greatest_common_denominator(int a, int b) {
 void get_block_output(const Block *block, char *output) {
     char tmpstr[CMDLENGTH] = "";
 	FILE *command_pipe;
-    char *s;
-    int e;
+    char *status;
+    int error;
 	size_t length;
 
     if (block->signal) {
@@ -47,9 +78,9 @@ void get_block_output(const Block *block, char *output) {
     }
     do {
         errno = 0;
-        s = fgets(tmpstr, CMDLENGTH, command_pipe);
-        e = errno;
-    } while (!s && e == EINTR);
+        status = fgets(tmpstr, CMDLENGTH, command_pipe);
+        error = errno;
+    } while (!status && error == EINTR);
 	// TODO: Check if pclose() is right here, because
 	// popen_no_shell uses pipe() and fdopen()
     pclose(command_pipe);
@@ -72,9 +103,8 @@ void get_block_output(const Block *block, char *output) {
 }
 
 void get_block_outputs(int time) {
-    const Block *block;
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
-        block = blocks + i;
+		Block *block = &blocks[i];
         if ((block->interval != 0 && time % block->interval == 0) || time == -1) {
             get_block_output(block, status_bar[i]);
         }
@@ -83,9 +113,8 @@ void get_block_outputs(int time) {
 }
 
 void get_signal_commands(int signal) {
-    const Block *block;
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
-        block = blocks + i;
+		Block *block = &blocks[i];
         if (block->signal == signal) {
             get_block_output(block, status_bar[i]);
         }
@@ -136,37 +165,6 @@ void setroot(void) {
     return;
 }
 
-void status_loop(void) {
-    int interrupted = 0;
-    int interval = -1;
-    int idx = 0;
-    struct timespec sleep_time;
-	struct timespec to_sleep;
-
-    setup_signals();
-    for (uint i = 0; i < LENGTH(blocks); i += 1) {
-        if (blocks[i].interval) {
-            interval = greatest_common_denominator(blocks[i].interval, interval);
-        }
-    }
-	sleep_time.tv_sec = interval;
-	sleep_time.tv_nsec = 0;
-    to_sleep = sleep_time;
-
-    get_block_outputs(-1);
-    while (true) {
-        interrupted = nanosleep(&to_sleep, &to_sleep);
-        if (interrupted == -1) {
-			printf("dwmblocks is on interrupt loop!\n");
-            continue;
-        }
-        get_block_outputs(idx);
-        setroot();
-        idx += interval;
-        to_sleep = sleep_time;
-    }
-}
-
 void signal_handler(int signum) {
     get_signal_commands(signum - SIGRTMIN);
     setroot();
@@ -179,6 +177,7 @@ void button_handler(int sig, siginfo_t *si, void *ucontext) {
     pid_t process_id = getpid();
     (void) ucontext;
     sig = (si->si_value.sival_int >> 3) - 34;
+
     if (fork() == 0) {
         Block *block = NULL;
         for (uint i = 0; i < LENGTH(blocks); i += 1) {

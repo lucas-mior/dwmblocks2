@@ -11,9 +11,6 @@
 
 #include "dwmblocks.h"
 
-#define LENGTH(X) (sizeof (X) / sizeof (X[0]))
-#define CMDLENGTH 100UL
-
 int main(void) {
     if ((display = XOpenDisplay(NULL)) == NULL) {
         fprintf(stderr, "Error opening X display\n");
