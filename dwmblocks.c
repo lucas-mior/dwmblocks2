@@ -10,13 +10,12 @@
 #include <X11/Xlib.h>
 
 #include "dwmblocks.h"
-#include "config.h"
 
 Display *display;
 int screen;
 Window root;
-char status_bar[LENGTH(blocks)][CMDLENGTH] = {0};
-char statusstr[2][512];
+static char status_bar[LENGTH(blocks)][CMDLENGTH] = {0};
+static char status_str[2][512];
 static const char *delim = " ";
 
 void remove_all(char *str, char to_remove) {
@@ -136,9 +135,9 @@ int get_status(char *str, char *last) {
 }
 
 void setroot(void) {
-    if (!get_status(statusstr[0], statusstr[1]))
+    if (!get_status(status_str[0], status_str[1]))
         return;
-    XStoreName(display, root, statusstr[0]);
+    XStoreName(display, root, status_str[0]);
     XFlush(display);
     return;
 }

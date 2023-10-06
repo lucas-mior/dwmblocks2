@@ -58,8 +58,6 @@ void status_loop(void) __attribute__((noreturn));
 
 extern Display *display;
 extern Window root;
-extern char statusbar[LENGTH(blocks)][CMDLENGTH];
-extern char statusstr[2][512];
 extern int screen;
 
 #endif /* DWMBLOCKS_H */
