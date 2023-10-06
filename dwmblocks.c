@@ -45,7 +45,6 @@ int greatest_common_denominator(int a, int b) {
 
 void get_block_output(const Block *block, char *output) {
     char tmpstr[CMDLENGTH] = "";
-	char *cmd = block->command;
 	FILE *command_pipe;
     char *s;
     int e;
@@ -55,7 +54,7 @@ void get_block_output(const Block *block, char *output) {
         output[0] = (char) block->signal;
         output += 1;
     }
-    if (!(command_pipe = popen(cmd, "r"))) {
+    if (!(command_pipe = popen(block->command, "r"))) {
         fprintf(stderr, "Failed to run %s: %s\n",
                          block->command, strerror(errno));
         return;
