@@ -8,8 +8,6 @@
 #include <signal.h>
 #include <errno.h>
 #include <X11/Xlib.h>
-#define LENGTH(X) (sizeof (X) / sizeof (X[0]))
-#define CMDLENGTH 100UL
 
 #include "dwmblocks.h"
 #include "config.h"
