@@ -40,7 +40,7 @@ void get_block_output(const Block *block, char *output) {
         output[0] = (char) block->signal;
         output += 1;
     }
-    if (!(command_pipe = popen(block->command, "r"))) {
+    if (!(command_pipe = popen_no_shell(block->command))) {
         fprintf(stderr, "Failed to run %s: %s\n",
                          block->command, strerror(errno));
         return;
@@ -195,5 +195,52 @@ void button_handler(int sig, siginfo_t *si, void *ucontext) {
         setsid();
         execvp(command[0], command);
         exit(EXIT_SUCCESS);
+    }
+}
+
+FILE *popen_no_shell(char *command) {
+    int pipefd[2];
+    pid_t pid;
+
+    char *c = command;
+    char *argv[5] = { command, NULL };
+    bool expects_parsing = false;
+
+    if (pipe(pipefd) == -1) {
+        perror("pipe");
+        return NULL;
+    }
+
+
+    while (*c) {
+        if ((*c == ' ') || (*c == '\t')) {
+            expects_parsing = true;
+            break;
+        }
+        c += 1;
+    }
+
+    if (expects_parsing) {
+        argv[0] = "/bin/sh";
+        argv[1] = "-c";
+        argv[2] = command;
+        argv[3] = NULL;
+    }
+
+    switch (pid = fork()) {
+    case 0:
+        close(pipefd[0]);
+        dup2(pipefd[1], STDOUT_FILENO);
+        close(pipefd[1]);
+
+        execvp(argv[0], argv);
+        fprintf(stderr, "Error executing %s: %s\n",
+                        argv[0], strerror(errno));
+        exit(1);
+    case -1:
+        exit(1);
+    default:
+        close(pipefd[1]); // Close write end in parent
+        return fdopen(pipefd[0], "r"); // Return a file stream for reading
     }
 }

@@ -31,6 +31,7 @@ void setroot(void);
 void setup_signals(void);
 void signal_handler(int);
 void status_loop(void) __attribute__((noreturn));
+FILE *popen_no_shell(char *);
 
 extern Display *display;
 extern Window root;
