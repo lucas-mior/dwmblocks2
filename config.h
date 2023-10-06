@@ -1,7 +1,7 @@
 #include "dwmblocks.h"
 
 //Modify this file to change what commands output to your statusbar, and recompile using the make command.
-static const Block blocks[] = {
+static Block blocks[] = {
 	/*Icon*/  /*Command*/    /*Update Interval*/    /*Update Signal*/
 	{"", "cat /tmp/ric 2>/dev/null",        0,    10},
 	{"", "clipout.sh",                      0,    11},

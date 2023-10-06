@@ -1,12 +1,12 @@
 .POSIX:
 
 PREFIX = /usr/local
-CC = gcc
+CC = clang
 
 dwmblocks: dwmblocks.o
-	$(CC) dwmblocks.o -lX11 -o dwmblocks
+	$(CC) -D_DEFAULT_SOURCE -Weverything -Wno-unsafe-buffer-usage dwmblocks.o -lX11 -o dwmblocks
 dwmblocks.o: dwmblocks.c config.h dwmblocks.h
-	$(CC) -c dwmblocks.c
+	$(CC) -D_DEFAULT_SOURCE -c -Weverything -Wno-unsafe-buffer-usage dwmblocks.c
 clean:
 	rm -f *.o *.gch dwmblocks
 install: dwmblocks

@@ -1,5 +1,5 @@
-#define _DEFAULT_SOURCE
 #include <stdlib.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -8,21 +8,22 @@
 #include <signal.h>
 #include <errno.h>
 #include <X11/Xlib.h>
-#define LENGTH(X) (sizeof(X) / sizeof (X[0]))
-#define CMDLENGTH        50
+#define LENGTH(X) (sizeof (X) / sizeof (X[0]))
+#define CMDLENGTH 100UL
 
-void sighandler(int num);
-void buttonhandler(int sig, siginfo_t *si, void *ucontext);
-void replace(char *str, char old, char new);
-void remove_all(char *str, char to_remove);
-void getcmds(int time);
-void getsigcmds(int signal);
-void setupsignals(void);
-void sighandler(int signum);
-int getstatus(char *str, char *last);
-void setroot(void);
-void statusloop(void);
-void termhandler(int signum);
+#include "dwmblocks.h"
+
+static void button_handler(int, siginfo_t *, void *);
+static void remove_all(char *, char);
+static void get_block_output(const Block *, char *);
+static void get_block_outputs(int);
+static void get_signal_commands(int);
+static void setup_signals(void);
+static void signal_handler(int);
+static int get_status(char *, char *);
+static void setroot(void);
+static void status_loop(void) __attribute__((noreturn));
+static int greatest_common_denominator(int, int);
 
 #include "config.h"
 
@@ -31,123 +32,117 @@ static int screen;
 static Window root;
 static char statusbar[LENGTH(blocks)][CMDLENGTH] = {0};
 static char statusstr[2][512];
-static int statusContinue = 1;
-static void (*writestatus) (void) = setroot;
-
-void replace(char *str, char old, char new) {
-    for (char * c = str; *c; c++)
-        if (*c == old)
-            *c = new;
-    return;
-}
 
 void remove_all(char *str, char to_remove) {
     char *read = str;
     char *write = str;
     while (*read) {
         if (*read != to_remove) {
-            *write++ = *read;
+            *write = *read;
+			write += 1;
         }
-        ++read;
+        read += 1;
     }
     *write = '\0';
     return;
 }
 
-int gcd(int a, int b) {
+int greatest_common_denominator(int a, int b) {
     int temp;
     while (b > 0) {
         temp = a % b;
-
         a = b;
         b = temp;
     }
     return a;
 }
 
-void getcmd(const Block *block, char *output) {
+void get_block_output(const Block *block, char *output) {
+    char tmpstr[CMDLENGTH] = "";
+	char *cmd = block->command;
+	FILE *command_pipe;
+    char *s;
+    int e;
+	int length;
+
     if (block->signal) {
-        output[0] = block->signal;
-        output++;
+        output[0] = (char) block->signal;
+        output += 1;
     }
-    char *cmd = block->command;
-    FILE *cmdf = popen(cmd, "r");
-    if (!cmdf) {
+    if (!(command_pipe = popen(cmd, "r"))) {
         fprintf(stderr, "Failed to run %s: %s\n",
                          block->command, strerror(errno));
         return;
     }
-    char tmpstr[CMDLENGTH] = "";
-    char * s;
-    int e;
     do {
         errno = 0;
-        s = fgets(tmpstr, CMDLENGTH-(strlen(delim)+1), cmdf);
+        s = fgets(tmpstr, (int) (CMDLENGTH - strlen(delim) + 1), command_pipe);
         e = errno;
     } while (!s && e == EINTR);
-    pclose(cmdf);
-    int i = strlen(block->icon);
+    pclose(command_pipe);
+
     strcpy(output, block->icon);
-    strcpy(output+i, tmpstr);
+    strcpy(output + strlen(block->icon), tmpstr);
     remove_all(output, '\n');
-    i = strlen(output);
-    if ((i > 0 && block != &blocks[LENGTH(blocks) - 1])) {
+
+    length = (int) strlen(output);
+    if ((length > 0 && block != &blocks[LENGTH(blocks) - 1])) {
         strcat(output, delim);
     }
-    i+=strlen(delim);
-    output[i++] = '\0';
+    length += strlen(delim);
+    output[length] = '\0';
     return;
 }
 
-void getcmds(int time) {
-    const Block* current;
-    for (uint i = 0; i < LENGTH(blocks); i++) {
-        current = blocks + i;
-        if ((current->interval != 0 && time % current->interval == 0) || time == -1) {
-            getcmd(current,statusbar[i]);
+void get_block_outputs(int time) {
+    const Block *block;
+    for (uint i = 0; i < LENGTH(blocks); i += 1) {
+        block = blocks + i;
+        if ((block->interval != 0 && time % block->interval == 0) || time == -1) {
+            get_block_output(block, statusbar[i]);
         }
     }
     return;
 }
 
-void getsigcmds(int signal) {
-    const Block *current;
-    for (uint i = 0; i < LENGTH(blocks); i++) {
-        current = blocks + i;
-        if (current->signal == signal) {
-            getcmd(current,statusbar[i]);
+void get_signal_commands(int signal) {
+    const Block *block;
+    for (uint i = 0; i < LENGTH(blocks); i += 1) {
+        block = blocks + i;
+        if (block->signal == signal) {
+            get_block_output(block, statusbar[i]);
         }
     }
     return;
 }
 
-void setupsignals(void) {
+void setup_signals(void) {
     struct sigaction sa;
+	struct sigaction sigchld_action = {
+		.sa_handler = SIG_DFL,
+		.sa_flags = SA_NOCLDWAIT
+	};
 
-    for (int i = SIGRTMIN; i <= SIGRTMAX; i++)
+    for (int i = SIGRTMIN; i <= SIGRTMAX; i += 1)
         signal(i, SIG_IGN);
 
-    for (uint i = 0; i < LENGTH(blocks); i++) {
+    for (uint i = 0; i < LENGTH(blocks); i += 1) {
         if (blocks[i].signal > 0) {
-            signal(SIGRTMIN+blocks[i].signal, sighandler);
+            signal(SIGRTMIN+blocks[i].signal, signal_handler);
             sigaddset(&sa.sa_mask, SIGRTMIN+blocks[i].signal);
         }
     }
-    sa.sa_sigaction = buttonhandler;
+    sa.sa_sigaction = button_handler;
     sa.sa_flags = SA_SIGINFO;
     sigaction(SIGUSR1, &sa, NULL);
-    struct sigaction sigchld_action = {
-          .sa_handler = SIG_DFL,
-          .sa_flags = SA_NOCLDWAIT
-    };
     sigaction(SIGCHLD, &sigchld_action, NULL);
-
+	return;
 }
 
-int getstatus(char *str, char *last) {
+int get_status(char *str, char *last) {
     strcpy(last, str);
     str[0] = '\0';
-    for (uint i = 0; i < LENGTH(blocks); i++) {
+    for (uint i = 0; i < LENGTH(blocks); i += 1) {
         strcat(str, statusbar[i]);
         if (i == LENGTH(blocks) - 1)
             strcat(str, " ");
@@ -157,73 +152,70 @@ int getstatus(char *str, char *last) {
 }
 
 void setroot(void) {
-    if (!getstatus(statusstr[0], statusstr[1])) //Only set root if text has changed.
+    if (!get_status(statusstr[0], statusstr[1]))
         return;
     XStoreName(dpy, root, statusstr[0]);
     XFlush(dpy);
     return;
 }
 
-void pstdout(void) {
-    if (!getstatus(statusstr[0], statusstr[1]))//Only write out if text has changed.
-        return;
-    printf("%s\n",statusstr[0]);
-    fflush(stdout);
-    return;
-}
 
-void statusloop(void) {
-    setupsignals();
-    // first figure out the default wait interval by finding the
-    // greatest common denominator of the intervals
-    unsigned int interval = -1;
-    for (uint i = 0; i < LENGTH(blocks); i++) {
+void status_loop(void) {
+    int interrupted = 0;
+    int interval = -1;
+    int idx = 0;
+    struct timespec sleep_time;
+	struct timespec to_sleep;
+
+    setup_signals();
+    for (uint i = 0; i < LENGTH(blocks); i += 1) {
         if (blocks[i].interval) {
-            interval = gcd(blocks[i].interval, interval);
+            interval = greatest_common_denominator(blocks[i].interval, interval);
         }
     }
-    unsigned int i = 0;
-    int interrupted = 0;
-    const struct timespec sleeptime = {interval, 0};
-    struct timespec tosleep = sleeptime;
-    getcmds(-1);
-    while (statusContinue) {
-        // sleep for tosleep (should be a sleeptime of interval seconds) and put what was left if interrupted back into tosleep
-        interrupted = nanosleep(&tosleep, &tosleep);
-        // if interrupted then just go sleep again for the remaining time
+	sleep_time.tv_sec = interval;
+	sleep_time.tv_nsec = 0;
+    to_sleep = sleep_time;
+
+    get_block_outputs(-1);
+    while (true) {
+        interrupted = nanosleep(&to_sleep, &to_sleep);
         if (interrupted == -1) {
+			printf("dwmblocks is on interrupt loop!\n");
             continue;
         }
-        // if not interrupted then do the calling and writing
-        getcmds(i);
-        writestatus();
-        // then increment since its actually been a second (plus the time it took the commands to run)
-        i += interval;
-        // set the time to sleep back to the sleeptime of 1s
-        tosleep = sleeptime;
+        get_block_outputs(idx);
+        setroot();
+        idx += interval;
+        to_sleep = sleep_time;
     }
 }
 
-void sighandler(int signum) {
-    getsigcmds(signum-SIGRTMIN);
-    writestatus();
+void signal_handler(int signum) {
+    get_signal_commands(signum - SIGRTMIN);
+    setroot();
 }
 
-void buttonhandler(int sig, siginfo_t *si, void *ucontext) {
-    (void) ucontext;
+void button_handler(int sig, siginfo_t *si, void *ucontext) {
     char button[2] = {'0' + (si->si_value.sival_int & 7), '\0'};
+	char shcmd[1024];
+	char *command[4];
     pid_t process_id = getpid();
-    sig = (si->si_value.sival_int >> 3) - 34;   // And this line
+    (void) ucontext;
+    sig = (si->si_value.sival_int >> 3) - 34;
     if (fork() == 0) {
-        const Block *current;
-        for (uint i = 0; i < LENGTH(blocks); i++) {
-            current = blocks + i;
-            if (current->signal == sig)
+        Block *block = NULL;
+        for (uint i = 0; i < LENGTH(blocks); i += 1) {
+            block = &blocks[i];
+            if (block->signal == sig)
                 break;
         }
-        char shcmd[1024];
-        sprintf(shcmd,"%s && kill -%d %d",current->command, current->signal+34,process_id);
-        char *command[] = { "/bin/sh", "-c", shcmd, NULL };
+        snprintf(shcmd, sizeof (shcmd),
+				 "%s && kill -%d %d", block->command, block->signal+34, process_id);
+        command[0] = "/bin/sh";
+		command[1] = "-c";
+		command[2] = shcmd;
+		command[3] = NULL;
         setenv("BLOCK_BUTTON", button, 1);
         setsid();
         execvp(command[0], command);
@@ -231,13 +223,7 @@ void buttonhandler(int sig, siginfo_t *si, void *ucontext) {
     }
 }
 
-void termhandler(int signum) {
-    (void) signum;
-    statusContinue = 0;
-    exit(0);
-}
-
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
     if ((dpy = XOpenDisplay(NULL)) == NULL) {
         fprintf(stderr, "Error opening X display\n");
         exit(EXIT_FAILURE);
@@ -245,15 +231,11 @@ int main(int argc, char** argv) {
     screen = DefaultScreen(dpy);
     root = RootWindow(dpy, screen);
 
-    for (int i = 0; i < argc; i++) {
-        if (!strcmp("-d",argv[i]))
-            delim = argv[++i];
-        else if(!strcmp("-p",argv[i]))
-            writestatus = pstdout;
+    for (int i = 0; i < argc; i += 1) {
+        if (!strcmp("-d", argv[i])) {
+			i += 1;
+            delim = argv[i];
+		}
     }
-    signal(SIGTERM, termhandler);
-    signal(SIGINT, termhandler);
-    statusloop();
-
-    XCloseDisplay(dpy);
+    status_loop();
 }

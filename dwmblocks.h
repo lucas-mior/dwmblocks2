@@ -4,7 +4,7 @@
 typedef struct {
 	char* icon;
 	char* command;
-	unsigned int interval;
+	int interval;
 	int signal;
 } Block;
 
