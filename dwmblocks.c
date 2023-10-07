@@ -55,7 +55,10 @@ void get_block_output(const Block *block, char *output) {
     pclose(command_pipe);
 
     length = strcspn(buffer, "\n");
+    buffer[length] = '\0';
     memcpy(output, buffer, length);
+    if (length == 0)
+        return;
 
     while (output[length - 1] == delim) {
         output[length - 1] = delim;
