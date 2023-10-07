@@ -43,6 +43,7 @@ void get_block_output(const Block *block, char *output) {
     if (!(command_pipe = popen_no_shell(block->command))) {
         fprintf(stderr, "Failed to run %s: %s\n",
                          block->command, strerror(errno));
+        output[0] = '\0';
         return;
     }
     do {
