@@ -1,22 +1,25 @@
+#ifndef BLOCKS_H
+#define BLOCKS_H
+
 static Block blocks[] = {
-    /*Command*/    /*Update Interval*/    /*Update Signal*/
-    {"cat /tmp/ric 2>/dev/null",        0,    10},
-    {"clipout.sh",                      0,    11},
-    {"0ydl.sh",                         0,    12},
-    {"0notmounted.sh",                  0,    13},
-    {"0mounted.sh",                     0,    14},
-    {"0phone.sh",                       0,    15},
-    {"musica.sh",                       0,    16},
-    {"vol.sh",                          0,    17},
-    {"mic.sh",                          0,    18},
-    {"bril.sh",                         0,    19},
-    {"rorario",                         1,    21},
-    {"1memory.sh",                     60,    22},
-    {"1temp.sh",                       60,    23},
-    {"1internet.awk"
-     " /sys/class/net/w*/flags"
-     " /sys/class/net/*/operstate",     0,    27},
-    {"1bluetooth.sh",                  80,    25},
-    {"bateria.awk "
-    	 "/sys/class/power_*/BAT0/uevent", 60,    26},
+/* command                  update interval   update signal */
+{"block_recording.sh",                    0,  10},
+{"block_clipboard.sh",                    0,  11},
+{"block_ytdlp.sh",                        0,  12},
+{"block_drives_not.sh",                   0,  13},
+{"block_drives_mount.sh",                 0,  14},
+{"block_phone.sh",                        0,  15},
+{"block_music.sh",                        0,  16},
+{"block_volume.sh",                       0,  17},
+{"block_microphone.sh",                   0,  18},
+{"block_brilho.sh",                       0,  19},
+//{"block_news.sh", 0, 20},
+{"rorario",                               1,  21},
+{"block_memory.sh",                      60,  22},
+{"block_temperature.sh",                 60,  23},
+{"block_internet.sh",                     0,  27},
+{"block_bluetooth.sh",                   80,  25},
+{"block_bateria.sh",                     60,  26},
 };
+
+#endif

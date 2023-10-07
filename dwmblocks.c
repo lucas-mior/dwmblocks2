@@ -29,7 +29,7 @@ int gcd(int a, int b) {
 }
 
 void get_block_output(const Block *block, char *output) {
-    char tmpstr[CMDLENGTH] = "";
+    char buffer[CMDLENGTH] = "";
     FILE *command_pipe;
     char *status;
     int error;
@@ -46,15 +46,15 @@ void get_block_output(const Block *block, char *output) {
     }
     do {
         errno = 0;
-        status = fgets(tmpstr, CMDLENGTH, command_pipe);
+        status = fgets(buffer, sizeof (buffer), command_pipe);
         error = errno;
     } while (!status && error == EINTR);
     // TODO: Check if pclose() is right here, because
     // popen_no_shell uses pipe() and fdopen()
     pclose(command_pipe);
 
-    length = strcspn(tmpstr, "\n");
-    memcpy(output, tmpstr, length);
+    length = strcspn(buffer, "\n");
+    memcpy(output, buffer, length);
 
     while (output[length - 1] == delim) {
         output[length - 1] = delim;
@@ -115,13 +115,13 @@ void signal_handler(int signum) {
     set_root();
 }
 
-void button_handler(int sig, siginfo_t *si, void *ucontext) {
-    char button[2] = {'0' + (si->si_value.sival_int & 7), '\0'};
+void button_handler(int sig, siginfo_t *signal_info, void *ucontext) {
+    char button[2] = {'0' + (signal_info->si_value.sival_int & 7), '\0'};
     char kill_command[1024];
     char *command[4];
     pid_t process_id = getpid();
     (void) ucontext;
-    sig = (si->si_value.sival_int >> 3) - SIGRTMIN;
+    sig = (signal_info->si_value.sival_int >> 3) - SIGRTMIN;
 
     if (fork() == 0) {
         Block *block = NULL;

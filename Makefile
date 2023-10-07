@@ -8,8 +8,8 @@ objs = dwmblocks.o
 
 all: release
 
-$(objs): Makefile dwmblocks.h
-dwmblocks.o: dwmblocks.c dwmblocks.h
+$(objs): Makefile dwmblocks.h blocks.h
+dwmblocks.o: dwmblocks.c dwmblocks.h blocks.h
 
 CFLAGS += -std=c99 -D_DEFAULT_SOURCE
 CFLAGS += -Wextra -Wall
