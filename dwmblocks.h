@@ -32,6 +32,5 @@ FILE *popen_no_shell(char *);
 
 extern Display *display;
 extern Window root;
-extern int screen;
 
 #endif /* DWMBLOCKS_H */
