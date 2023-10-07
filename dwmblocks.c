@@ -158,7 +158,6 @@ FILE *popen_no_shell(char *command) {
 
     char *c = command;
     char *argv[4] = { command, NULL };
-    bool expects_parsing = false;
 
     if (pipe(pipefd) < 0) {
         perror("pipe");
@@ -167,17 +166,13 @@ FILE *popen_no_shell(char *command) {
 
     while (*c) {
         if ((*c == ' ') || (*c == '\t')) {
-            expects_parsing = true;
+			argv[0] = "/bin/sh";
+			argv[1] = "-c";
+			argv[2] = command;
+			argv[3] = NULL;
             break;
         }
         c += 1;
-    }
-
-    if (expects_parsing) {
-        argv[0] = "/bin/sh";
-        argv[1] = "-c";
-        argv[2] = command;
-        argv[3] = NULL;
     }
 
     switch (pid = fork()) {
