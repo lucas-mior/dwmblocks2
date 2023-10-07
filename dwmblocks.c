@@ -16,7 +16,6 @@ Display *display;
 Window root;
 static char status_bar[LENGTH(blocks)][CMDLENGTH] = {0};
 static char status_new[sizeof (status_bar)];
-static char status_old[sizeof (status_bar)];
 static const char delim = ' ';
 
 int gcd(int a, int b) {
@@ -88,8 +87,6 @@ void get_block_outputs(int seconds) {
 }
 
 void set_root(void) {
-    memcpy(status_old, status_new, sizeof (status_new));
-
     status_new[0] = '\0';
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
         strcat(status_new, status_bar[i]);
@@ -98,10 +95,6 @@ void set_root(void) {
     }
     status_new[strlen(status_new) - 1] = '\0';
 
-    if (!strcmp(status_new, status_old)) {
-        fprintf(stderr, "status did not change!\n");
-        return;
-    }
     XStoreName(display, root, status_new);
     XFlush(display);
     return;
