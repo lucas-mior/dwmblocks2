@@ -13,7 +13,6 @@
 #include "blocks.h"
 
 Display *display;
-int screen;
 Window root;
 static char status_bar[LENGTH(blocks)][CMDLENGTH] = {0};
 static char status_str[2][512];

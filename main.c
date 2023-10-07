@@ -18,6 +18,7 @@ int main(void) {
     int idx = 0;
     struct timespec sleep_time;
 	struct timespec to_sleep;
+	int screen;
 
     if ((display = XOpenDisplay(NULL)) == NULL) {
         fprintf(stderr, "Error opening X display\n");
