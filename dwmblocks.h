@@ -13,16 +13,16 @@
 #define DWMBLOCKS_H
 
 #define LENGTH(X) (sizeof (X) / sizeof (X[0]))
-#define CMDLENGTH 100UL
+#define CMDLENGTH 64
 
 typedef struct {
-	char *command;
-	int interval;
-	int signal;
+    char *command;
+    int interval;
+    int signal;
 } Block;
 
 int get_status(char *, char *);
-int greatest_common_denominator(int, int);
+int gcd(int, int);
 void button_handler(int, siginfo_t *, void *);
 void get_block_output(const Block *, char *);
 void get_block_outputs(int);
