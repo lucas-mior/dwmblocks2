@@ -117,7 +117,7 @@ void button_handler(int sig, siginfo_t *si, void *ucontext) {
     char *command[4];
     pid_t process_id = getpid();
     (void) ucontext;
-    sig = (si->si_value.sival_int >> 3) - 34;
+    sig = (si->si_value.sival_int >> 3) - SIGRTMIN;
 
     if (fork() == 0) {
         Block *block = NULL;
