@@ -29,7 +29,7 @@ int gcd(int a, int b) {
 }
 
 void get_block_output(const Block *block, char *output) {
-    char buffer[CMDLENGTH];
+    char buffer[CMDLENGTH] = {0};
     FILE *command_pipe;
     char *status;
     int error;
