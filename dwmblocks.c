@@ -138,7 +138,7 @@ void button_handler(int sig, siginfo_t *si, void *ucontext) {
 
         // TODO: simplify this kill command
         snprintf(kill_command, sizeof (kill_command),
-                 "%s && kill -%d %d", block->command, block->signal+34, process_id);
+                 "%s && kill -%d %d", block->command, block->signal+SIGRTMIN, process_id);
         command[0] = "/bin/sh";
         command[1] = "-c";
         command[2] = kill_command;
