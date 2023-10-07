@@ -14,7 +14,7 @@
 
 Display *display;
 Window root;
-static char status_bar[LENGTH(blocks)][CMDLENGTH] = {0};
+static char status_bar[LENGTH(blocks)][BLOCK_OUTPUT_LENGTH] = {0};
 static char status_new[sizeof (status_bar)];
 static const char delim = ' ';
 
@@ -29,7 +29,7 @@ int gcd(int a, int b) {
 }
 
 void get_block_output(const Block *block, char *output) {
-    char buffer[CMDLENGTH] = {0};
+    char buffer[BLOCK_OUTPUT_LENGTH] = {0};
     FILE *command_pipe;
     char *status;
     int error;

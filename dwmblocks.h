@@ -13,7 +13,7 @@
 #define DWMBLOCKS_H
 
 #define LENGTH(X) (sizeof (X) / sizeof (X[0]))
-#define CMDLENGTH 64
+#define BLOCK_OUTPUT_LENGTH 64
 
 typedef struct {
     char *command;
