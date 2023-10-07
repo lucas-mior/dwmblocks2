@@ -192,7 +192,7 @@ FILE *popen_no_shell(char *command) {
         exit(EXIT_FAILURE);
     case -1:
         fprintf(stderr, "Error forking: %s\n", strerror(errno));
-        exit(EXIT_FAILURE);
+		return NULL;
     default:
         close(pipefd[1]);
         return fdopen(pipefd[0], "r");
