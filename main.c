@@ -13,18 +13,18 @@
 #include "blocks.h"
 
 int main(void) {
+    int interrupted = 0;
+    int interval = -1;
+    int idx = 0;
+    struct timespec sleep_time;
+	struct timespec to_sleep;
+
     if ((display = XOpenDisplay(NULL)) == NULL) {
         fprintf(stderr, "Error opening X display\n");
         exit(EXIT_FAILURE);
     }
     screen = DefaultScreen(display);
     root = RootWindow(display, screen);
-
-    int interrupted = 0;
-    int interval = -1;
-    int idx = 0;
-    struct timespec sleep_time;
-	struct timespec to_sleep;
 
     struct sigaction sa;
 	struct sigaction sigchld_action = {

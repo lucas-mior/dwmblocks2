@@ -81,16 +81,6 @@ void get_block_outputs(int time) {
     return;
 }
 
-void get_signal_commands(int signal) {
-    for (uint i = 0; i < LENGTH(blocks); i += 1) {
-		Block *block = &blocks[i];
-        if (block->signal == signal) {
-            get_block_output(block, status_bar[i]);
-        }
-    }
-    return;
-}
-
 int get_status(char *str, char *last) {
     strcpy(last, str);
     str[0] = '\0';
@@ -112,7 +102,12 @@ void setroot(void) {
 }
 
 void signal_handler(int signum) {
-    get_signal_commands(signum - SIGRTMIN);
+    for (uint i = 0; i < LENGTH(blocks); i += 1) {
+		Block *block = &blocks[i];
+        if (block->signal == (signum - SIGRTMIN)) {
+            get_block_output(block, status_bar[i]);
+        }
+    }
     setroot();
 }
 
