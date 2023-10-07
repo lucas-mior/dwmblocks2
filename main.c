@@ -1,14 +1,3 @@
-#include <stdlib.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/wait.h>
-#include <time.h>
-#include <signal.h>
-#include <errno.h>
-#include <X11/Xlib.h>
-
 #include "dwmblocks.h"
 #include "blocks.h"
 
@@ -56,7 +45,7 @@ int main(void) {
     do {
         to_sleep = sleep_time;
         get_block_outputs(seconds);
-        set_root();
+        set_root(false);
 
         while (nanosleep(&to_sleep, &to_sleep) < 0);
         seconds += common_interval;

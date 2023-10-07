@@ -1,14 +1,3 @@
-#include <stdlib.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/wait.h>
-#include <time.h>
-#include <signal.h>
-#include <errno.h>
-#include <X11/Xlib.h>
-
 #include "dwmblocks.h"
 #include "blocks.h"
 
@@ -16,6 +5,7 @@ Display *display;
 Window root;
 static char status_bar[LENGTH(blocks)][BLOCK_OUTPUT_LENGTH] = {0};
 static char status_new[sizeof (status_bar)];
+static char status_old[sizeof (status_bar)];
 static const char delim = ' ';
 
 int gcd(int a, int b) {
@@ -89,14 +79,18 @@ void get_block_outputs(int seconds) {
     return;
 }
 
-void set_root(void) {
+void set_root(bool check_changed) {
+    if (check_changed)
+        memcpy(status_old, status_new, sizeof (status_new));
+
     status_new[0] = '\0';
-    for (uint i = 0; i < LENGTH(blocks); i += 1) {
+    for (uint i = 0; i < LENGTH(blocks); i += 1)
         strcat(status_new, status_bar[i]);
-        if (i == LENGTH(blocks) - 1)
-            strcat(status_new, " ");
+
+    if (check_changed && !memcmp(status_old, status_new, sizeof (status_new))) {
+        fprintf(stderr, "Status bar not changed!\n");
+        return;
     }
-    status_new[strlen(status_new) - 1] = '\0';
 
     XStoreName(display, root, status_new);
     XFlush(display);
@@ -106,11 +100,10 @@ void set_root(void) {
 void signal_handler(int signum) {
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
-        if (block->signal == (signum - SIGRTMIN)) {
+        if (block->signal == (signum - SIGRTMIN))
             get_block_output(block, status_bar[i]);
-        }
     }
-    set_root();
+    set_root(true);
 }
 
 void button_handler(int signum, siginfo_t *signal_info, void *ucontext) {
