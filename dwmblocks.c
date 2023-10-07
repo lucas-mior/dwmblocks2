@@ -73,9 +73,13 @@ void get_block_output(const Block *block, char *output) {
 void get_block_outputs(int seconds) {
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
+		if (seconds < 0) {
+            get_block_output(block, status_bar[i]);
+			continue;
+		}
 		if (block->interval == 0)
 			continue;
-        if (seconds < 0 || (seconds % block->interval == 0))
+        if ((seconds % block->interval) == 0)
             get_block_output(block, status_bar[i]);
     }
     return;
