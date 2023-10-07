@@ -13,17 +13,16 @@
 #include "blocks.h"
 
 int main(void) {
-    int longest_common_interval = -1;
-    int seconds = 0;
+    int common_interval = -1;
+    int seconds = -1;
     struct timespec sleep_time;
     struct timespec to_sleep;
     int screen;
 
     struct sigaction signal_action;
-    struct sigaction signal_child_action = {
-        .sa_handler = SIG_DFL,
-        .sa_flags = SA_NOCLDWAIT
-    };
+    struct sigaction signal_child_action;
+    signal_child_action.sa_handler = SIG_DFL;
+    signal_child_action.sa_flags = SA_NOCLDWAIT;
 
     if ((display = XOpenDisplay(NULL)) == NULL) {
         fprintf(stderr, "Error opening X display\n");
@@ -48,21 +47,18 @@ int main(void) {
     sigaction(SIGCHLD, &signal_child_action, NULL);
 
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
-        if (blocks[i].interval) {
-            longest_common_interval = gcd(blocks[i].interval, longest_common_interval);
-        }
+        if (blocks[i].interval)
+            common_interval = gcd(common_interval, blocks[i].interval);
     }
-    sleep_time.tv_sec = longest_common_interval;
+    sleep_time.tv_sec = common_interval;
     sleep_time.tv_nsec = 0;
-    to_sleep = sleep_time;
 
-    get_block_outputs(-1);
-    while (true) {
-        if (nanosleep(&to_sleep, &to_sleep) < 0)
-            continue;
+    do {
+        to_sleep = sleep_time;
         get_block_outputs(seconds);
         set_root();
-        seconds += longest_common_interval;
-        to_sleep = sleep_time;
-    }
+
+        while (nanosleep(&to_sleep, &to_sleep) < 0);
+        seconds += common_interval;
+    } while (true);
 }

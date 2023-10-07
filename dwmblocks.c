@@ -56,21 +56,20 @@ void get_block_output(const Block *block, char *output) {
 
     length = strcspn(buffer, "\n");
     buffer[length] = '\0';
-    memcpy(output, buffer, length);
+    memcpy(output, buffer, length + 1);
     if (length == 0)
         return;
 
     while (output[length - 1] == delim) {
-        output[length - 1] = delim;
+        output[length - 1] = '\0';
         length -= 1;
         if (length == 1)
             break;
     }
     if ((length > 0) && (block != last_block)) {
         output[length] = delim;
+        output[length + 1] = '\0';
     }
-    length += 1;
-    output[length] = '\0';
     return;
 }
 
@@ -113,39 +112,38 @@ void signal_handler(int signum) {
     set_root();
 }
 
-void button_handler(int sig, siginfo_t *signal_info, void *ucontext) {
+void button_handler(int signum, siginfo_t *signal_info, void *ucontext) {
     char button[2] = {'0' + (signal_info->si_value.sival_int & 7), '\0'};
-    char kill_command[1024];
-    char *command[4];
-    pid_t process_id = getpid();
+    Block *block = NULL;
+    char *command[2];
     (void) ucontext;
-    sig = (signal_info->si_value.sival_int >> 3) - SIGRTMIN;
-
-    if (fork() == 0) {
-        Block *block = NULL;
-        for (uint i = 0; i < LENGTH(blocks); i += 1) {
-            if (blocks[i].signal == sig) {
-                block = &blocks[i];
-                break;
-            }
+    signum = (signal_info->si_value.sival_int >> 3) - SIGRTMIN;
+    for (uint i = 0; i < LENGTH(blocks); i += 1) {
+        if (blocks[i].signal == signum) {
+            block = &blocks[i];
+            break;
         }
-        if (!block) {
-            fprintf(stderr, "No block configured for signal %d\n", sig);
-            exit(EXIT_SUCCESS);
-        }
+    }
+    if (!block) {
+        fprintf(stderr, "No block configured for signal %d\n", signum);
+        return;
+    }
 
-        // TODO: simplify this kill command
-        snprintf(kill_command, sizeof (kill_command),
-                 "%s && kill -%d %d", block->command, block->signal+SIGRTMIN, process_id);
-        command[0] = "/bin/sh";
-        command[1] = "-c";
-        command[2] = kill_command;
-        command[3] = NULL;
-
+    switch (fork()) {
+    case 0:
+        command[0] = block->command;
+        command[1] = NULL;
         setenv("BLOCK_BUTTON", button, 1);
-        setsid();
         execvp(command[0], command);
+        fprintf(stderr, "running %s failed: %s\n", command[0], strerror(errno));
         exit(EXIT_SUCCESS);
+    case -1:
+        fprintf(stderr, "fork failed: %s\n", strerror(errno));
+        return;
+    default:
+        // wait is supposed to fail because of signal_child_action
+        wait(NULL);
+        kill(getpid(), SIGRTMIN+block->signal);
     }
 	return;
 }
