@@ -15,7 +15,8 @@
 Display *display;
 Window root;
 static char status_bar[LENGTH(blocks)][CMDLENGTH] = {0};
-static char status_str[2][sizeof (status_bar)];
+static char status_new[sizeof (status_bar)];
+static char status_old[sizeof (status_bar)];
 static const char delim = ' ';
 
 int gcd(int a, int b) {
@@ -86,22 +87,24 @@ void get_block_outputs(int seconds) {
     return;
 }
 
-int get_status(char *str, char *last) {
-    strcpy(last, str);
-    str[0] = '\0';
+int status_update(void) {
+    memcpy(status_old, status_new, sizeof (status_new));
+
+    status_new[0] = '\0';
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
-        strcat(str, status_bar[i]);
+        strcat(status_new, status_bar[i]);
         if (i == LENGTH(blocks) - 1)
-            strcat(str, " ");
+            strcat(status_new, " ");
     }
-    str[strlen(str) - 1] = '\0';
-    return strcmp(str, last);
+    status_new[strlen(status_new) - 1] = '\0';
+
+    return strcmp(status_new, status_old);
 }
 
 void set_root(void) {
-    if (!get_status(status_str[0], status_str[1]))
+    if (!status_update())
         return;
-    XStoreName(display, root, status_str[0]);
+    XStoreName(display, root, status_new);
     XFlush(display);
     return;
 }

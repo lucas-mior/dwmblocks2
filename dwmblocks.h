@@ -21,7 +21,7 @@ typedef struct {
     int signal;
 } Block;
 
-int get_status(char *, char *);
+int status_update(void);
 int gcd(int, int);
 void button_handler(int, siginfo_t *, void *);
 void get_block_output(const Block *, char *);
