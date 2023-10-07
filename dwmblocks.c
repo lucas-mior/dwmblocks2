@@ -29,11 +29,12 @@ int gcd(int a, int b) {
 }
 
 void get_block_output(const Block *block, char *output) {
-    char buffer[CMDLENGTH] = "";
+    char buffer[CMDLENGTH];
     FILE *command_pipe;
     char *status;
     int error;
     size_t length;
+    Block *last_block = &blocks[LENGTH(blocks) - 1];
 
     if (block->signal) {
         output[0] = (char) block->signal;
@@ -62,7 +63,7 @@ void get_block_output(const Block *block, char *output) {
         if (length == 1)
             break;
     }
-    if ((length > 0) && (block != &blocks[LENGTH(blocks) - 1])) {
+    if ((length > 0) && (block != last_block)) {
         output[length] = delim;
     }
     length += 1;
