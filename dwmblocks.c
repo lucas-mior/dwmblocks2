@@ -87,7 +87,7 @@ void get_block_outputs(int seconds) {
     return;
 }
 
-int status_update(void) {
+void set_root(void) {
     memcpy(status_old, status_new, sizeof (status_new));
 
     status_new[0] = '\0';
@@ -98,12 +98,10 @@ int status_update(void) {
     }
     status_new[strlen(status_new) - 1] = '\0';
 
-    return strcmp(status_new, status_old);
-}
-
-void set_root(void) {
-    if (!status_update())
+    if (!strcmp(status_new, status_old)) {
+        fprintf(stderr, "status did not change!\n");
         return;
+    }
     XStoreName(display, root, status_new);
     XFlush(display);
     return;
