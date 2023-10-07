@@ -149,6 +149,7 @@ void button_handler(int sig, siginfo_t *si, void *ucontext) {
         execvp(command[0], command);
         exit(EXIT_SUCCESS);
     }
+	return;
 }
 
 FILE *popen_no_shell(char *command) {
