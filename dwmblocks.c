@@ -93,7 +93,7 @@ int get_status(char *str, char *last) {
     return strcmp(str, last);
 }
 
-void setroot(void) {
+void set_root(void) {
     if (!get_status(status_str[0], status_str[1]))
         return;
     XStoreName(display, root, status_str[0]);
@@ -108,7 +108,7 @@ void signal_handler(int signum) {
             get_block_output(block, status_bar[i]);
         }
     }
-    setroot();
+    set_root();
 }
 
 void button_handler(int sig, siginfo_t *si, void *ucontext) {

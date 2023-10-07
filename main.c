@@ -64,7 +64,7 @@ int main(void) {
             continue;
         }
         get_block_outputs(idx);
-        setroot();
+        set_root();
         idx += interval;
         to_sleep = sleep_time;
     }

@@ -26,7 +26,7 @@ int greatest_common_denominator(int, int);
 void button_handler(int, siginfo_t *, void *);
 void get_block_output(const Block *, char *);
 void get_block_outputs(int);
-void setroot(void);
+void set_root(void);
 void signal_handler(int);
 FILE *popen_no_shell(char *);
 
