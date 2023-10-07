@@ -20,18 +20,18 @@ int main(void) {
 	struct timespec to_sleep;
 	int screen;
 
+    struct sigaction sa;
+	struct sigaction sigchld_action = {
+		.sa_handler = SIG_DFL,
+		.sa_flags = SA_NOCLDWAIT
+	};
+
     if ((display = XOpenDisplay(NULL)) == NULL) {
         fprintf(stderr, "Error opening X display\n");
         exit(EXIT_FAILURE);
     }
     screen = DefaultScreen(display);
     root = RootWindow(display, screen);
-
-    struct sigaction sa;
-	struct sigaction sigchld_action = {
-		.sa_handler = SIG_DFL,
-		.sa_flags = SA_NOCLDWAIT
-	};
 
     for (int i = SIGRTMIN; i <= SIGRTMAX; i += 1)
         signal(i, SIG_IGN);
