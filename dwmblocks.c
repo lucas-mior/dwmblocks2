@@ -205,17 +205,24 @@ void block_clock(int button) {
              week, t.tm_mday, t.tm_mon + 1, t.tm_hour, t.tm_min, t.tm_sec);
 
     switch (button) {
-    case 0:
-        break;
     case 1:
-        system("yad --calendar --undecorated --fixed --no-buttons "
-               "| tr -d '\n' | xsel -b");
+        if (fork() == 0) {
+            system("yad --calendar --undecorated --fixed --no-buttons "
+                   "| tr -d '\n' | xsel -b");
+            exit(EXIT_SUCCESS);
+        }
         break;
     case 2:
-        system("print_screen.sh tela");
+        if (fork() == 0) {
+            execlp("print_screen.sh", "print_screen.sh", "tela", NULL);
+            exit(EXIT_SUCCESS);
+        }
         break;
     case 3:
-        system("killall yad");
+        if (fork() == 0) {
+            execlp("killall", "killall", "yad", NULL);
+            exit(EXIT_SUCCESS);
+        }
         break;
     default:
         break;
