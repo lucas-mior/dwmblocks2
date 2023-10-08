@@ -110,7 +110,9 @@ void button_handler(int signum, siginfo_t *signal_info, void *ucontext) {
     char button[2] = {'0' + (signal_info->si_value.sival_int & 7), '\0'};
     Block *block = NULL;
     char *command[2];
+    pid_t child;
     (void) ucontext;
+
     signum = (signal_info->si_value.sival_int >> 3) - SIGRTMIN;
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
         if (blocks[i].signal == signum) {
@@ -123,7 +125,7 @@ void button_handler(int signum, siginfo_t *signal_info, void *ucontext) {
         return;
     }
 
-    switch (fork()) {
+    switch ((child = fork())) {
     case 0:
         command[0] = block->command;
         command[1] = NULL;
@@ -136,7 +138,7 @@ void button_handler(int signum, siginfo_t *signal_info, void *ucontext) {
         return;
     default:
         // wait is supposed to fail because of signal_child_action
-        wait(NULL);
+        waitpid(child, NULL, 0);
         kill(getpid(), SIGRTMIN+block->signal);
     }
 	return;
