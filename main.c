@@ -197,7 +197,7 @@ void button_handler(int signum, siginfo_t *signal_info, void *ucontext) {
                         command[0], strerror(errno));
         exit(EXIT_SUCCESS);
     case -1:
-        fprintf(stderr, "fork failed: %s\n", strerror(errno));
+        fprintf(stderr, "Error forking: %s\n", strerror(errno));
         return;
     default:
         // wait is supposed to fail because of signal_child_action
