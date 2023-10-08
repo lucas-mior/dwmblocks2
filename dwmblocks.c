@@ -4,19 +4,11 @@
 Display *display;
 Window root;
 static char status_bar[LENGTH(blocks)][BLOCK_OUTPUT_LENGTH] = {0};
-static char status_new[sizeof (status_bar)];
-static char status_old[sizeof (status_bar)];
+static char clock_output[BLOCK_OUTPUT_LENGTH] = {0};
+static char status_new[sizeof (status_bar) + sizeof (clock_output)];
+static char status_old[sizeof (status_bar) + sizeof (clock_output)];
 static const char delim = ' ';
-
-int gcd(int a, int b) {
-    int temp;
-    while (b > 0) {
-        temp = a % b;
-        a = b;
-        b = temp;
-    }
-    return a;
-}
+extern int clock_signal;
 
 void get_block_output(const Block *block, char *output) {
     FILE *command_pipe;
@@ -63,7 +55,7 @@ void get_block_output(const Block *block, char *output) {
     return;
 }
 
-void get_block_outputs(int seconds) {
+void get_block_outputs(int64 seconds) {
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
 		if (seconds < 0) {
@@ -75,6 +67,7 @@ void get_block_outputs(int seconds) {
         if ((seconds % block->interval) == 0)
             get_block_output(block, status_bar[i]);
     }
+    block_clock(0);
     return;
 }
 
@@ -85,6 +78,7 @@ void set_root(bool check_changed) {
     status_new[0] = '\0';
     for (uint i = 0; i < LENGTH(blocks); i += 1)
         strcat(status_new, status_bar[i]);
+    strcat(status_new, clock_output);
 
     if (check_changed && !memcmp(status_old, status_new, sizeof (status_new))) {
         fprintf(stderr, "Status bar not changed!\n");
@@ -120,7 +114,10 @@ void button_handler(int signum, siginfo_t *signal_info, void *ucontext) {
         }
     }
     if (!block) {
-        fprintf(stderr, "No block configured for signal %d\n", signum);
+        if (signum == clock_signal)
+            block_clock(atoi(button));
+        else
+            fprintf(stderr, "No block configured for signal %d\n", signum);
         return;
     }
 
@@ -183,4 +180,47 @@ FILE *popen_no_shell(char *command) {
         close(pipefd[1]);
         return fdopen(pipefd[0], "r");
     }
+}
+
+void block_clock(int button) {
+    time_t ti;
+    struct tm t;
+    char *week;
+    char *output = clock_output;
+
+    (void) time(&ti);
+    t = *localtime(&ti);
+    week = ((char *[]) {
+        "dom", 
+        "seg",
+        "ter",
+        "qua",
+        "qui",
+        "sex",
+        "sáb"
+    })[t.tm_wday];
+
+    output[0] = (char) atoi(getenv("HORARIO"));
+    output += 1;
+
+    snprintf(output, BLOCK_OUTPUT_LENGTH - 1, "📅 %s %02d/%02d %02d:%02d:%02d\n",
+             week, t.tm_mday, t.tm_mon + 1, t.tm_hour, t.tm_min, t.tm_sec);
+
+    switch (button) {
+    case 0:
+        break;
+    case 1:
+        system("yad --calendar --undecorated --fixed --no-buttons "
+               "| tr -d '\n' | xsel -b");
+        break;
+    case 2:
+        execlp("print_screen.sh", "print_screen.sh", "tela", NULL);
+        break;
+    case 3:
+        execlp("killall", "killall", "yad", NULL);
+        break;
+    default:
+        break;
+    }
+    return;
 }

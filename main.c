@@ -1,12 +1,20 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <time.h>
+
 #include "dwmblocks.h"
 #include "blocks.h"
 
+int clock_signal;
+
 int main(void) {
-    int common_interval = -1;
-    int seconds = -1;
+    int64 seconds = -1;
     struct timespec sleep_time;
     struct timespec to_sleep;
     int screen;
+    clock_signal = atoi(getenv("HORARIO"));
 
     struct sigaction signal_action;
     struct sigaction signal_child_action;
@@ -29,17 +37,15 @@ int main(void) {
             sigaddset(&signal_action.sa_mask, SIGRTMIN + blocks[i].signal);
         }
     }
+    signal(SIGRTMIN + clock_signal, signal_handler);
+    sigaddset(&signal_action.sa_mask, SIGRTMIN + clock_signal);
 
     signal_action.sa_sigaction = button_handler;
     signal_action.sa_flags = SA_SIGINFO;
     sigaction(SIGUSR1, &signal_action, NULL);
     sigaction(SIGCHLD, &signal_child_action, NULL);
 
-    for (uint i = 0; i < LENGTH(blocks); i += 1) {
-        if (blocks[i].interval)
-            common_interval = gcd(common_interval, blocks[i].interval);
-    }
-    sleep_time.tv_sec = common_interval;
+    sleep_time.tv_sec = 1;
     sleep_time.tv_nsec = 0;
 
     do {
@@ -48,6 +54,6 @@ int main(void) {
         set_root(false);
 
         while (nanosleep(&to_sleep, &to_sleep) < 0);
-        seconds += common_interval;
+        seconds += 1;
     } while (true);
 }

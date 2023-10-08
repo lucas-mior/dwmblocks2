@@ -40,13 +40,13 @@ typedef struct {
     int signal;
 } Block;
 
-int gcd(int, int);
 void button_handler(int, siginfo_t *, void *);
 void get_block_output(const Block *, char *);
-void get_block_outputs(int);
+void get_block_outputs(int64);
 void set_root(bool);
 void signal_handler(int);
 FILE *popen_no_shell(char *);
+void block_clock(int);
 
 extern Display *display;
 extern Window root;

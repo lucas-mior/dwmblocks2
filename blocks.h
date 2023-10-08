@@ -14,7 +14,6 @@ static Block blocks[] = {
 {"block_microphone.sh",                   0,  18},
 {"block_brilho.sh",                       0,  19},
 //{"block_news.sh", 0, 20},
-{"rorario",                               1,  21},
 {"block_memory.sh",                      60,  22},
 {"block_temperature.sh",                 60,  23},
 {"block_internet.sh",                     0,  27},
