@@ -7,10 +7,8 @@
 static Display *display;
 static Window root;
 static char status_bar[LENGTH(blocks)][BLOCK_OUTPUT_LENGTH] = {0};
-
 static char clock_output[BLOCK_OUTPUT_LENGTH] = {0};
 static int clock_signal;
-
 static char status_new[sizeof (status_bar) + sizeof (clock_output)];
 static char status_old[sizeof (status_bar) + sizeof (clock_output)];
 static const char delim = ' ';
@@ -34,6 +32,9 @@ int main(void) {
     struct sigaction signal_child_action;
     signal_child_action.sa_handler = SIG_DFL;
     signal_child_action.sa_flags = SA_NOCLDWAIT;
+
+    sleep_time.tv_sec = 1;
+    sleep_time.tv_nsec = 0;
 
     if ((HORARIO = getenv("HORARIO")) == NULL) {
         fprintf(stderr, "HORARIO environmental variable is not defined\n.");
@@ -65,17 +66,14 @@ int main(void) {
     sigaction(SIGUSR1, &signal_action, NULL);
     sigaction(SIGCHLD, &signal_child_action, NULL);
 
-    sleep_time.tv_sec = 1;
-    sleep_time.tv_nsec = 0;
-
-    do {
+    while (true) {
         to_sleep = sleep_time;
         get_block_outputs(seconds);
         set_root(false);
 
         while (nanosleep(&to_sleep, &to_sleep) < 0);
-        seconds += 1;
-    } while (true);
+        seconds += sleep_time.tv_sec;
+    }
 }
 
 void get_block_output(const Block *block, char *output) {

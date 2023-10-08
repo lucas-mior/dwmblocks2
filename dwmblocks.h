@@ -1,3 +1,6 @@
+#ifndef DWMBLOCKS_H
+#define DWMBLOCKS_H
+
 #include <X11/Xlib.h>
 #include <errno.h>
 #include <signal.h>
@@ -9,9 +12,6 @@
 #include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
-
-#ifndef DWMBLOCKS_H
-#define DWMBLOCKS_H
 
 #ifndef INTEGERS
 #define INTEGERS
