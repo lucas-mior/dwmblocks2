@@ -98,6 +98,7 @@ void signal_handler(int signum) {
             get_block_output(block, status_bar[i]);
     }
     set_root(true);
+    return;
 }
 
 void button_handler(int signum, siginfo_t *signal_info, void *ucontext) {
