@@ -26,7 +26,7 @@ int main(void) {
     struct timespec sleep_time;
     struct timespec to_sleep;
     int screen;
-    char *HORARIO;
+    char *BLOCK_CLOCK;
 
     struct sigaction signal_action;
     struct sigaction signal_child_action;
@@ -36,10 +36,10 @@ int main(void) {
     sleep_time.tv_sec = 1;
     sleep_time.tv_nsec = 0;
 
-    if ((HORARIO = getenv("HORARIO")) == NULL) {
-        fprintf(stderr, "HORARIO environmental variable is not defined\n.");
+    if ((BLOCK_CLOCK = getenv("BLOCK_CLOCK")) == NULL) {
+        fprintf(stderr, "BLOCK_CLOCK environmental variable is not defined\n.");
     }
-    clock_signal = atoi(HORARIO);
+    clock_signal = atoi(BLOCK_CLOCK);
     clock_output[0] = (char) clock_signal;
 
     if ((display = XOpenDisplay(NULL)) == NULL) {
