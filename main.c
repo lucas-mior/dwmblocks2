@@ -13,13 +13,13 @@ static char status_new[sizeof (status_bar) + sizeof (clock_output)];
 static char status_old[sizeof (status_bar) + sizeof (clock_output)];
 static const char delim = ' ';
 
+static FILE *popen_no_shell(char *);
+static void block_clock(int);
 static void button_handler(int, siginfo_t *, void *);
 static void get_block_output(const Block *, char *);
 static void get_block_outputs(int64);
-static void status_bar_update(bool);
 static void signal_handler(int);
-static FILE *popen_no_shell(char *);
-static void block_clock(int);
+static void status_bar_update(bool);
 
 int main(void) {
     int64 seconds = -1;
