@@ -184,13 +184,13 @@ FILE *popen_no_shell(char *command) {
 }
 
 void block_clock(int button) {
-    time_t ti;
+    time_t seconds_since_epoch;
     struct tm t;
     char *week;
     char *output = clock_output + 1;
 
-    (void) time(&ti);
-    t = *localtime(&ti);
+    seconds_since_epoch = time(NULL);
+    t = *localtime(&seconds_since_epoch);
     week = ((char *[]) {
         "dom", 
         "seg",
