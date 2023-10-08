@@ -100,7 +100,7 @@ void get_block_output(const Block *block, char *output) {
     } while (!status && error == EINTR);
     // TODO: Check if pclose() is right here, because
     // popen_no_shell uses pipe() and fdopen()
-    pclose(command_pipe);
+    fclose(command_pipe);
 
     length = strcspn(output, "\n");
     output[length] = '\0';
