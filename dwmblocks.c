@@ -15,7 +15,6 @@ void get_block_output(const Block *block, char *output) {
     char *status;
     int error;
     size_t length;
-    Block *last_block = &blocks[LENGTH(blocks) - 1];
 
     if (block->signal) {
         // this messages dwm which signal belongs to which block
@@ -48,7 +47,7 @@ void get_block_output(const Block *block, char *output) {
         if (length == 1)
             break;
     }
-    if ((length > 0) && (block != last_block)) {
+    if (length > 0) {
         output[length] = delim;
         output[length + 1] = '\0';
     }
