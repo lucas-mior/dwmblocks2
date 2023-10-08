@@ -34,26 +34,10 @@ typedef size_t usize;
 typedef ssize_t isize;
 #endif
 
-#define LENGTH(X) (sizeof (X) / sizeof (*X))
-#define BLOCK_OUTPUT_LENGTH 64
-
 typedef struct {
     char *command;
     int interval;
     int signal;
 } Block;
-
-void button_handler(int, siginfo_t *, void *);
-void get_block_output(const Block *, char *);
-void get_block_outputs(int64);
-void set_root(bool);
-void signal_handler(int);
-FILE *popen_no_shell(char *);
-void block_clock(int);
-
-extern Display *display;
-extern Window root;
-extern int clock_signal;
-extern char clock_output[BLOCK_OUTPUT_LENGTH];
 
 #endif /* DWMBLOCKS_H */

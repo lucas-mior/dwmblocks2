@@ -1,14 +1,11 @@
 PREFIX ?= /usr/local
 
-objs = dwmblocks.o
-
-.PHONY: all clean install uninstall
+.PHONY: all clean install uninstall release debug clang
 .SUFFIXES:
 .SUFFIXES: .c .o
 
 all: release
 
-$(objs): Makefile dwmblocks.h blocks.h
 dwmblocks.o: dwmblocks.c dwmblocks.h blocks.h
 
 CFLAGS += -std=c99 -D_DEFAULT_SOURCE
@@ -27,7 +24,7 @@ debug: CFLAGS += -g -fsanitize=undefined
 debug: clean
 debug: dwmblocks
 
-dwmblocks: $(objs) main.c
+dwmblocks: Makefile main.c dwmblocks.h
 	ctags --kinds-C=+l *.h *.c
 	vtags.sed tags > .tags.vim
 	$(CC) $(CFLAGS) -o $@ $(objs) main.c $(LDFLAGS)
