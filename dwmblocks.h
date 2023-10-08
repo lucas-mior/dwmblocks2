@@ -50,5 +50,7 @@ void block_clock(int);
 
 extern Display *display;
 extern Window root;
+extern int clock_signal;
+extern char clock_output[BLOCK_OUTPUT_LENGTH];
 
 #endif /* DWMBLOCKS_H */

@@ -7,14 +7,13 @@
 #include "dwmblocks.h"
 #include "blocks.h"
 
-int clock_signal;
-
 int main(void) {
     int64 seconds = -1;
     struct timespec sleep_time;
     struct timespec to_sleep;
     int screen;
     clock_signal = atoi(getenv("HORARIO"));
+    clock_output[0] = (char) clock_signal;
 
     struct sigaction signal_action;
     struct sigaction signal_child_action;

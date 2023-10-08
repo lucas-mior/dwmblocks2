@@ -4,11 +4,13 @@
 Display *display;
 Window root;
 static char status_bar[LENGTH(blocks)][BLOCK_OUTPUT_LENGTH] = {0};
-static char clock_output[BLOCK_OUTPUT_LENGTH] = {0};
+
+char clock_output[BLOCK_OUTPUT_LENGTH] = {0};
+int clock_signal;
+
 static char status_new[sizeof (status_bar) + sizeof (clock_output)];
 static char status_old[sizeof (status_bar) + sizeof (clock_output)];
 static const char delim = ' ';
-extern int clock_signal;
 
 void get_block_output(const Block *block, char *output) {
     FILE *command_pipe;
@@ -185,7 +187,7 @@ void block_clock(int button) {
     time_t ti;
     struct tm t;
     char *week;
-    char *output = clock_output;
+    char *output = clock_output + 1;
 
     (void) time(&ti);
     t = *localtime(&ti);
@@ -198,9 +200,6 @@ void block_clock(int button) {
         "sex",
         "sáb"
     })[t.tm_wday];
-
-    output[0] = (char) atoi(getenv("HORARIO"));
-    output += 1;
 
     snprintf(output, BLOCK_OUTPUT_LENGTH - 1, "📅 %s %02d/%02d %02d:%02d:%02d\n",
              week, t.tm_mday, t.tm_mon + 1, t.tm_hour, t.tm_min, t.tm_sec);
