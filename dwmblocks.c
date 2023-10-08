@@ -16,7 +16,7 @@ void get_block_output(const Block *block, char *output) {
     FILE *command_pipe;
     char *status;
     int error;
-    size_t length;
+    usize length;
 
     if (block->signal) {
         // this messages dwm which signal belongs to which block
