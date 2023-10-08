@@ -138,7 +138,7 @@ void button_handler(int signum, siginfo_t *signal_info, void *ucontext) {
     default:
         // wait is supposed to fail because of signal_child_action
         waitpid(child, NULL, 0);
-        kill(getpid(), SIGRTMIN+block->signal);
+        kill(getpid(), SIGRTMIN + block->signal);
     }
 	return;
 }
@@ -166,7 +166,7 @@ FILE *popen_no_shell(char *command) {
         c += 1;
     }
 
-    switch (pid = fork()) {
+    switch ((pid = fork())) {
     case 0:
         close(pipefd[0]);
         dup2(pipefd[1], STDOUT_FILENO);

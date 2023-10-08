@@ -31,7 +31,7 @@ typedef uint32_t uint32;
 typedef uint64_t uint64;
 #endif
 
-#define LENGTH(X) (sizeof (X) / sizeof (X[0]))
+#define LENGTH(X) (sizeof (X) / sizeof (*X))
 #define BLOCK_OUTPUT_LENGTH 64
 
 typedef struct {

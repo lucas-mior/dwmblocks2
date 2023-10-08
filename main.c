@@ -25,8 +25,8 @@ int main(void) {
 
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
         if (blocks[i].signal > 0) {
-            signal(SIGRTMIN+blocks[i].signal, signal_handler);
-            sigaddset(&signal_action.sa_mask, SIGRTMIN+blocks[i].signal);
+            signal(SIGRTMIN + blocks[i].signal, signal_handler);
+            sigaddset(&signal_action.sa_mask, SIGRTMIN + blocks[i].signal);
         }
     }
 
