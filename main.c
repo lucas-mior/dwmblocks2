@@ -164,10 +164,18 @@ void status_bar_update(bool check_changed) {
 }
 
 void signal_handler(int signum) {
+    Block *block_updated = NULL;
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
-        if (block->signal == (signum - SIGRTMIN))
+        if (block->signal == (signum - SIGRTMIN)) {
             get_block_output(block, status_bar[i]);
+            block_updated = block;
+        }
+    }
+    if (!block_updated) {
+        fprintf(stderr,
+                "No block configured for signal %d\n", signum - SIGRTMIN);
+        return;
     }
     status_bar_update(true);
     return;
