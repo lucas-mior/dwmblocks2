@@ -212,10 +212,10 @@ void block_clock(int button) {
                "| tr -d '\n' | xsel -b");
         break;
     case 2:
-        execlp("print_screen.sh", "print_screen.sh", "tela", NULL);
+        system("print_screen.sh tela");
         break;
     case 3:
-        execlp("killall", "killall", "yad", NULL);
+        system("killall yad");
         break;
     default:
         break;
