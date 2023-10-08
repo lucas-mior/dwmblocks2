@@ -12,13 +12,17 @@ int main(void) {
     struct timespec sleep_time;
     struct timespec to_sleep;
     int screen;
+    char *HORARIO;
 
     struct sigaction signal_action;
     struct sigaction signal_child_action;
     signal_child_action.sa_handler = SIG_DFL;
     signal_child_action.sa_flags = SA_NOCLDWAIT;
 
-    clock_signal = atoi(getenv("HORARIO"));
+    if ((HORARIO = getenv("HORARIO")) == NULL) {
+        fprintf(stderr, "HORARIO environmental variable is not defined\n.");
+    }
+    clock_signal = atoi(HORARIO);
     clock_output[0] = (char) clock_signal;
 
     if ((display = XOpenDisplay(NULL)) == NULL) {
