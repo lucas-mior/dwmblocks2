@@ -19,7 +19,6 @@ int gcd(int a, int b) {
 }
 
 void get_block_output(const Block *block, char *output) {
-    char buffer[BLOCK_OUTPUT_LENGTH] = {0};
     FILE *command_pipe;
     char *status;
     int error;
@@ -38,16 +37,15 @@ void get_block_output(const Block *block, char *output) {
     }
     do {
         errno = 0;
-        status = fgets(buffer, sizeof (buffer), command_pipe);
+        status = fgets(output, BLOCK_OUTPUT_LENGTH - 1, command_pipe);
         error = errno;
     } while (!status && error == EINTR);
     // TODO: Check if pclose() is right here, because
     // popen_no_shell uses pipe() and fdopen()
     pclose(command_pipe);
 
-    length = strcspn(buffer, "\n");
-    buffer[length] = '\0';
-    memcpy(output, buffer, length + 1);
+    length = strcspn(output, "\n");
+    output[length] = '\0';
     if (length == 0)
         return;
 
