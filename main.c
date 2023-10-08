@@ -16,7 +16,7 @@ static const char delim = ' ';
 static void button_handler(int, siginfo_t *, void *);
 static void get_block_output(const Block *, char *);
 static void get_block_outputs(int64);
-static void set_root(bool);
+static void status_bar_update(bool);
 static void signal_handler(int);
 static FILE *popen_no_shell(char *);
 static void block_clock(int);
@@ -69,7 +69,7 @@ int main(void) {
     while (true) {
         to_sleep = sleep_time;
         get_block_outputs(seconds);
-        set_root(false);
+        status_bar_update(false);
 
         while (nanosleep(&to_sleep, &to_sleep) < 0);
         seconds += sleep_time.tv_sec;
@@ -136,7 +136,7 @@ void get_block_outputs(int64 seconds) {
     return;
 }
 
-void set_root(bool check_changed) {
+void status_bar_update(bool check_changed) {
     if (check_changed)
         memcpy(status_old, status_new, sizeof (status_new));
 
@@ -145,9 +145,9 @@ void set_root(bool check_changed) {
         strcat(status_new, status_bar[i]);
     strcat(status_new, clock_output);
 
-    if (check_changed && !memcmp(status_old, status_new, sizeof (status_new))) {
-        fprintf(stderr, "Status bar not changed!\n");
-        return;
+    if (check_changed) {
+        if (!memcmp(status_old, status_new, sizeof (status_new)))
+            return;
     }
 
     XStoreName(display, root, status_new);
@@ -161,7 +161,7 @@ void signal_handler(int signum) {
         if (block->signal == (signum - SIGRTMIN))
             get_block_output(block, status_bar[i]);
     }
-    set_root(true);
+    status_bar_update(true);
     return;
 }
 
@@ -193,7 +193,8 @@ void button_handler(int signum, siginfo_t *signal_info, void *ucontext) {
         command[1] = NULL;
         setenv("BLOCK_BUTTON", button, 1);
         execvp(command[0], command);
-        fprintf(stderr, "running %s failed: %s\n", command[0], strerror(errno));
+        fprintf(stderr, "Error running %s: %s\n",
+                        command[0], strerror(errno));
         exit(EXIT_SUCCESS);
     case -1:
         fprintf(stderr, "fork failed: %s\n", strerror(errno));
@@ -257,7 +258,7 @@ void block_clock(int button) {
     seconds_since_epoch = time(NULL);
     t = *localtime(&seconds_since_epoch);
     week = ((char *[]) {
-        "dom", 
+        "dom",
         "seg",
         "ter",
         "qua",
@@ -266,7 +267,8 @@ void block_clock(int button) {
         "sáb"
     })[t.tm_wday];
 
-    snprintf(output, BLOCK_OUTPUT_LENGTH - 1, "📅 %s %02d/%02d %02d:%02d:%02d\n",
+    snprintf(output, BLOCK_OUTPUT_LENGTH - 1,
+            "📅 %s %02d/%02d %02d:%02d:%02d\n",
              week, t.tm_mday, t.tm_mon + 1, t.tm_hour, t.tm_min, t.tm_sec);
 
     switch (button) {

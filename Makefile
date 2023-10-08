@@ -6,8 +6,6 @@ PREFIX ?= /usr/local
 
 all: release
 
-dwmblocks.o: dwmblocks.c dwmblocks.h blocks.h
-
 CFLAGS += -std=c99 -D_DEFAULT_SOURCE
 CFLAGS += -Wextra -Wall
 LDFLAGS += -lX11
@@ -24,7 +22,7 @@ debug: CFLAGS += -g -fsanitize=undefined
 debug: clean
 debug: dwmblocks
 
-dwmblocks: Makefile main.c dwmblocks.h
+dwmblocks: Makefile main.c dwmblocks.h blocks.h
 	ctags --kinds-C=+l *.h *.c
 	vtags.sed tags > .tags.vim
 	$(CC) $(CFLAGS) -o $@ $(objs) main.c $(LDFLAGS)
