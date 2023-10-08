@@ -26,6 +26,7 @@ void get_block_output(const Block *block, char *output) {
     Block *last_block = &blocks[LENGTH(blocks) - 1];
 
     if (block->signal) {
+        // this messages dwm which signal belongs to which block
         output[0] = (char) block->signal;
         output += 1;
     }
