@@ -200,7 +200,8 @@ void button_handler(int signum, siginfo_t *signal_info, void *ucontext) {
         fprintf(stderr, "Error forking: %s\n", strerror(errno));
         return;
     default:
-        // wait is supposed to fail because of signal_child_action
+        // wait is supposed to fail because
+        // signal_child_action.sa_flags is set to SA_NOCLDWAIT;
         waitpid(child, NULL, 0);
         kill(getpid(), SIGRTMIN + block->signal);
     }
