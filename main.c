@@ -91,7 +91,7 @@ void get_block_output(const Block *block, char *output) {
     usize length;
 
     if (block->signal) {
-        // this messages dwm which signal belongs to which block
+        // used by dwm to send proper signal number back to dwmblocks
         output[0] = (char) block->signal;
         output += 1;
     }
