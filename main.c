@@ -35,14 +35,14 @@ int main(void) {
             signal(i, SIG_IGN);
 
         for (uint i = 0; i < LENGTH(blocks); i += 1) {
-            if (blocks[i].signal) {
-                signal(SIGRTMIN + blocks[i].signal, signal_handler);
-                sigaddset(&signal_dwm.sa_mask, SIGRTMIN + blocks[i].signal);
+            if (blocks[i].signal <= 0) {
+                fprintf(stderr, "Invalid signal for block: Must be grater than 0.\n");
+                exit(EXIT_FAILURE);
             }
-            if (blocks[i].signal) {
-                // used by dwm to send proper signal number back to dwmblocks
-                status_bar[i].string[0] = (char) blocks[i].signal;
-            }
+            signal(SIGRTMIN + blocks[i].signal, signal_handler);
+            sigaddset(&signal_dwm.sa_mask, SIGRTMIN + blocks[i].signal);
+            // used by dwm to send proper signal number back to dwmblocks
+            status_bar[i].string[0] = (char) blocks[i].signal;
         }
         signal(SIGRTMIN + clock_signal, signal_handler);
         sigaddset(&signal_dwm.sa_mask, SIGRTMIN + clock_signal);
@@ -124,6 +124,7 @@ void get_block_output(const Block *block, Output *out) {
         string[out->length] = delim;
         string[out->length + 1] = '\0';
         out->length += 1;
+        out->length += 1; // because of the first char containing signal number
     }
     return;
 }
@@ -153,7 +154,7 @@ void status_bar_update(bool check_changed) {
 
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
         char *string = status_bar[i].string;
-        usize size = status_bar[i].length + 1;
+        usize size = status_bar[i].length;
         memcpy(pointer, string, size);
         pointer += size;
     }
@@ -285,7 +286,7 @@ void block_clock(int button) {
     week = week_names[t.tm_wday];
 
     n = snprintf(output, BLOCK_OUTPUT_LENGTH - 1,
-                "📅 %s %02d/%02d %02d:%02d:%02d\n",
+                "📅 %s %02d/%02d %02d:%02d:%02d ",
                  week, t.tm_mday, t.tm_mon + 1, t.tm_hour, t.tm_min, t.tm_sec);
     clock_output.length = (uint32) n + 2;
 
