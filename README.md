@@ -40,6 +40,8 @@ You also need to set the environment variable `DWMBLOCKS2_CLOCK`
 ```
 export DWMBLOCKS2_CLOCK=16 # add this line to your .bash_profile or equivalent
 ```
+In order to use the blocks in `blocks/`, you have to put them in your
+`PATH` and also set the environmental variables (see `blocks.h`).
 
 ## License
 dwmblocks2 is licensed under GPLv2,
