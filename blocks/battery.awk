@@ -16,7 +16,7 @@ BEGIN {
 END {
     if (state == "Discharging") {
         if (capacity < 10) {
-            printf("dunstify -r $BATERIA                   \
+            printf("dunstify -r $DWMBLOCKS2_BATTERY        \
                   \"🪫 Bateria criticamente baixa (%d%%)\" \
                   \"Desligando...\"", capacity) | "/bin/dash";
             system("sync");
@@ -24,12 +24,12 @@ END {
             system("shutdown force");
         } else if (capacity < 20) {
             icon="🪫"
-            printf("dunstify -r $BATERIA                   \
+            printf("dunstify -r $DWMBLOCKS2_BATTERY        \
                   \"🪫 Bateria criticamente baixa (%d%%)\" \
                   \"Conectar carregador\"", capacity) | "/bin/dash";
         } else if (capacity < 40) {
             icon="🪫"
-            printf("dunstify -t 1000 -r $BATERIA \
+            printf("dunstify -t 1000 -r $DWMBLOCKS2_BATTERY \
                   \"🪫 Bateria baixa (%d%%)\"    \
                   \"Conectar carregador\"", capacity) | "/bin/dash";
         } else {
@@ -45,11 +45,13 @@ END {
 
     switch (ENVIRON["DWMBLOCKS2_BUTTON"]) {
         case 6:
+            terminal = ENVIRON["TERMINAL"]
+            editor = ENVIRON["EDITOR"]
             file = ""
             cmd = "find ~/.local/scripts/ -name 'battery.awk' | head -n 1"
             while ((cmd | getline file) > 0);
             close(cmd)
-            printf("setsid -f st -e vim %s", file) | "/bin/dash"
+            printf("setsid -f %s -e %s %s", terminal, editor, file) | "/bin/dash"
             break;
         case "":
             printf("%s%d%%\n", icon, capacity);

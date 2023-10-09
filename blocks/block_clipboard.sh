@@ -21,6 +21,6 @@ display() {
 case "$DWMBLOCKS2_BUTTON" in
     1) pgrep clipsim || setsid -f clipsim -d ;;
     2) clipsim --save  && dunstify "📋 clipsim" "History saved" ;;
+    6) setsid -f "$TERMINAL" -e "$EDITOR" "$0" ;;
     "") display ;;
-    6) st -e vim "$0"                                           ;;
 esac

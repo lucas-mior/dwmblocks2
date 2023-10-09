@@ -30,6 +30,6 @@ case $DWMBLOCKS2_BUTTON in
     3) st -e pulsemixer   ;;
     4) vol_out.sh up      ;;
     5) vol_out.sh down    ;;
-    6) "$TERMINAL" -e "$EDITOR" "$0" ;;
-    *) display            ;;
+    6) setsid -f "$TERMINAL" -e "$EDITOR" "$0" ;;
+    "") display            ;;
 esac

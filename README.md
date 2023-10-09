@@ -15,7 +15,7 @@ You are encouraged to edit `main.c` to suit your needs.
 ## Clicks
 You need to apply the patch `dwm-statuscmd.diff` on dwm
 for mouse clicks to work.
-Then dwmblocks2 will export $DWMBLOCKS2_BUTTON to your block program.
+Then dwmblocks2 will export `$DWMBLOCKS2_BUTTON` to your block program.
 ```
 case $DWMBLOCKS2_BUTTON in
     1) echo "clicked left button";;

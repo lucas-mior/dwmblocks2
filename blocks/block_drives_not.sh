@@ -22,6 +22,6 @@ display() {
 }
 
 case $DWMBLOCKS2_BUTTON in
-    6) setsid -f "$TERMINAL" -e vim "$0" ;;
+    6) setsid -f "$TERMINAL" -e "$EDITOR" "$0" ;;
     "") display ;;
 esac 2> /dev/null

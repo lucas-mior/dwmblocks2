@@ -1,7 +1,8 @@
 #!/bin/sh
 
-filter() {
-    awk -v FS=" - " '
+display() {
+    mpc status --format="%title%" \
+    | awk -v FS=" - " '
     NR == 1 { 
         song = $0; 
     }
@@ -12,9 +13,9 @@ filter() {
 }
 
 case $DWMBLOCKS2_BUTTON in
-    1) album_art_play.sh toggle      | filter ;;
-    2) album_art_play.sh toggle      | filter ;;
-    3) pause.bash wall               | filter ;;
-    6) "$TERMINAL" -e "$EDITOR" "$0"          ;;
-    *) mpc status --format="%title%" | filter ;;
+    1) album_art_play.sh toggle ;;
+    2) album_art_play.sh toggle ;;
+    3) pause.bash wall          ;;
+    6) setsid -f "$TERMINAL" -e "$EDITOR" "$0" ;;
+    *) display ;;
 esac 2> /dev/null

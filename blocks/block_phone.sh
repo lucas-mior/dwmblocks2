@@ -1,8 +1,8 @@
 #!/bin/sh
 
 display () {
-simple-mtpfs -l \
-    | awk '
+    simple-mtpfs -l \
+        | awk '
           !/Unknown/ {
               gsub("[1-9]:", "📱");
               if (NF > 1)
@@ -11,7 +11,7 @@ simple-mtpfs -l \
 }
 
 case $DWMBLOCKS2_BUTTON in
-    1) setsid -f android-file-transfer ;;
-    6) "$TERMINAL" -e "$EDITOR" "$0"   ;;
+    1) setsid -f android-file-transfer         ;;
+    6) setsid -f "$TERMINAL" -e "$EDITOR" "$0" ;;
     *) display ;;
 esac 2> /dev/null

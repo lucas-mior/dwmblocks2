@@ -6,5 +6,5 @@ case $DWMBLOCKS2_BUTTON in
     1) nmcli radio wifi on   ;;
     2) setsid -f st -e nmtui ;;
     3) nmcli radio wifi off  ;;
-    6) setsid -f "$TERMINAL" -e vim "$0" ;;
+    6) setsid -f "$TERMINAL" -e "$EDITOR" "$0" ;;
 esac

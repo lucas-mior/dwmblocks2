@@ -206,8 +206,8 @@ void signal_handler(int signum) {
         }
     }
     if (!block_updated) {
-        fprintf(stderr,
-                "No block configured for signal %d\n", signum - SIGRTMIN);
+        fprintf(stderr, "No block configured for signal %d\n",
+                        signum - SIGRTMIN);
         return;
     }
     status_bar_update(true);

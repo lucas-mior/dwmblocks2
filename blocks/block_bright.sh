@@ -18,6 +18,6 @@ case $DWMBLOCKS2_BUTTON in
     2) red.sh ;;
     3|4) bright --more ;;
     1|5) bright --less ;;
-    6) "$TERMINAL" -e "$EDITOR" "$0" ;;
+    6) setsid -f "$TERMINAL" -e "$EDITOR" "$0" ;;
     "") display ;;
 esac 2> /dev/null
