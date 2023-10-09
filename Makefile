@@ -16,13 +16,13 @@ clang: CFLAGS += -Weverything -Wno-unsafe-buffer-usage
 clang: release
 
 release: CFLAGS += -O2
-release: dwmblocks
+release: dwmblocks2
 
 debug: CFLAGS += -g -fsanitize=undefined
 debug: clean
-debug: dwmblocks
+debug: dwmblocks2
 
-dwmblocks: Makefile main.c dwmblocks.h blocks.h
+dwmblocks2: Makefile main.c dwmblocks2.h blocks.h
 	ctags --kinds-C=+l *.h *.c
 	vtags.sed tags > .tags.vim
 	$(CC) $(CFLAGS) -o $@ $(objs) main.c $(LDFLAGS)
@@ -31,10 +31,10 @@ dwmblocks: Makefile main.c dwmblocks.h blocks.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 install: all
-	install -Dm755 dwmblocks $(DESTDIR)$(PREFIX)/bin/dwmblocks
+	install -Dm755 dwmblocks2 $(DESTDIR)$(PREFIX)/bin/dwmblocks2
 
 uninstall: all
-	rm -f $(DESTDIR)$(PREFIX)/bin/dwmblocks
+	rm -f $(DESTDIR)$(PREFIX)/bin/dwmblocks2
 
 clean:
-	rm -rf ./dwmblocks *.o
+	rm -rf ./dwmblocks2 *.o

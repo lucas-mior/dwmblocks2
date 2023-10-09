@@ -1,4 +1,4 @@
-#include "dwmblocks.h"
+#include "dwmblocks2.h"
 #include "blocks.h"
 
 #define LENGTH(X) (sizeof (X) / sizeof (*X))
@@ -41,7 +41,7 @@ int main(void) {
             }
             signal(SIGRTMIN + blocks[i].signal, signal_handler);
             sigaddset(&signal_dwm.sa_mask, SIGRTMIN + blocks[i].signal);
-            // used by dwm to send proper signal number back to dwmblocks
+            // used by dwm to send proper signal number back to dwmblocks2
             status_bar[i].string[0] = (char) blocks[i].signal;
         }
         signal(SIGRTMIN + clock_signal, signal_handler);

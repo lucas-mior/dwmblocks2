@@ -1,5 +1,5 @@
-#ifndef DWMBLOCKS_H
-#define DWMBLOCKS_H
+#ifndef DWMBLOCKS2_H
+#define DWMBLOCKS2_H
 
 #include <X11/Xlib.h>
 #include <errno.h>
@@ -40,4 +40,4 @@ typedef struct {
     int signal;
 } Block;
 
-#endif /* DWMBLOCKS_H */
+#endif /* DWMBLOCKS2_H */
