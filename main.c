@@ -35,9 +35,13 @@ int main(void) {
             signal(i, SIG_IGN);
 
         for (uint i = 0; i < LENGTH(blocks); i += 1) {
-            if (blocks[i].signal > 0) {
+            if (blocks[i].signal) {
                 signal(SIGRTMIN + blocks[i].signal, signal_handler);
                 sigaddset(&signal_dwm.sa_mask, SIGRTMIN + blocks[i].signal);
+            }
+            if (blocks[i].signal) {
+                // used by dwm to send proper signal number back to dwmblocks
+                status_bar[i].string[0] = (char) blocks[i].signal;
             }
         }
         signal(SIGRTMIN + clock_signal, signal_handler);
@@ -88,13 +92,8 @@ void get_block_output(const Block *block, Output *out) {
     FILE *command_pipe;
     char *status;
     int error;
-    char *string = out->string;
+    char *string = out->string + 1;
 
-    if (block->signal) {
-        // used by dwm to send proper signal number back to dwmblocks
-        string[0] = (char) block->signal;
-        string += 1;
-    }
     if (!(command_pipe = popen_no_shell(block->command))) {
         fprintf(stderr, "Failed to run %s: %s\n",
                          block->command, strerror(errno));
