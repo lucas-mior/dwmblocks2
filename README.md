@@ -12,6 +12,10 @@ By default it uses all blocks in `blocks/` directory,
 plus the clock block, which is part of dwmblocks2 itself.
 You are encouraged to edit `main.c` to suit your needs.
 
+## Clicks
+You need to apply the patch `dwm-statuscmd.diff` on dwm
+for mouse clicks to work.
+
 ## Instalation
 ```
 $ git clone https://github.com/lucas-mior/dwmblocks2
