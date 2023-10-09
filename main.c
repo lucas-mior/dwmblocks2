@@ -62,11 +62,7 @@ int main(void) {
         exit(EXIT_FAILURE);
     }
 
-    {
-        int screen = DefaultScreen(display);
-        root = RootWindow(display, screen);
-    }
-
+    root = DefaultRootWindow(display);
     {
         struct timespec sleep_time;
         struct timespec to_sleep;
