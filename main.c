@@ -25,7 +25,7 @@ int main(void) {
     int screen;
 
     {
-        struct sigaction signal_action;
+        struct sigaction signal_dwm;
         struct sigaction signal_child_action;
         signal_child_action.sa_handler = SIG_DFL;
         signal_child_action.sa_flags = SA_NOCLDWAIT;
@@ -36,15 +36,15 @@ int main(void) {
         for (uint i = 0; i < LENGTH(blocks); i += 1) {
             if (blocks[i].signal > 0) {
                 signal(SIGRTMIN + blocks[i].signal, signal_handler);
-                sigaddset(&signal_action.sa_mask, SIGRTMIN + blocks[i].signal);
+                sigaddset(&signal_dwm.sa_mask, SIGRTMIN + blocks[i].signal);
             }
         }
         signal(SIGRTMIN + clock_signal, signal_handler);
-        sigaddset(&signal_action.sa_mask, SIGRTMIN + clock_signal);
+        sigaddset(&signal_dwm.sa_mask, SIGRTMIN + clock_signal);
 
-        signal_action.sa_sigaction = button_handler;
-        signal_action.sa_flags = SA_SIGINFO;
-        sigaction(SIGUSR1, &signal_action, NULL);
+        signal_dwm.sa_sigaction = button_handler;
+        signal_dwm.sa_flags = SA_SIGINFO;
+        sigaction(SIGUSR1, &signal_dwm, NULL);
         sigaction(SIGCHLD, &signal_child_action, NULL);
     }
 
