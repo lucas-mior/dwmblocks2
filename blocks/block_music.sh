@@ -11,7 +11,7 @@ filter() {
     }'
 }
 
-case $BLOCK_BUTTON in
+case $DWMBLOCKS2_BUTTON in
     1) album_art_play.sh toggle      | filter ;;
     2) album_art_play.sh toggle      | filter ;;
     3) pause.bash wall               | filter ;;

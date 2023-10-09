@@ -19,9 +19,9 @@ $ cd dwmblocks2
 $ make
 $ sudo make install
 ```
-You also need to set the environment variable `BLOCK_CLOCK`
+You also need to set the environment variable `DWMBLOCKS2_CLOCK`
 ```
-export BLOCK_CLOCK=16 # add this line to your .bash_profile or equivalent
+export DWMBLOCKS2_CLOCK=16 # add this line to your .bash_profile or equivalent
 ```
 
 ## License

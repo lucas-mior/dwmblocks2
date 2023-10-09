@@ -1,6 +1,6 @@
 #!/bin/sh
 
-case $BLOCK_BUTTON in
+case $DWMBLOCKS2_BUTTON in
     1) dunstify -r $CPU " CPU hogs" "$(ps axch -o cmd:15,%cpu --sort=-%cpu | head)\\n(100% per core)" & ;;
     2) setsid -f st -e htop                                                                            & ;;
     3) dunstify -r $CPU " CPU hogs" "$(ps axch -o cmd:15,%cpu --sort=-%cpu | head)\\n(100% per core)" & ;;

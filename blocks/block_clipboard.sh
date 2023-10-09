@@ -18,7 +18,7 @@ display() {
     fi
 }
 
-case "$BLOCK_BUTTON" in
+case "$DWMBLOCKS2_BUTTON" in
     1) pgrep clipsim || setsid -f clipsim -d ;;
     2) clipsim --save  && dunstify "📋 clipsim" "History saved" ;;
     "") display ;;

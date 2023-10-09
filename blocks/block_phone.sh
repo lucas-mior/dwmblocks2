@@ -10,7 +10,7 @@ simple-mtpfs -l \
           }'
 }
 
-case $BLOCK_BUTTON in
+case $DWMBLOCKS2_BUTTON in
     1) setsid -f android-file-transfer ;;
     6) "$TERMINAL" -e "$EDITOR" "$0"   ;;
     *) display ;;

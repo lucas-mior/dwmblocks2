@@ -3,7 +3,7 @@
 # Displays number of unread news items and an loading icon if updating.
 # When clicked, brings up `newsboat`.
 
-case $BLOCK_BUTTON in
+case $DWMBLOCKS2_BUTTON in
     1) setsid -f st -e newsboat      ;;
     2) setsid -f newsup.sh           ;;
     6) "$TERMINAL" -e "$EDITOR" "$0" ;;

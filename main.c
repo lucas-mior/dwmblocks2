@@ -68,13 +68,17 @@ int main(void) {
     }
 
     {
-        char *BLOCK_CLOCK;
-        if ((BLOCK_CLOCK = getenv("BLOCK_CLOCK")) == NULL) {
-            fprintf(stderr,
-                    "BLOCK_CLOCK environmental variable is not defined\n.");
+        char *DWMBLOCKS2_CLOCK;
+        if ((DWMBLOCKS2_CLOCK = getenv("DWMBLOCKS2_CLOCK")) == NULL) {
+            fprintf(stderr, "DWMBLOCKS2_CLOCK"
+                            "environmental variable is not defined\n.");
             exit(EXIT_FAILURE);
         }
-        clock_signal = atoi(BLOCK_CLOCK);
+        clock_signal = atoi(DWMBLOCKS2_CLOCK);
+        if (clock_signal <= 0) {
+            fprintf(stderr, "Invalid signal for block: Must be grater than 0.\n");
+            exit(EXIT_FAILURE);
+        }
         clock_output.string[0] = (char) clock_signal;
     }
 
@@ -228,7 +232,7 @@ void button_handler(int signum, siginfo_t *signal_info, void *ucontext) {
     case 0:
         command[0] = block->command;
         command[1] = NULL;
-        setenv("BLOCK_BUTTON", button, 1);
+        setenv("DWMBLOCKS2_BUTTON", button, 1);
         execvp(command[0], command);
         fprintf(stderr, "Error running %s: %s\n",
                         command[0], strerror(errno));

@@ -11,10 +11,10 @@ display () {
     fi
     bril="$(bright --print)"
     echo "$bril $color"
-    dunstify -r $BRIGHT "$bril" -t 500
+    dunstify -r $DWMBLOCKS2_BRIGHT "$bril" -t 500
 }
 
-case $BLOCK_BUTTON in
+case $DWMBLOCKS2_BUTTON in
     2) red.sh ;;
     3|4) bright --more ;;
     1|5) bright --less ;;

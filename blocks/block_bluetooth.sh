@@ -15,7 +15,7 @@ else
     fi
 fi
 
-case $BLOCK_BUTTON in
+case $DWMBLOCKS2_BUTTON in
     1) bluetoothctl power on  && dunstify " on"  ;;
     3) bluetoothctl power off && dunstify " off" ;;
     6) "$TERMINAL" -e "$EDITOR" "$0" ;;

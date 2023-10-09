@@ -26,7 +26,7 @@ printf "$num / $((num-ontemvid+10))" | tee "${cachevid}.h"
 printf " / $((numdeu-ontemdeu+1))"  | tee "${cachedeu}.h"
 echo   " / $((numeng-ontemeng+1))"  | tee "${cacheeng}.h"
 
-case "$BLOCK_BUTTON" in
+case "$DWMBLOCKS2_BUTTON" in
     1) st -e lfimg.bash "$dir" ;;
     6) st -e vim "$0"          ;;
 esac

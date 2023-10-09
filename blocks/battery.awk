@@ -43,7 +43,7 @@ END {
         }
     }
 
-    switch (ENVIRON["BLOCK_BUTTON"]) {
+    switch (ENVIRON["DWMBLOCKS2_BUTTON"]) {
         case 6:
             file = ""
             cmd = "find ~/.local/scripts/ -name 'battery.awk' | head -n 1"

@@ -21,7 +21,7 @@ display() {
           }'
 }
 
-case $BLOCK_BUTTON in
+case $DWMBLOCKS2_BUTTON in
     6) "$TERMINAL" -e "$EDITOR" "$0" ;;
     "") display ;;
 esac 2> /dev/null

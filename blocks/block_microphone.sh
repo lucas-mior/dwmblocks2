@@ -21,7 +21,7 @@ display () {
     pacmd list-modules | sed -nE '/module-loopback/{s/.+/ 🔁/g;p}'
 }
 
-case $BLOCK_BUTTON in
+case $DWMBLOCKS2_BUTTON in
     1) vol_in.bash toggle    ; display ;;
     2) audio_toggle.bash     ; display ;;
     3) st -e pulsemixer      ; display ;;

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-case $BLOCK_BUTTON in
+case $DWMBLOCKS2_BUTTON in
     1) dunstify -r "$RAM" "🧠 Memory" "$(ps axch -o cmd:15,%mem --sort=-%mem | head)" & ;;
     2) setsid -f st -e htop                                                           & ;;
     3) dunstify -r "$RAM" "🧠 Memory" "$(ps axch -o cmd:15,%mem --sort=-%mem | head)" & ;;
