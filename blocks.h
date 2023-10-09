@@ -2,23 +2,22 @@
 #define BLOCKS_H
 
 static Block blocks[] = {
-/* command                 interval   signal */
-{"block_recording.sh",      0,         1},
-{"block_clipboard.sh",      0,         2},
-{"block_ytdlp.sh",          0,         3},
-{"block_drives_not.sh",     0,         4},
-{"block_drives_mount.sh",   0,         5},
-{"block_phone.sh",          0,         6},
-{"block_music.sh",          0,         7},
-{"block_volume.sh",         0,         8},
-{"block_microphone.sh",     0,         9},
-{"block_bright.sh",         0,        10},
-//{"block_news.sh", 0, 20},
-{"block_memory.sh",        60,        11},
-{"block_temperature.sh",   60,        12},
-{"block_network.sh",      0,         13},
-{"block_bluetooth.sh",     80,        14},
-{"block_battery.sh",       60,        15},
+/* command                signal environment variable interval, signal number (ignored) */
+{"block_recording.sh",    "BLOCK_RECORD",             0,        0},
+{"block_clipboard.sh",    "BLOCK_CLIPBOARD",          0,        0},
+{"block_ytdlp.sh",        "BLOCK_YOUTUBE",            0,        0},
+{"block_drives_not.sh",   "BLOCK_DRIVES0",            0,        0},
+{"block_drives_mount.sh", "BLOCK_DRIVES1",            0,        0},
+{"block_phone.sh",        "BLOCK_DRIVES2",            0,        0},
+{"block_music.sh",        "BLOCK_MUSIC",              0,        0},
+{"block_volume.sh",       "BLOCK_VOLUME",             0,        0},
+{"block_microphone.sh",   "BLOCK_MICROPHONE",         0,        0},
+{"block_bright.sh",       "BLOCK_BRIGHT",             0,        0},
+{"block_memory.sh",       "BLOCK_RAM",                0,        0},
+{"block_temperature.sh",  "BLOCK_CPU",               60,        0},
+{"block_network.sh",      "BLOCK_NETWORK",            0,        0},
+{"block_bluetooth.sh",    "BLOCK_BLUETOOTH",         60,        0},
+{"block_battery.sh",      "BLOCK_BATTERY",           60,        0},
 };
 
 #endif

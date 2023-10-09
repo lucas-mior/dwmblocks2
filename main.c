@@ -35,14 +35,28 @@ int main(void) {
             signal(i, SIG_IGN);
 
         for (uint i = 0; i < LENGTH(blocks); i += 1) {
-            if (blocks[i].signal <= 0) {
+            Block *block = &blocks[i];
+            char *signal_string;
+
+            if (block->environment_variable == NULL) {
+                fprintf(stderr, "Error: Signal environmental variable"
+                                "must be defined for every block.\n");
+                exit(EXIT_FAILURE);
+            }
+            if ((signal_string = getenv(block->environment_variable)) == NULL) {
+                fprintf(stderr, "Error: %s is not defined.\n", block->environment_variable);
+                exit(EXIT_FAILURE);
+            }
+
+            block->signal = atoi(signal_string);
+            if (blocks->signal <= 0) {
                 fprintf(stderr, "Invalid signal for block: Must be grater than 0.\n");
                 exit(EXIT_FAILURE);
             }
-            signal(SIGRTMIN + blocks[i].signal, signal_handler);
-            sigaddset(&signal_dwm.sa_mask, SIGRTMIN + blocks[i].signal);
+            signal(SIGRTMIN + block->signal, signal_handler);
+            sigaddset(&signal_dwm.sa_mask, SIGRTMIN + block->signal);
             // used by dwm to send proper signal number back to dwmblocks2
-            status_bar[i].string[0] = (char) blocks[i].signal;
+            status_bar[i].string[0] = (char) block->signal;
         }
         signal(SIGRTMIN + clock_signal, signal_handler);
         sigaddset(&signal_dwm.sa_mask, SIGRTMIN + clock_signal);

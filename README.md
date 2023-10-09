@@ -19,6 +19,10 @@ $ cd dwmblocks2
 $ make
 $ sudo make install
 ```
+You also need to set the environment variable `BLOCK_CLOCK`
+```
+export BLOCK_CLOCK=16 # add this line to your .bash_profile or equivalent
+```
 
 ## License
 dwmblocks2 is licensed under GPLv2,

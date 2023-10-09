@@ -34,8 +34,9 @@ typedef size_t usize;
 typedef ssize_t isize;
 #endif
 
-typedef struct {
+typedef struct Block {
     char *command;
+    char *environment_variable;
     int interval;
     int signal;
 } Block;
