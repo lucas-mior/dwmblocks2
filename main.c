@@ -9,8 +9,6 @@ static Window root;
 static char status_bar[LENGTH(blocks)][BLOCK_OUTPUT_LENGTH] = {0};
 static char clock_output[BLOCK_OUTPUT_LENGTH] = {0};
 static int clock_signal;
-static char status_new[sizeof (status_bar) + sizeof (clock_output)];
-static char status_old[sizeof (status_bar) + sizeof (clock_output)];
 static const char delim = ' ';
 
 static FILE *popen_no_shell(char *);
@@ -142,6 +140,8 @@ void get_block_outputs(int64 seconds) {
 }
 
 void status_bar_update(bool check_changed) {
+    static char status_new[sizeof (status_bar) + sizeof (clock_output)] = {0};
+    static char status_old[sizeof (status_bar) + sizeof (clock_output)] = {0};
     if (check_changed)
         memcpy(status_old, status_new, sizeof (status_new));
 
