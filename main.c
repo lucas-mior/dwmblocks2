@@ -118,7 +118,7 @@ void get_block_output(const Block *block, char *output) {
     while (output[length - 1] == delim) {
         output[length - 1] = '\0';
         length -= 1;
-        if (length == 1)
+        if (length == 0)
             break;
     }
     if (length > 0) {
