@@ -26,6 +26,7 @@ static void status_bar_update(bool);
 
 int main(void) {
     {
+        int sig_max = SIGRTMAX - SIGRTMIN;
         struct sigaction signal_dwm;
         struct sigaction signal_child_action;
         signal_child_action.sa_handler = SIG_DFL;
@@ -54,6 +55,12 @@ int main(void) {
                 fprintf(stderr, "Invalid signal for block: Must be grater than 0.\n");
                 exit(EXIT_FAILURE);
             }
+            if (blocks->signal >= sig_max) {
+                fprintf(stderr, "Invalid signal for block: Must be lower than %d.\n",
+                                sig_max);
+                exit(EXIT_FAILURE);
+            }
+
             signal(SIGRTMIN + block->signal, signal_handler);
             sigaddset(&signal_dwm.sa_mask, SIGRTMIN + block->signal);
             // used by dwm to send proper signal number back to dwmblocks2
