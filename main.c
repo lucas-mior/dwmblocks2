@@ -110,7 +110,7 @@ void get_block_output(const Block *block, Output *out) {
     // popen_no_shell uses pipe() and fdopen()
     fclose(command_pipe);
 
-    out->length = strcspn(string, "\n");
+    out->length = (uint32) strcspn(string, "\n");
     string[out->length] = '\0';
     if (out->length == 0)
         return;
@@ -289,7 +289,7 @@ void block_clock(int button) {
     n = snprintf(output, BLOCK_OUTPUT_LENGTH - 1,
                 "📅 %s %02d/%02d %02d:%02d:%02d\n",
                  week, t.tm_mday, t.tm_mon + 1, t.tm_hour, t.tm_min, t.tm_sec);
-    clock_output.length = n + 2;
+    clock_output.length = (uint32) n + 2;
 
     switch (button) {
     case 1:
