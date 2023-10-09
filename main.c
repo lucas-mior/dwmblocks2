@@ -132,12 +132,12 @@ void get_block_output(const Block *block, Output *out) {
 void get_block_outputs(int64 seconds) {
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
-		if (seconds < 0) {
+        if (seconds < 0) {
             get_block_output(block, &status_bar[i]);
-			continue;
-		}
-		if (block->interval == 0)
-			continue;
+            continue;
+        }
+        if (block->interval == 0)
+            continue;
         if ((seconds % block->interval) == 0)
             get_block_output(block, &status_bar[i]);
     }
@@ -229,7 +229,7 @@ void button_handler(int signum, siginfo_t *signal_info, void *ucontext) {
         waitpid(child, NULL, 0);
         kill(getpid(), SIGRTMIN + block->signal);
     }
-	return;
+    return;
 }
 
 FILE *popen_no_shell(char *command) {
@@ -246,10 +246,10 @@ FILE *popen_no_shell(char *command) {
 
     while (*c) {
         if ((*c == ' ') || (*c == '\t')) {
-			argv[0] = "/bin/sh";
-			argv[1] = "-c";
-			argv[2] = command;
-			argv[3] = NULL;
+            argv[0] = "/bin/sh";
+            argv[1] = "-c";
+            argv[2] = command;
+            argv[3] = NULL;
             break;
         }
         c += 1;
