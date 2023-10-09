@@ -40,11 +40,12 @@ int main(void) {
 
             if (block->environment_variable == NULL) {
                 fprintf(stderr, "Error: Signal environmental variable"
-                                "must be defined for every block.\n");
+                                " must be defined for every block.\n");
                 exit(EXIT_FAILURE);
             }
             if ((signal_string = getenv(block->environment_variable)) == NULL) {
-                fprintf(stderr, "Error: %s is not defined.\n", block->environment_variable);
+                fprintf(stderr, "Error: %s is not defined.\n",
+                                block->environment_variable);
                 exit(EXIT_FAILURE);
             }
 
