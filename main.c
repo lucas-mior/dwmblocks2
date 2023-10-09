@@ -4,17 +4,22 @@
 #define LENGTH(X) (sizeof (X) / sizeof (*X))
 #define BLOCK_OUTPUT_LENGTH 64
 
+typedef struct Output {
+    char string[BLOCK_OUTPUT_LENGTH];
+    uint32 length;
+} Output;
+
 static Display *display;
 static Window root;
-static char status_bar[LENGTH(blocks)][BLOCK_OUTPUT_LENGTH] = {0};
-static char clock_output[BLOCK_OUTPUT_LENGTH] = {0};
+static Output status_bar[LENGTH(blocks)] = {0};
+static Output clock_output = {0};
 static int clock_signal;
 static const char delim = ' ';
 
 static FILE *popen_no_shell(char *);
 static void block_clock(int);
 static void button_handler(int, siginfo_t *, void *);
-static void get_block_output(const Block *, char *);
+static void get_block_output(const Block *, Output *);
 static void get_block_outputs(int64);
 static void signal_handler(int);
 static void status_bar_update(bool);
@@ -52,7 +57,7 @@ int main(void) {
             exit(EXIT_FAILURE);
         }
         clock_signal = atoi(BLOCK_CLOCK);
-        clock_output[0] = (char) clock_signal;
+        clock_output.string[0] = (char) clock_signal;
     }
 
     if ((display = XOpenDisplay(NULL)) == NULL) {
@@ -79,46 +84,47 @@ int main(void) {
     }
 }
 
-void get_block_output(const Block *block, char *output) {
+void get_block_output(const Block *block, Output *out) {
     FILE *command_pipe;
     char *status;
     int error;
-    usize length;
+    char *string = out->string;
 
     if (block->signal) {
         // used by dwm to send proper signal number back to dwmblocks
-        output[0] = (char) block->signal;
-        output += 1;
+        string[0] = (char) block->signal;
+        string += 1;
     }
     if (!(command_pipe = popen_no_shell(block->command))) {
         fprintf(stderr, "Failed to run %s: %s\n",
                          block->command, strerror(errno));
-        output[0] = '\0';
+        string[0] = '\0';
         return;
     }
     do {
         errno = 0;
-        status = fgets(output, BLOCK_OUTPUT_LENGTH - 1, command_pipe);
+        status = fgets(string, BLOCK_OUTPUT_LENGTH - 1, command_pipe);
         error = errno;
     } while (!status && error == EINTR);
     // TODO: Check if pclose() is right here, because
     // popen_no_shell uses pipe() and fdopen()
     fclose(command_pipe);
 
-    length = strcspn(output, "\n");
-    output[length] = '\0';
-    if (length == 0)
+    out->length = strcspn(string, "\n");
+    string[out->length] = '\0';
+    if (out->length == 0)
         return;
 
-    while (output[length - 1] == delim) {
-        output[length - 1] = '\0';
-        length -= 1;
-        if (length == 0)
+    while (string[out->length - 1] == delim) {
+        string[out->length - 1] = '\0';
+        out->length -= 1;
+        if (out->length == 0)
             break;
     }
-    if (length > 0) {
-        output[length] = delim;
-        output[length + 1] = '\0';
+    if (out->length > 0) {
+        string[out->length] = delim;
+        string[out->length + 1] = '\0';
+        out->length += 1;
     }
     return;
 }
@@ -127,28 +133,33 @@ void get_block_outputs(int64 seconds) {
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
 		if (seconds < 0) {
-            get_block_output(block, status_bar[i]);
+            get_block_output(block, &status_bar[i]);
 			continue;
 		}
 		if (block->interval == 0)
 			continue;
         if ((seconds % block->interval) == 0)
-            get_block_output(block, status_bar[i]);
+            get_block_output(block, &status_bar[i]);
     }
     block_clock(0);
     return;
 }
 
 void status_bar_update(bool check_changed) {
-    static char status_new[sizeof (status_bar) + sizeof (clock_output)] = {0};
-    static char status_old[sizeof (status_bar) + sizeof (clock_output)] = {0};
+    static char status_new[LENGTH(blocks) * (BLOCK_OUTPUT_LENGTH+1)] = {0};
+    static char status_old[LENGTH(blocks) * (BLOCK_OUTPUT_LENGTH+1)] = {0};
+    char *pointer = status_new;
     if (check_changed)
         memcpy(status_old, status_new, sizeof (status_new));
 
     status_new[0] = '\0';
-    for (uint i = 0; i < LENGTH(blocks); i += 1)
-        strcat(status_new, status_bar[i]);
-    strcat(status_new, clock_output);
+    for (uint i = 0; i < LENGTH(blocks); i += 1) {
+        char *string = status_bar[i].string;
+        usize size = status_bar[i].length + 1;
+        memcpy(pointer, string, size);
+        pointer += size;
+    }
+    memcpy(pointer, clock_output.string, clock_output.length);
 
     if (check_changed) {
         if (!memcmp(status_old, status_new, sizeof (status_new)))
@@ -165,7 +176,7 @@ void signal_handler(int signum) {
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
         if (block->signal == (signum - SIGRTMIN)) {
-            get_block_output(block, status_bar[i]);
+            get_block_output(block, &status_bar[i]);
             block_updated = block;
         }
     }
@@ -268,15 +279,17 @@ void block_clock(int button) {
     struct tm t;
     char *week;
     char *week_names[] = { "dom", "seg", "ter", "qua", "qui", "sex", "sáb" };
-    char *output = clock_output + 1;
+    char *output = clock_output.string + 1;
+    int n;
 
     seconds_since_epoch = time(NULL);
     t = *localtime(&seconds_since_epoch);
     week = week_names[t.tm_wday];
 
-    snprintf(output, BLOCK_OUTPUT_LENGTH - 1,
-            "📅 %s %02d/%02d %02d:%02d:%02d\n",
-             week, t.tm_mday, t.tm_mon + 1, t.tm_hour, t.tm_min, t.tm_sec);
+    n = snprintf(output, BLOCK_OUTPUT_LENGTH - 1,
+                "📅 %s %02d/%02d %02d:%02d:%02d\n",
+                 week, t.tm_mday, t.tm_mon + 1, t.tm_hour, t.tm_min, t.tm_sec);
+    clock_output.length = n + 2;
 
     switch (button) {
     case 1:
