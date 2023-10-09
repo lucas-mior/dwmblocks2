@@ -22,8 +22,6 @@ static void signal_handler(int);
 static void status_bar_update(bool);
 
 int main(void) {
-    int screen;
-
     {
         struct sigaction signal_dwm;
         struct sigaction signal_child_action;
@@ -63,8 +61,11 @@ int main(void) {
         fprintf(stderr, "Error opening X display\n");
         exit(EXIT_FAILURE);
     }
-    screen = DefaultScreen(display);
-    root = RootWindow(display, screen);
+
+    {
+        int screen = DefaultScreen(display);
+        root = RootWindow(display, screen);
+    }
 
     {
         struct timespec sleep_time;
