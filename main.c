@@ -151,7 +151,6 @@ void status_bar_update(bool check_changed) {
     if (check_changed)
         memcpy(status_old, status_new, sizeof (status_new));
 
-    status_new[0] = '\0';
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
         char *string = status_bar[i].string;
         usize size = status_bar[i].length + 1;
