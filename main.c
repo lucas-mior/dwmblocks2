@@ -207,6 +207,8 @@ void status_bar_update(bool check_changed) {
 void signal_handler(int signum) {
     char *msg = "signal_handler()\n";
     write(STDOUT_FILENO, msg, strlen(msg));
+    // TODO: if the same signal arrives again,
+    // dont bother handling multiple times.
     Block *block_updated = NULL;
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
