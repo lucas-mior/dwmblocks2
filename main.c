@@ -122,8 +122,8 @@ int main(void) {
 void get_block_output(const Block *block, Output *out) {
     int command_pipe;
     char *string = out->string + 1;
-    ssize_t r;
-    size_t left = BLOCK_OUTPUT_LENGTH - 1;
+    isize r;
+    usize left = BLOCK_OUTPUT_LENGTH - 1;
 
     if ((command_pipe = popen_no_shell(block->command)) < 0) {
         char *msg = "Failed to run ";
