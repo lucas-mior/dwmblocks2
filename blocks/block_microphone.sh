@@ -1,7 +1,6 @@
 #!/bin/bash
 
 display () {
-
     pulse="$(pacmd list-sources | sed -E -n '/\* index/,/index/p')"
 
     [[ "$pulse"  =~ state:\ (SUSPENDED|IDLE) ]] && exit
@@ -18,15 +17,14 @@ display () {
                              printf("🙊 0%%\n")
                          else
                              printf("%s %s", qual, volume)      }' <<< "$pulse"
-    pacmd list-modules | sed -nE '/module-loopback/{s/.+/ 🔁/g;p}'
 }
 
 case $DWMBLOCKS2_BUTTON in
-    1) vol_in.bash toggle    ; display ;;
-    2) audio_toggle.bash     ; display ;;
-    3) st -e pulsemixer      ; display ;;
-    4) vol_in.bash up        ; display ;;
-    5) vol_in.bash down      ; display ;;
+    1) vol_in.bash toggle ;;
+    2) audio_toggle.bash  ;;
+    3) st -e pulsemixer   ;;
+    4) vol_in.bash up     ;;
+    5) vol_in.bash down   ;;
     6) setsid -f "$TERMINAL" -e "$EDITOR" "$0" ;;
-    *)                         display ;;
-esac 2> /dev/null
+    "") display ;;
+esac

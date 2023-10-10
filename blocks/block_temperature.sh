@@ -37,4 +37,4 @@ case $DWMBLOCKS2_BUTTON in
     3) explain ;;
     6) setsid -f "$TERMINAL" -e "$EDITOR" "$0" ;;
     "") display ;;
-esac 2> /dev/null
+esac

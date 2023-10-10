@@ -1,6 +1,6 @@
 #!/bin/sh
 
-display() {
+display () {
     lsblk -nrpo "name,type,size,mountpoint" \
         | awk '
           BEGIN {
@@ -24,4 +24,4 @@ display() {
 case $DWMBLOCKS2_BUTTON in
     6) setsid -f "$TERMINAL" -e "$EDITOR" "$0" ;;
     "") display ;;
-esac 2> /dev/null
+esac

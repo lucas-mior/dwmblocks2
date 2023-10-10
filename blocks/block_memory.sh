@@ -1,7 +1,8 @@
 #!/bin/sh
 
 display () {
-    free | awk '
+    free \
+    | awk '
     NR == 2 || NR == 3 {
         max = strtonum($2)
         if ($3 > max*0.9) {
@@ -26,8 +27,8 @@ explain () {
 }
 
 case $DWMBLOCKS2_BUTTON in
-    1) explain ;;
-    2) setsid -f "$TERMINAL" -e htop           ;;
-    3) explain ;;
+    1) setsid -f "$TERMINAL" -e htop ;;
+    3) explain                       ;;
     6) setsid -f "$TERMINAL" -e "$EDITOR" "$0" ;;
-esac 2> /dev/null
+    "") display ;;
+esac

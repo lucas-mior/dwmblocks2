@@ -22,4 +22,4 @@ case $DWMBLOCKS2_BUTTON in
     3) bluetoothctl power off && dunstify " off" ;;
     6) setsid -f "$TERMINAL" -e "$EDITOR" "$0"    ;;
     "") display ;;
-esac 2> /dev/null
+esac

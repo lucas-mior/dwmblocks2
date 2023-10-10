@@ -1,6 +1,6 @@
 #!/bin/sh
 
-display() {
+display () {
     printf "📋 "
     sleep 0.1
     result="$(timeout 0.5s xclip -selection clipboard -o -t TARGETS)"

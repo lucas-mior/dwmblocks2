@@ -13,5 +13,5 @@ display () {
 case $DWMBLOCKS2_BUTTON in
     1) setsid -f android-file-transfer         ;;
     6) setsid -f "$TERMINAL" -e "$EDITOR" "$0" ;;
-    *) display ;;
-esac 2> /dev/null
+    "") display ;;
+esac
