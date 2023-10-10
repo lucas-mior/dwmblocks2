@@ -17,5 +17,5 @@ case $DWMBLOCKS2_BUTTON in
     2) album_art_play.sh toggle ;;
     3) pause.bash wall          ;;
     6) setsid -f "$TERMINAL" -e "$EDITOR" "$0" ;;
-    *) display ;;
+    "") display ;;
 esac 2> /dev/null
