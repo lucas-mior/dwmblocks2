@@ -1,6 +1,6 @@
 #!/bin/sh
 
-display() {
+display () {
     mpc status --format="%title%" \
     | awk -v FS=" - " '
     NR == 1 { 

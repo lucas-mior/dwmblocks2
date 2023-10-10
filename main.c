@@ -126,8 +126,13 @@ void get_block_output(const Block *block, Output *out) {
     size_t left = BLOCK_OUTPUT_LENGTH - 1;
 
     if ((command_pipe = popen_no_shell(block->command)) < 0) {
-        fprintf(stderr, "Failed to run %s: %s\n",
-                         block->command, strerror(errno));
+        char *msg = "Failed to run ";
+        char *error = strerror(errno);
+        write(STDERR_FILENO, msg, strlen(msg));
+        write(STDERR_FILENO, block->command, strlen(block->command));
+        write(STDERR_FILENO, ": ", 2);
+        write(STDERR_FILENO, error, strlen(error));
+        write(STDERR_FILENO, "\n", 1);
         string[0] = '\0';
         return;
     }
@@ -211,6 +216,34 @@ void status_bar_update(bool check_changed) {
     return;
 }
 
+void itos(int num, char *str) {
+    int i = 0;
+    int isNegative = 0;
+
+    if (num < 0) {
+        isNegative = 1;
+        num = -num;
+    }
+
+    do {
+        str[i++] = num % 10 + '0';
+        num /= 10;
+    } while (num > 0);
+
+    if (isNegative)
+        str[i++] = '-';
+
+    str[i] = '\0';
+
+    int length = strlen(str);
+    for (int j = 0; j < length / 2; j++) {
+        char temp = str[j];
+        str[j] = str[length - j - 1];
+        str[length - j - 1] = temp;
+    }
+    return;
+}
+
 void signal_handler(int signum) {
     Block *block_updated = NULL;
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
@@ -221,8 +254,13 @@ void signal_handler(int signum) {
         }
     }
     if (!block_updated) {
-        fprintf(stderr, "No block configured for signal %d\n",
-                        signum - SIGRTMIN);
+        char *msg = "No block configured for signal ";
+        char number[20];
+        itos(signum - SIGRTMIN, number);
+
+        write(STDERR_FILENO, msg, strlen(msg));
+        write(STDERR_FILENO, number, strlen(number));
+        write(STDERR_FILENO, ".\n", 2);
         return;
     }
     status_bar_update(true);
@@ -242,9 +280,14 @@ void button_block(char *button, Block *block) {
         fprintf(stderr, "Error running %s: %s\n",
                         command[0], strerror(errno));
         exit(EXIT_SUCCESS);
-    case -1:
-        fprintf(stderr, "Error forking: %s\n", strerror(errno));
+    case -1: {
+        char *msg = "Error forking: ";
+        char *error = strerror(errno);
+        write(STDERR_FILENO, msg, strlen(msg));
+        write(STDERR_FILENO, error, strlen(error));
+        write(STDERR_FILENO, "\n", 2);
         return;
+    }
     default:
         // wait is supposed to fail because
         // signal_childs.sa_flags is set to SA_NOCLDWAIT;
