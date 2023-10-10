@@ -60,6 +60,10 @@ int main(void) {
                                 sig_max);
                 exit(EXIT_FAILURE);
             }
+            printf("=======================\n");
+            printf("%s %s = %d, %d",
+                    block->command, block->environment_variable,
+                    block->signal, block->interval);
 
             signal(SIGRTMIN + block->signal, signal_handler);
             sigaddset(&signal_dwm.sa_mask, SIGRTMIN + block->signal);
@@ -133,12 +137,19 @@ void get_block_output(const Block *block, Output *out) {
     } while (!status && error == EINTR);
     // TODO: Check if pclose() is right here, because
     // popen_no_shell uses pipe() and fdopen()
-    fclose(command_pipe);
+    pclose(command_pipe);
 
     out->length = (uint32) strcspn(string, "\n");
     string[out->length] = '\0';
     if (out->length == 0)
         return;
+
+    if (block->signal == 7) {
+        char *msg = "====output of block_music.sh: ====\n";
+        write(STDOUT_FILENO, msg, strlen(msg) + 1);
+        write(STDOUT_FILENO, string, out->length);
+        write(STDOUT_FILENO, "\n", 2);
+    }
 
     while (string[out->length - 1] == delim) {
         string[out->length - 1] = '\0';
@@ -197,10 +208,14 @@ void status_bar_update(bool check_changed) {
 }
 
 void signal_handler(int signum) {
+    write(STDOUT_FILENO, "signal\n", 8);
     Block *block_updated = NULL;
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
         if (block->signal == (signum - SIGRTMIN)) {
+            if (block->signal == 7) {
+                write(STDOUT_FILENO, "music\n", 7);
+            }
             get_block_output(block, &status_bar[i]);
             block_updated = block;
         }
