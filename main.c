@@ -222,27 +222,9 @@ void signal_handler(int signum) {
     return;
 }
 
-void button_handler(int signum, siginfo_t *signal_info, void *ucontext) {
-    char button[2] = {'0' + (signal_info->si_value.sival_int & 7), '\0'};
-    Block *block = NULL;
+void button_block(char *button, Block *block) {
     char *command[2];
     pid_t child;
-    (void) ucontext;
-
-    signum = (signal_info->si_value.sival_int >> 3) - SIGRTMIN;
-    for (uint i = 0; i < LENGTH(blocks); i += 1) {
-        if (blocks[i].signal == signum) {
-            block = &blocks[i];
-            break;
-        }
-    }
-    if (!block) {
-        if (signum == clock_signal)
-            block_clock(atoi(button));
-        else
-            fprintf(stderr, "No block configured for signal %d\n", signum);
-        return;
-    }
 
     switch ((child = fork())) {
     case 0:
@@ -261,6 +243,27 @@ void button_handler(int signum, siginfo_t *signal_info, void *ucontext) {
         // signal_child_action.sa_flags is set to SA_NOCLDWAIT;
         waitpid(child, NULL, 0);
         kill(getpid(), SIGRTMIN + block->signal);
+    }
+    return;
+}
+
+void button_handler(int signum, siginfo_t *signal_info, void *ucontext) {
+    char button[2] = {'0' + (signal_info->si_value.sival_int & 7), '\0'};
+    Block *block = NULL;
+    (void) ucontext;
+
+    signum = (signal_info->si_value.sival_int >> 3) - SIGRTMIN;
+    for (uint i = 0; i < LENGTH(blocks); i += 1) {
+        if (blocks[i].signal == signum) {
+            block = &blocks[i];
+            button_block(button, block);
+        }
+    }
+    if (!block) {
+        if (signum == clock_signal)
+            block_clock(atoi(button));
+        else
+            fprintf(stderr, "No block configured for signal %d\n", signum);
     }
     return;
 }
