@@ -1,5 +1,7 @@
 PREFIX ?= /usr/local
 
+objs = block_functions.o
+
 .PHONY: all clean install uninstall release debug clang
 .SUFFIXES:
 .SUFFIXES: .c .o
@@ -22,7 +24,9 @@ debug: CFLAGS += -g -fsanitize=undefined
 debug: clean
 debug: dwmblocks2
 
-dwmblocks2: Makefile main.c dwmblocks2.h blocks.h
+$(objs): Makefile dwmblocks2.h blocks.h block_functions.h
+
+dwmblocks2: $(objs) main.c 
 	ctags --kinds-C=+l *.h *.c
 	vtags.sed tags > .tags.vim
 	$(CC) $(CFLAGS) -o $@ $(objs) main.c $(LDFLAGS)

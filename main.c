@@ -1,24 +1,12 @@
 #include "dwmblocks2.h"
 #include "blocks.h"
 
-#define LENGTH(X) (sizeof (X) / sizeof (*X))
-#define BLOCK_OUTPUT_LENGTH 64
-#define IS_SPACE(X) ((X == ' ') || (X == '\t') || (X == '\n'))
-
-typedef struct Output {
-    char string[BLOCK_OUTPUT_LENGTH];
-    uint32 length;
-} Output;
-
 static Display *display;
 static Window root;
 static Output status_bar[LENGTH(blocks)] = {0};
-static Output clock_output = {0};
-static int clock_signal;
 static const char delim = ' ';
 
 static int popen_no_shell(char *);
-static void block_clock(int);
 static void button_block(char *, Block *);
 static void button_handler(int, siginfo_t *, void *);
 static void get_block_output(const Block *, Output *);
@@ -70,29 +58,11 @@ int main(void) {
             // used by dwm to send proper signal number back to dwmblocks2
             status_bar[i].string[0] = (char) block->signal;
         }
-        signal(SIGRTMIN + clock_signal, signal_handler);
-        sigaddset(&signal_external.sa_mask, SIGRTMIN + clock_signal);
 
         signal_external.sa_sigaction = button_handler;
         signal_external.sa_flags = SA_SIGINFO | SA_NODEFER;
         sigaction(SIGUSR1, &signal_external, NULL);
         sigaction(SIGCHLD, &signal_childs, NULL);
-    }
-
-    {
-        char *DWMBLOCKS2_CLOCK;
-        if ((DWMBLOCKS2_CLOCK = getenv("DWMBLOCKS2_CLOCK")) == NULL) {
-            fprintf(stderr, "DWMBLOCKS2_CLOCK"
-                            "environmental variable is not defined\n.");
-            exit(EXIT_FAILURE);
-        }
-        clock_signal = atoi(DWMBLOCKS2_CLOCK);
-        if (clock_signal <= 0) {
-            fprintf(stderr, "Invalid signal for clock block."
-                            "Signals must be grater than 0.\n");
-            exit(EXIT_FAILURE);
-        }
-        clock_output.string[0] = (char) clock_signal;
     }
 
     if ((display = XOpenDisplay(NULL)) == NULL) {
@@ -125,6 +95,10 @@ void get_block_output(const Block *block, Output *out) {
     isize r;
     usize left = BLOCK_OUTPUT_LENGTH - 1;
 
+    if (block->function) {
+        block->function(0, out);
+        return;
+    }
     if ((command_pipe = popen_no_shell(block->command)) < 0) {
         char *msg = "Failed to run ";
         char *error = strerror(errno);
@@ -186,7 +160,6 @@ void get_block_outputs(int64 seconds) {
         if ((seconds % block->interval) == 0)
             get_block_output(block, &status_bar[i]);
     }
-    block_clock(0);
     return;
 }
 
@@ -203,7 +176,6 @@ void status_bar_update(bool check_changed) {
         memcpy(pointer, string, size);
         pointer += size;
     }
-    memcpy(pointer, clock_output.string, clock_output.length);
 
     if (check_changed) {
         if (!memcmp(status_old, status_new, sizeof (status_new)))
@@ -308,12 +280,8 @@ void button_handler(int signum, siginfo_t *signal_info, void *ucontext) {
             any = true;
         }
     }
-    if (!any) {
-        if (signum == clock_signal)
-            block_clock(atoi(button));
-        else
-            fprintf(stderr, "No block configured for signal %d.\n", signum);
-    }
+    if (!any)
+        fprintf(stderr, "No block configured for signal %d.\n", signum);
     return;
 }
 
@@ -345,48 +313,4 @@ int popen_no_shell(char *command) {
         close(pipefd[1]);
         return pipefd[0];
     }
-}
-
-void block_clock(int button) {
-    time_t seconds_since_epoch;
-    struct tm t;
-    char *week;
-    char *week_names[] = { "dom", "seg", "ter", "qua", "qui", "sex", "sáb" };
-    char *output = clock_output.string + 1;
-    int n;
-
-    seconds_since_epoch = time(NULL);
-    t = *localtime(&seconds_since_epoch);
-    week = week_names[t.tm_wday];
-
-    n = snprintf(output, BLOCK_OUTPUT_LENGTH - 1,
-                "📅 %s %02d/%02d %02d:%02d:%02d ",
-                 week, t.tm_mday, t.tm_mon + 1, t.tm_hour, t.tm_min, t.tm_sec);
-    clock_output.length = (uint32) n + 2;
-
-    switch (button) {
-    case 1:
-        if (fork() == 0) {
-            execlp("sh", "sh", "-c",
-                   "yad --calendar --undecorated --fixed --no-buttons "
-                   "| tr -d '\n' | xsel -b");
-            exit(EXIT_SUCCESS);
-        }
-        break;
-    case 2:
-        if (fork() == 0) {
-            execlp("print_screen.sh", "print_screen.sh", "tela", NULL);
-            exit(EXIT_SUCCESS);
-        }
-        break;
-    case 3:
-        if (fork() == 0) {
-            execlp("killall", "killall", "yad", NULL);
-            exit(EXIT_SUCCESS);
-        }
-        break;
-    default:
-        break;
-    }
-    return;
 }

@@ -34,8 +34,17 @@ typedef size_t usize;
 typedef ssize_t isize;
 #endif
 
+#define LENGTH(X) (sizeof (X) / sizeof (*X))
+#define BLOCK_OUTPUT_LENGTH 64
+#define IS_SPACE(X) ((X == ' ') || (X == '\t') || (X == '\n'))
+
+typedef struct Output {
+    char string[BLOCK_OUTPUT_LENGTH];
+    uint32 length;
+} Output;
+
 typedef struct Block {
-    void (*function)(int);
+    void (*function)(int, Output *);
     char *command;
     char *signal_var_name;
     int interval;
