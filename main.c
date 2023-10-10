@@ -39,24 +39,26 @@ int main(void) {
             Block *block = &blocks[i];
             char *signal_string;
 
-            if (block->environment_variable == NULL) {
+            if (block->signal_var_name == NULL) {
                 fprintf(stderr, "Error: Signal environmental variable"
                                 " must be defined for every block.\n");
                 exit(EXIT_FAILURE);
             }
-            if ((signal_string = getenv(block->environment_variable)) == NULL) {
+            if ((signal_string = getenv(block->signal_var_name)) == NULL) {
                 fprintf(stderr, "Error: %s is not defined.\n",
-                                block->environment_variable);
+                                block->signal_var_name);
                 exit(EXIT_FAILURE);
             }
 
             block->signal = atoi(signal_string);
             if (blocks->signal <= 0) {
-                fprintf(stderr, "Invalid signal for block: Must be grater than 0.\n");
+                fprintf(stderr, "Invalid signal for block %d."
+                                "Signals must be grater than 0.\n", i);
                 exit(EXIT_FAILURE);
             }
             if (blocks->signal >= sig_max) {
-                fprintf(stderr, "Invalid signal for block: Must be lower than %d.\n",
+                fprintf(stderr, "Invalid signal for block."
+                                "Signals must be lower than %d.\n",
                                 sig_max);
                 exit(EXIT_FAILURE);
             }
@@ -84,7 +86,8 @@ int main(void) {
         }
         clock_signal = atoi(DWMBLOCKS2_CLOCK);
         if (clock_signal <= 0) {
-            fprintf(stderr, "Invalid signal for block: Must be grater than 0.\n");
+            fprintf(stderr, "Invalid signal for clock block."
+                            "Signals must be grater than 0.\n");
             exit(EXIT_FAILURE);
         }
         clock_output.string[0] = (char) clock_signal;
@@ -269,7 +272,7 @@ FILE *popen_no_shell(char *command) {
     char *argv[2] = { command, NULL };
 
     if (pipe(pipefd) < 0) {
-        perror("pipe");
+        fprintf(stderr, "Error creating pipe: %s\n", strerror(errno));
         return NULL;
     }
 
