@@ -8,14 +8,16 @@ void block_clock(int button, Output *out) {
     char *string = out->string + 1;
     int n;
 
-    seconds_since_epoch = time(NULL);
-    t = *localtime(&seconds_since_epoch);
-    week = week_names[t.tm_wday];
+    if (out) {
+        seconds_since_epoch = time(NULL);
+        t = *localtime(&seconds_since_epoch);
+        week = week_names[t.tm_wday];
 
-    n = snprintf(string, BLOCK_OUTPUT_LENGTH - 1,
-                "📅 %s %02d/%02d %02d:%02d:%02d ",
-                 week, t.tm_mday, t.tm_mon + 1, t.tm_hour, t.tm_min, t.tm_sec);
-    out->length = (uint32) n + 2;
+        n = snprintf(string, BLOCK_OUTPUT_LENGTH - 1,
+                    "📅 %s %02d/%02d %02d:%02d:%02d ",
+                     week, t.tm_mday, t.tm_mon + 1, t.tm_hour, t.tm_min, t.tm_sec);
+        out->length = (uint32) n + 2;
+    }
 
     switch (button) {
     case 1:

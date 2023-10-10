@@ -244,6 +244,10 @@ void button_block(char *button, Block *block) {
 
     switch ((child = fork())) {
     case 0:
+        if (block->function) {
+            block->function(atoi(button), NULL);
+            return;
+        }
         command[0] = block->command;
         command[1] = NULL;
         setenv("DWMBLOCKS2_BUTTON", button, 1);
