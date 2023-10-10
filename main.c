@@ -324,7 +324,8 @@ void block_clock(int button) {
     switch (button) {
     case 1:
         if (fork() == 0) {
-            system("yad --calendar --undecorated --fixed --no-buttons "
+            execlp("sh", "sh", "-c",
+                   "yad --calendar --undecorated --fixed --no-buttons "
                    "| tr -d '\n' | xsel -b");
             exit(EXIT_SUCCESS);
         }
