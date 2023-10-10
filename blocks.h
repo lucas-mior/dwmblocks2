@@ -1,7 +1,9 @@
 #ifndef BLOCKS_H
 #define BLOCKS_H
 
-static Block blocks[] = {
+#include "dwmblocks2.h"
+
+Block blocks[] = {
 /* command                signal environment variable interval, signal number (ignored) */
 {"block_recording.sh",    "DWMBLOCKS2_RECORD",        0,        0},
 {"block_clipboard.sh",    "DWMBLOCKS2_CLIPBOARD",     0,        0},

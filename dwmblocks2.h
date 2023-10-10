@@ -41,4 +41,6 @@ typedef struct Block {
     int signal;
 } Block;
 
+extern Block blocks[];
+
 #endif /* DWMBLOCKS2_H */
