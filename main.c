@@ -1,7 +1,9 @@
 #include "dwmblocks2.h"
 #include "blocks.h"
+
 #define LENGTH(X) (sizeof (X) / sizeof (*X))
 #define BLOCK_OUTPUT_LENGTH 64
+#define IS_SPACE(X) ((X == ' ') || (X == '\t') || (X == '\n'))
 
 typedef struct Output {
     char string[BLOCK_OUTPUT_LENGTH];
@@ -15,8 +17,9 @@ static Output clock_output = {0};
 static int clock_signal;
 static const char delim = ' ';
 
-static FILE *popen_no_shell(char *);
+static int popen_no_shell(char *);
 static void block_clock(int);
+static void button_block(char *, Block *);
 static void button_handler(int, siginfo_t *, void *);
 static void get_block_output(const Block *, Output *);
 static void get_block_outputs(int64);
@@ -117,37 +120,42 @@ int main(void) {
 }
 
 void get_block_output(const Block *block, Output *out) {
-    FILE *command_pipe;
-    char *status;
-    int error;
+    int command_pipe;
     char *string = out->string + 1;
+    ssize_t r;
+    size_t left = BLOCK_OUTPUT_LENGTH - 1;
 
-    if (!(command_pipe = popen_no_shell(block->command))) {
+    if ((command_pipe = popen_no_shell(block->command)) < 0) {
         fprintf(stderr, "Failed to run %s: %s\n",
                          block->command, strerror(errno));
         string[0] = '\0';
         return;
     }
-    do {
-        errno = 0;
-        status = fgets(string, BLOCK_OUTPUT_LENGTH - 1, command_pipe);
-        error = errno;
-    } while (!status && error == EINTR);
-    // TODO: Check if pclose() is right here, because
-    // popen_no_shell uses pipe() and fdopen()
-    pclose(command_pipe);
-    if (!status) {
+
+    while ((r = read(command_pipe, string, left)) > 0) {
+        string += r;
+        left -= r;
+        if (left <= 0)
+            break;
+        if (*string == '\n')
+            break;
+    }
+    close(command_pipe);
+    
+    if ((r < 0) || (string == (out->string + 1))) {
         string[0] = '\0';
         out->length = 0;
         return;
     }
 
-    out->length = (uint32) strcspn(string, "\n");
+    out->length = (uint32) (string - (out->string + 1));
+
+    string = out->string + 1;
     string[out->length] = '\0';
     if (out->length == 0)
         return;
 
-    while (string[out->length - 1] == delim) {
+    while (IS_SPACE(string[out->length - 1])) {
         string[out->length - 1] = '\0';
         out->length -= 1;
         if (out->length == 0)
@@ -267,7 +275,7 @@ void button_handler(int signum, siginfo_t *signal_info, void *ucontext) {
     return;
 }
 
-FILE *popen_no_shell(char *command) {
+int popen_no_shell(char *command) {
     int pipefd[2];
     pid_t pid;
 
@@ -275,7 +283,7 @@ FILE *popen_no_shell(char *command) {
 
     if (pipe(pipefd) < 0) {
         fprintf(stderr, "Error creating pipe: %s\n", strerror(errno));
-        return NULL;
+        return -1;
     }
 
     switch ((pid = fork())) {
@@ -290,10 +298,10 @@ FILE *popen_no_shell(char *command) {
         exit(EXIT_FAILURE);
     case -1:
         fprintf(stderr, "Error forking: %s\n", strerror(errno));
-        return NULL;
+        return -1;
     default:
         close(pipefd[1]);
-        return fdopen(pipefd[0], "r");
+        return pipefd[0];
     }
 }
 

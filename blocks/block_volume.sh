@@ -20,7 +20,7 @@ display () {
                                  printf("%s %s\n", qual, volume)
                              }
                              if (strtonum(gensub("%", "", "g", volume)) > 100)
-                                 printf("dunstify -r $BLOCK_VOLUME -t 250 \"%s %s\"", qual, volume) | "/bin/dash"
+                                 printf("dunstify -r $DWMBLOCKS2_VOLUME -t 250 \"%s %s\"", qual, volume) | "/bin/dash"
              }'
 }
 
