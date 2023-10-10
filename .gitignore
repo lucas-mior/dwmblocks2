@@ -10,3 +10,4 @@
 compile_commands.json
 dwmblocks2
 tags
+.clangd
