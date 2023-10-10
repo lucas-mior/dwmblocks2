@@ -26,10 +26,10 @@ static void status_bar_update(bool);
 int main(void) {
     {
         int sig_max = SIGRTMAX - SIGRTMIN;
-        struct sigaction signal_dwm;
-        struct sigaction signal_child_action;
-        signal_child_action.sa_handler = SIG_DFL;
-        signal_child_action.sa_flags = SA_NOCLDWAIT;
+        struct sigaction signal_external;
+        struct sigaction signal_childs;
+        signal_childs.sa_handler = SIG_DFL;
+        signal_childs.sa_flags = SA_NOCLDWAIT;
 
         for (int i = SIGRTMIN; i <= SIGRTMAX; i += 1)
             signal(i, SIG_IGN);
@@ -63,17 +63,17 @@ int main(void) {
             }
 
             signal(SIGRTMIN + block->signal, signal_handler);
-            sigaddset(&signal_dwm.sa_mask, SIGRTMIN + block->signal);
+            sigaddset(&signal_external.sa_mask, SIGRTMIN + block->signal);
             // used by dwm to send proper signal number back to dwmblocks2
             status_bar[i].string[0] = (char) block->signal;
         }
         signal(SIGRTMIN + clock_signal, signal_handler);
-        sigaddset(&signal_dwm.sa_mask, SIGRTMIN + clock_signal);
+        sigaddset(&signal_external.sa_mask, SIGRTMIN + clock_signal);
 
-        signal_dwm.sa_sigaction = button_handler;
-        signal_dwm.sa_flags = SA_SIGINFO | SA_NODEFER;
-        sigaction(SIGUSR1, &signal_dwm, NULL);
-        sigaction(SIGCHLD, &signal_child_action, NULL);
+        signal_external.sa_sigaction = button_handler;
+        signal_external.sa_flags = SA_SIGINFO | SA_NODEFER;
+        sigaction(SIGUSR1, &signal_external, NULL);
+        sigaction(SIGCHLD, &signal_childs, NULL);
     }
 
     {
@@ -245,7 +245,7 @@ void button_block(char *button, Block *block) {
         return;
     default:
         // wait is supposed to fail because
-        // signal_child_action.sa_flags is set to SA_NOCLDWAIT;
+        // signal_childs.sa_flags is set to SA_NOCLDWAIT;
         waitpid(child, NULL, 0);
         kill(getpid(), SIGRTMIN + block->signal);
     }
