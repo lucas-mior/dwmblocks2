@@ -133,6 +133,7 @@ void get_block_output(const Block *block, Output *out) {
         write(STDERR_FILENO, ": ", 2);
         write(STDERR_FILENO, error, strlen(error));
         write(STDERR_FILENO, "\n", 1);
+
         string[0] = '\0';
         return;
     }
@@ -141,8 +142,6 @@ void get_block_output(const Block *block, Output *out) {
         string += r;
         left -= r;
         if (left <= 0)
-            break;
-        if (*string == '\n')
             break;
     }
     close(command_pipe);
