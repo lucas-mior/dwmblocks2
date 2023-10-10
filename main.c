@@ -266,23 +266,11 @@ FILE *popen_no_shell(char *command) {
     int pipefd[2];
     pid_t pid;
 
-    char *c = command;
-    char *argv[4] = { command, NULL };
+    char *argv[2] = { command, NULL };
 
     if (pipe(pipefd) < 0) {
         perror("pipe");
         return NULL;
-    }
-
-    while (*c) {
-        if ((*c == ' ') || (*c == '\t')) {
-            argv[0] = "/bin/sh";
-            argv[1] = "-c";
-            argv[2] = command;
-            argv[3] = NULL;
-            break;
-        }
-        c += 1;
     }
 
     switch ((pid = fork())) {

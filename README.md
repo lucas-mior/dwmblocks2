@@ -12,6 +12,15 @@ By default it uses all blocks in `blocks/` directory,
 plus the clock block, which is part of dwmblocks2 itself.
 You are encouraged to edit `main.c` to suit your needs.
 
+## Notes
+- Each command specificed on `blocks.h` is not interpreted by the shell,
+  since it is probably itself a script, so the overhead and the loss
+  of readability is not worth the "flexibility"
+- A signal number, specified through an environmental variable,
+  is mandatory for each block.
+- Blocks whose interval is set to 0 will only be updated through signals,
+  (including those send by dwm through clicks).
+
 ## Clicks
 You need to apply the patch `dwm-statuscmd.diff` on dwm
 for mouse clicks to work.
