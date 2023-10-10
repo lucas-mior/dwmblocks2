@@ -1,6 +1,5 @@
 #include "dwmblocks2.h"
 #include "blocks.h"
-
 #define LENGTH(X) (sizeof (X) / sizeof (*X))
 #define BLOCK_OUTPUT_LENGTH 64
 
@@ -72,7 +71,7 @@ int main(void) {
         sigaddset(&signal_dwm.sa_mask, SIGRTMIN + clock_signal);
 
         signal_dwm.sa_sigaction = button_handler;
-        signal_dwm.sa_flags = SA_SIGINFO;
+        signal_dwm.sa_flags = SA_SIGINFO | SA_NODEFER;
         sigaction(SIGUSR1, &signal_dwm, NULL);
         sigaction(SIGCHLD, &signal_child_action, NULL);
     }
