@@ -35,6 +35,7 @@ typedef ssize_t isize;
 #endif
 
 typedef struct Block {
+    void (*function)(int);
     char *command;
     char *signal_var_name;
     int interval;
