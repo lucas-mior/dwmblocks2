@@ -249,21 +249,21 @@ void button_block(char *button, Block *block) {
 
 void button_handler(int signum, siginfo_t *signal_info, void *ucontext) {
     char button[2] = {'0' + (signal_info->si_value.sival_int & 7), '\0'};
-    Block *block = NULL;
+    bool any = false;
     (void) ucontext;
 
     signum = (signal_info->si_value.sival_int >> 3) - SIGRTMIN;
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
         if (blocks[i].signal == signum) {
-            block = &blocks[i];
-            button_block(button, block);
+            button_block(button, &blocks[i]);
+            any = true;
         }
     }
-    if (!block) {
+    if (!any) {
         if (signum == clock_signal)
             block_clock(atoi(button));
         else
-            fprintf(stderr, "No block configured for signal %d\n", signum);
+            fprintf(stderr, "No block configured for signal %d.\n", signum);
     }
     return;
 }
