@@ -30,6 +30,11 @@ Checkout the clock block for an example.
 You need to apply the patch `dwm-statuscmd.diff` on dwm
 for mouse clicks to work.
 Then dwmblocks2 will pass the button as the first argument.
+Currently, dwmblocks2 will update itself *after* running
+the block with the click, which means that any output with
+from the program with the button number passed
+will be ignored. This is meant for separating display
+and click functionality within a block script.
 ```
 case $1 in
     1) echo "clicked left button";;
