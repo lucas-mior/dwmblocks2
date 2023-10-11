@@ -22,6 +22,7 @@ Checkout the clock block for an example.
 - A signal number, specified through an environmental variable,
   is mandatory for each block.
   * You can set the same signal for multiple blocks
+  * It must be a number between `1` and `SIGRTMAX - SIGRTMIN`
 - Blocks whose interval is set to 0 will only be updated through signals,
   (including those send by dwm through clicks).
 
