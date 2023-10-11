@@ -1,6 +1,6 @@
 #!/bin/sh
 
-display() {
+display () {
     sensors -u \
         | awk '
           /Core/ {
