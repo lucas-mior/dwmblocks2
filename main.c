@@ -12,6 +12,7 @@ static void get_block_output(const Block *, Output *);
 static void get_block_outputs(int64);
 static void signal_handler(int);
 static void status_bar_update(bool);
+static void itos(int, char *);
 
 int main(void) {
     {
@@ -113,7 +114,7 @@ void get_block_output(const Block *block, Output *out) {
 
     while ((r = read(command_pipe, string, left)) > 0) {
         string += r;
-        left -= r;
+        left -= (usize) r;
         if (left <= 0)
             break;
     }
@@ -190,10 +191,11 @@ void status_bar_update(bool check_changed) {
 
 void itos(int num, char *str) {
     int i = 0;
-    int isNegative = 0;
+    bool negative = false;
+    usize length;
 
     if (num < 0) {
-        isNegative = 1;
+        negative = true;
         num = -num;
     }
 
@@ -202,13 +204,13 @@ void itos(int num, char *str) {
         num /= 10;
     } while (num > 0);
 
-    if (isNegative)
+    if (negative)
         str[i++] = '-';
 
     str[i] = '\0';
 
-    int length = strlen(str);
-    for (int j = 0; j < length / 2; j++) {
+    length = strlen(str);
+    for (usize j = 0; j < length / 2; j++) {
         char temp = str[j];
         str[j] = str[length - j - 1];
         str[length - j - 1] = temp;

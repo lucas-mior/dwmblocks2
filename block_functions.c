@@ -1,4 +1,5 @@
 #include "dwmblocks2.h"
+#include "block_functions.h"
 
 void block_clock(int button, Output *out) {
     time_t seconds_since_epoch;
