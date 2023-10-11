@@ -95,9 +95,6 @@ int main(void) {
 
             while (nanosleep(&to_sleep, &to_sleep) < 0);
             seconds += sleep_time.tv_sec;
-
-            char *end = "=======end of sleep\n";
-            write(STDERR_FILENO, end, strlen(end));
         }
     }
 }
@@ -125,6 +122,8 @@ void get_block_output(const Block *block, Output *out) {
         string[0] = '\0';
         return;
     }
+
+    write_error("opened pipe on handler!");
 
     {
         fd_set input_set;
@@ -255,15 +254,17 @@ void itoa(int num, char *str) {
 }
 
 void signal_handler(int signum) {
-    fprintf(stderr, "Handling %d...\n", signum);
+    write_error("handling...\n");
     Block *block_updated = NULL;
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
         if (block->signal == (signum - SIGRTMIN)) {
+            write_error("if matched inside handler\n");
             get_block_output(block, &status_bar[i]);
             block_updated = block;
         }
     }
+    write_error("======== middle of handler!\n");
     if (!block_updated) {
         char *msg = "No block configured for signal ";
         char number[20];
@@ -275,8 +276,7 @@ void signal_handler(int signum) {
         return;
     }
     status_bar_update(true);
-    char *end = "\n======== end of handler!\n"; 
-    write(STDERR_FILENO, end, strlen(end));
+    write_error("======== end of handler!\n");
     return;
 }
 
