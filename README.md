@@ -21,6 +21,7 @@ Checkout the clock block for an example.
   of readability is not worth the "flexibility"
 - A signal number, specified through an environmental variable,
   is mandatory for each block.
+  * You can set the same signal for multiple blocks
 - Blocks whose interval is set to 0 will only be updated through signals,
   (including those send by dwm through clicks).
 
