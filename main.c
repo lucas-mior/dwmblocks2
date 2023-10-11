@@ -219,6 +219,8 @@ void itoa(int num, char *str) {
 }
 
 void signal_handler(int signum) {
+    char *msg = "signal_handler!"; 
+    write(STDERR_FILENO, msg, strlen(msg));
     Block *block_updated = NULL;
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
@@ -238,6 +240,8 @@ void signal_handler(int signum) {
         return;
     }
     status_bar_update(true);
+    char *end = "\n======== end of handler!\n"; 
+    write(STDERR_FILENO, end, strlen(end));
     return;
 }
 
