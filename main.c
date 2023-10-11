@@ -58,10 +58,13 @@ int main(void) {
                 exit(EXIT_FAILURE);
             }
 
-            signal(SIGRTMIN + block->signal, signal_handler);
-            sigaddset(&signal_external.sa_mask, SIGRTMIN + block->signal);
             // used by dwm to send proper signal number back to dwmblocks2
             status_bar[i].string[0] = (char) block->signal;
+
+            struct sigaction signal_this;
+            signal_this.sa_handler = signal_handler;
+            signal_this.sa_flags = SA_NODEFER;
+            sigaction(SIGRTMIN + block->signal, &signal_this, NULL);
         }
 
         signal_external.sa_sigaction = button_handler;
