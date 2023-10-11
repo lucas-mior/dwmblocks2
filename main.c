@@ -1,5 +1,6 @@
 #include "dwmblocks2.h"
 #include "blocks.h"
+#include <sys/select.h>
 
 static Display *display;
 static Window root;
@@ -13,6 +14,10 @@ static void get_block_outputs(int64);
 static void signal_handler(int);
 static void status_bar_update(bool);
 static void itoa(int, char *);
+
+static void write_error(char *msg) {
+    write(STDERR_FILENO, msg, strlen(msg));
+}
 
 int main(void) {
     {
@@ -104,6 +109,7 @@ void get_block_output(const Block *block, Output *out) {
         block->function(0, out);
         return;
     }
+
     if ((command_pipe = popen_no_shell(block->command)) < 0) {
         char *msg = "Failed to run ";
         char *error = strerror(errno);
@@ -117,14 +123,36 @@ void get_block_output(const Block *block, Output *out) {
         return;
     }
 
-    while ((r = read(command_pipe, string, left)) > 0) {
-        string += r;
-        left -= (usize) r;
-        if (left <= 0)
-            break;
+    {
+        fd_set input_set;
+        struct timeval  timeout;
+        int ready = 0;
+        FD_ZERO(&input_set);
+        FD_SET(command_pipe, &input_set);
+        timeout.tv_sec = 1;
+        timeout.tv_usec = 0;
+
+        do {
+            ready = select(command_pipe+1, &input_set, NULL, NULL, &timeout);
+            if (ready == 0) {
+                string[0] = '\0';
+                out->length = 0;
+                close(command_pipe);
+                return;
+            }
+
+            r = read(command_pipe, string, left);
+            if (r <= 0)
+                break;
+            string += r;
+            left -= (usize) r;
+            if (left <= 0)
+                break;
+        } while (true);
+
+        close(command_pipe);
     }
-    close(command_pipe);
-    
+
     if ((r < 0) || (string == (out->string + 1))) {
         string[0] = '\0';
         out->length = 0;
