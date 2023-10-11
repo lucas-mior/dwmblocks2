@@ -31,6 +31,7 @@ int main(void) {
             signal(i, SIG_IGN);
 
         for (uint i = 0; i < LENGTH(blocks); i += 1) {
+            struct sigaction signal_this;
             Block *block = &blocks[i];
             char *signal_string;
 
@@ -61,7 +62,6 @@ int main(void) {
             // used by dwm to send proper signal number back to dwmblocks2
             status_bar[i].string[0] = (char) block->signal;
 
-            struct sigaction signal_this;
             signal_this.sa_handler = signal_handler;
             signal_this.sa_flags = SA_NODEFER;
             sigaction(SIGRTMIN + block->signal, &signal_this, NULL);
@@ -122,8 +122,6 @@ void get_block_output(const Block *block, Output *out) {
         string[0] = '\0';
         return;
     }
-
-    write_error("opened pipe on handler!");
 
     {
         fd_set input_set;
@@ -254,17 +252,14 @@ void itoa(int num, char *str) {
 }
 
 void signal_handler(int signum) {
-    write_error("handling...\n");
     Block *block_updated = NULL;
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
         if (block->signal == (signum - SIGRTMIN)) {
-            write_error("if matched inside handler\n");
             get_block_output(block, &status_bar[i]);
             block_updated = block;
         }
     }
-    write_error("======== middle of handler!\n");
     if (!block_updated) {
         char *msg = "No block configured for signal ";
         char number[20];
@@ -276,7 +271,6 @@ void signal_handler(int signum) {
         return;
     }
     status_bar_update(true);
-    write_error("======== end of handler!\n");
     return;
 }
 
@@ -332,9 +326,9 @@ void button_handler(int signum, siginfo_t *signal_info, void *ucontext) {
         char number[20];
         itoa(signum - SIGRTMIN, number);
 
-        write(STDERR_FILENO, msg, strlen(msg));
-        write(STDERR_FILENO, number, strlen(number));
-        write(STDERR_FILENO, ".\n", 2);
+        write_error(msg);
+        write_error(number);
+        write_error(".\n");
         return;
     }
     return;
