@@ -2,7 +2,8 @@
 #include "blocks.h"
 #include <sys/select.h>
 #include <setjmp.h>
-jmp_buf env;
+
+static jmp_buf env;
 
 static Display *display;
 static Window root;
@@ -10,10 +11,10 @@ static Output status_bar[LENGTH(blocks)] = {0};
 
 static int popen_no_shell(char *);
 static void button_block(int, Block *);
-static void button_handler(int, siginfo_t *, void *);
+static void button_handler(int, siginfo_t *, void *) __attribute__((noreturn));
 static void get_block_output(const Block *, Output *);
 static void get_block_outputs(int64);
-static void signal_handler(int);
+static void signal_handler(int) __attribute__((noreturn));
 static void status_bar_update(bool);
 static void itoa(int, char *);
 
@@ -116,13 +117,11 @@ void get_block_output(const Block *block, Output *out) {
     }
 
     if ((command_pipe = popen_no_shell(block->command)) < 0) {
-        char *msg = "Failed to run ";
-        char *error = strerror(errno);
-        write(STDERR_FILENO, msg, strlen(msg));
-        write(STDERR_FILENO, block->command, strlen(block->command));
-        write(STDERR_FILENO, ": ", 2);
-        write(STDERR_FILENO, error, strlen(error));
-        write(STDERR_FILENO, "\n", 1);
+        write_error("Failed to run ");
+        write_error(block->command);
+        write_error(": ");
+        write_error(strerror(errno));
+        write_error("\n");
 
         string[0] = '\0';
         return;
@@ -275,7 +274,6 @@ void signal_handler(int signum) {
         write(STDERR_FILENO, ".\n", 2);
     }
     siglongjmp(env, 1);
-    return;
 }
 
 void button_block(int button, Block *block) {
@@ -333,11 +331,8 @@ void button_handler(int signum, siginfo_t *signal_info, void *ucontext) {
         write_error(msg);
         write_error(number);
         write_error(".\n");
-        siglongjmp(env, 1);
-        return;
     }
     siglongjmp(env, 1);
-    return;
 }
 
 int popen_no_shell(char *command) {
