@@ -1,6 +1,6 @@
 PREFIX ?= /usr/local
 
-objs = block_functions.o
+objs = block_functions.o util.o
 
 .PHONY: all clean install uninstall release debug clang
 .SUFFIXES:

@@ -1,6 +1,6 @@
 #include "dwmblocks2.h"
 #include "blocks.h"
-#include <sys/select.h>
+#include "util.h"
 
 static volatile int handling = 0;
 
@@ -15,11 +15,6 @@ static void get_block_output(const Block *, Output *);
 static void get_block_outputs(int64);
 static void signal_handler(int);
 static void status_bar_update(bool);
-static void itoa(int, char *);
-
-static inline void write_error(char *msg) {
-    write(STDERR_FILENO, msg, strlen(msg));
-}
 
 int main(void) {
     {
@@ -202,9 +197,9 @@ void get_block_outputs(int64 seconds) {
 }
 
 void status_bar_update(bool check_changed) {
-    (void) check_changed;
     static char status_new[LENGTH(blocks) * (BLOCK_OUTPUT_LENGTH+1)] = {0};
     char *pointer = status_new;
+    (void) check_changed;
 
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
         char *string = status_bar[i].string;
@@ -220,40 +215,11 @@ void status_bar_update(bool check_changed) {
     return;
 }
 
-void itoa(int num, char *str) {
-    int i = 0;
-    bool negative = false;
-    usize length;
-
-    if (num < 0) {
-        negative = true;
-        num = -num;
-    }
-
-    do {
-        str[i++] = num % 10 + '0';
-        num /= 10;
-    } while (num > 0);
-
-    if (negative)
-        str[i++] = '-';
-
-    str[i] = '\0';
-
-    length = strlen(str);
-    for (usize j = 0; j < length / 2; j++) {
-        char temp = str[j];
-        str[j] = str[length - j - 1];
-        str[length - j - 1] = temp;
-    }
-    return;
-}
-
 void signal_handler(int signum) {
+    Block *block_updated = NULL;
     if (handling == signum)
         return;
     handling = signum;
-    Block *block_updated = NULL;
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
         if (block->signal == (signum - SIGRTMIN)) {

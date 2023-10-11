@@ -12,6 +12,7 @@
 #include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
+#include <sys/select.h>
 
 #ifndef INTEGERS
 #define INTEGERS
