@@ -9,8 +9,11 @@ dwmblocks2 & # put this line in your xinitrc
 ## Configuration
 Edit `blocks.h`.
 By default it uses all blocks in `blocks/` directory,
-plus the clock block, which is part of dwmblocks2 itself.
-You are encouraged to edit `main.c` to suit your needs.
+plus the clock block.
+You can use external programs or C functions of
+prototype `void function_name(int, Output *)`,
+defined in `block_functions.c` and declared in `block_functions.h`.
+Checkout the clock block for an example.
 
 ## Notes
 - Each command specificed on `blocks.h` is not interpreted by the shell,
