@@ -288,8 +288,16 @@ void button_handler(int signum, siginfo_t *signal_info, void *ucontext) {
             any = true;
         }
     }
-    if (!any)
-        fprintf(stderr, "No block configured for signal %d.\n", signum);
+    if (!any) {
+        char *msg = "No block configured for signal ";
+        char number[20];
+        itos(signum - SIGRTMIN, number);
+
+        write(STDERR_FILENO, msg, strlen(msg));
+        write(STDERR_FILENO, number, strlen(number));
+        write(STDERR_FILENO, ".\n", 2);
+        return;
+    }
     return;
 }
 
