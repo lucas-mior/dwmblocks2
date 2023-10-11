@@ -90,7 +90,7 @@ int main(void) {
         sleep_time.tv_nsec = 0;
 
         while (true) {
-            if (setjmp(env) == 0) {
+            if (sigsetjmp(env, 1) == 0) {
                 to_sleep = sleep_time;
                 get_block_outputs(seconds);
                 status_bar_update(false);
@@ -98,8 +98,6 @@ int main(void) {
                 status_bar_update(true);
             }
 
-            fprintf(stderr, "before sleep %ld\n", seconds);
-            sigsetjmp(env, 1);
             while (nanosleep(&to_sleep, &to_sleep) < 0);
             seconds += sleep_time.tv_sec;
         }
@@ -275,7 +273,6 @@ void signal_handler(int signum) {
         write(STDERR_FILENO, msg, strlen(msg));
         write(STDERR_FILENO, number, strlen(number));
         write(STDERR_FILENO, ".\n", 2);
-        return;
     }
     siglongjmp(env, 1);
     return;
