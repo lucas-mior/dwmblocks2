@@ -12,7 +12,7 @@ static void get_block_output(const Block *, Output *);
 static void get_block_outputs(int64);
 static void signal_handler(int);
 static void status_bar_update(bool);
-static void itos(int, char *);
+static void itoa(int, char *);
 
 int main(void) {
     {
@@ -189,7 +189,7 @@ void status_bar_update(bool check_changed) {
     return;
 }
 
-void itos(int num, char *str) {
+void itoa(int num, char *str) {
     int i = 0;
     bool negative = false;
     usize length;
@@ -230,7 +230,7 @@ void signal_handler(int signum) {
     if (!block_updated) {
         char *msg = "No block configured for signal ";
         char number[20];
-        itos(signum - SIGRTMIN, number);
+        itoa(signum - SIGRTMIN, number);
 
         write(STDERR_FILENO, msg, strlen(msg));
         write(STDERR_FILENO, number, strlen(number));
@@ -291,7 +291,7 @@ void button_handler(int signum, siginfo_t *signal_info, void *ucontext) {
     if (!any) {
         char *msg = "No block configured for signal ";
         char number[20];
-        itos(signum - SIGRTMIN, number);
+        itoa(signum - SIGRTMIN, number);
 
         write(STDERR_FILENO, msg, strlen(msg));
         write(STDERR_FILENO, number, strlen(number));
