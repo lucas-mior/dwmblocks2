@@ -2,7 +2,7 @@
 Fork of dwmblocks. It is **not** a drop-in replacement.
 
 ## Usage
-```
+```sh
 dwmblocks2 & # put this line in your xinitrc
 ```
 
@@ -35,7 +35,7 @@ the block with the click, which means that any output with
 from the program with the button number passed
 will be ignored. This is meant for separating display
 and click functionality within a block script.
-```
+```sh
 case $1 in
     1) echo "clicked left button";;
     2) echo "clicked middle button";;
@@ -49,7 +49,7 @@ esac
 ```
 
 ## Instalation
-```
+```sh
 $ git clone https://github.com/lucas-mior/dwmblocks2
 $ cd dwmblocks2
 $ make
