@@ -42,19 +42,5 @@ END {
             icon="🔌❓"
         }
     }
-
-    switch (ENVIRON["DWMBLOCKS2_BUTTON"]) {
-        case 6:
-            terminal = ENVIRON["TERMINAL"]
-            editor = ENVIRON["EDITOR"]
-            file = ""
-            cmd = "find ~/.local/scripts/ -name 'battery.awk' | head -n 1"
-            while ((cmd | getline file) > 0);
-            close(cmd)
-            printf("setsid -f %s -e %s %s", terminal, editor, file) | "/bin/dash"
-            break;
-        case "":
-            printf("%s%d%%\n", icon, capacity);
-            break;
-    }
+    printf("%s%d%%\n", icon, capacity);
 }
