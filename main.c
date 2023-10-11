@@ -67,6 +67,12 @@ int main(void) {
 
             signal_this.sa_handler = signal_handler;
             signal_this.sa_flags = SA_NODEFER;
+            for (uint j = 0; j < LENGTH(blocks); j+=1) {
+                if (j != i) {
+                    Block *blockj = &blocks[j];
+                    sigaddset(&signal_this.sa_mask, SIGRTMIN + blockj->signal);
+                }
+            }
             sigaction(SIGRTMIN + block->signal, &signal_this, NULL);
             sigaddset(&signal_external.sa_mask, SIGRTMIN + block->signal);
         }
