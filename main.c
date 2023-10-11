@@ -67,6 +67,7 @@ int main(void) {
             signal_this.sa_handler = signal_handler;
             signal_this.sa_flags = SA_NODEFER;
             sigaction(SIGRTMIN + block->signal, &signal_this, NULL);
+            sigaddset(&signal_external.sa_mask, SIGRTMIN + block->signal);
         }
 
         signal_external.sa_sigaction = button_handler;
@@ -98,6 +99,7 @@ int main(void) {
             }
 
             fprintf(stderr, "before sleep %ld\n", seconds);
+            sigsetjmp(env, 1);
             while (nanosleep(&to_sleep, &to_sleep) < 0);
             seconds += sleep_time.tv_sec;
         }
@@ -277,7 +279,7 @@ void signal_handler(int signum) {
         return;
     }
     write_error("===== exiting signal_handler\n");
-    longjmp(env, 1);
+    siglongjmp(env, 1);
     return;
 }
 
@@ -317,6 +319,7 @@ void button_block(int button, Block *block) {
 }
 
 void button_handler(int signum, siginfo_t *signal_info, void *ucontext) {
+    write_error("executing button handler\n");
     int button = signal_info->si_value.sival_int & 7;
     bool any = false;
     (void) ucontext;
@@ -338,6 +341,8 @@ void button_handler(int signum, siginfo_t *signal_info, void *ucontext) {
         write_error(".\n");
         return;
     }
+    write_error("===== longjumping from button handler\n");
+    siglongjmp(env, 1);
     return;
 }
 
