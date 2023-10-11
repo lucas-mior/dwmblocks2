@@ -70,6 +70,7 @@ Keep in mind that the default blocks may call programs you don't have installed.
 - There is the possibility of using C functions as blocks, which is
   useful for the included clock block, which runs every second, avoiding the
   overhead of forking and executing a new process.
+- TODO: Async blocks.
 
 ## License
 dwmblocks2 is licensed under GPLv2,
