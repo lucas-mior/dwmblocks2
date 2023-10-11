@@ -83,8 +83,13 @@ int main(void) {
             get_block_outputs(seconds);
             status_bar_update(false);
 
+            fprintf(stderr, "before sleep %ld\n", seconds);
+
             while (nanosleep(&to_sleep, &to_sleep) < 0);
             seconds += sleep_time.tv_sec;
+
+            char *end = "=======end of sleep\n";
+            write(STDERR_FILENO, end, strlen(end));
         }
     }
 }
@@ -219,8 +224,7 @@ void itoa(int num, char *str) {
 }
 
 void signal_handler(int signum) {
-    char *msg = "signal_handler!"; 
-    write(STDERR_FILENO, msg, strlen(msg));
+    fprintf(stderr, "Handling %d...\n", signum);
     Block *block_updated = NULL;
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
