@@ -269,13 +269,12 @@ void signal_handler(int signum) {
         }
     }
     if (!block_updated) {
-        char *msg = "No block configured for signal ";
         char number[20];
         itoa(signum - SIGRTMIN, number);
 
-        write(STDERR_FILENO, msg, strlen(msg));
-        write(STDERR_FILENO, number, strlen(number));
-        write(STDERR_FILENO, ".\n", 2);
+        write_error("No block configured for signal ");
+        write_error(number);
+        write_error(".\n");
     }
     handling = 0;
     status_bar_update(true);
