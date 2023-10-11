@@ -259,7 +259,6 @@ void itoa(int num, char *str) {
 }
 
 void signal_handler(int signum) {
-    write_error("entered signal_handler\n");
     Block *block_updated = NULL;
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
@@ -278,7 +277,6 @@ void signal_handler(int signum) {
         write(STDERR_FILENO, ".\n", 2);
         return;
     }
-    write_error("===== exiting signal_handler\n");
     siglongjmp(env, 1);
     return;
 }
@@ -319,7 +317,6 @@ void button_block(int button, Block *block) {
 }
 
 void button_handler(int signum, siginfo_t *signal_info, void *ucontext) {
-    write_error("executing button handler\n");
     int button = signal_info->si_value.sival_int & 7;
     bool any = false;
     (void) ucontext;
@@ -339,9 +336,9 @@ void button_handler(int signum, siginfo_t *signal_info, void *ucontext) {
         write_error(msg);
         write_error(number);
         write_error(".\n");
+        siglongjmp(env, 1);
         return;
     }
-    write_error("===== longjumping from button handler\n");
     siglongjmp(env, 1);
     return;
 }
