@@ -244,7 +244,7 @@ void button_block(char *button, Block *block) {
 
     if (block->function) {
         block->function(atoi(button), NULL);
-        kill(getpid(), SIGRTMIN + block->signal);
+        // TODO: make block_clock yad work
         return;
     }
     switch ((child = fork())) {
