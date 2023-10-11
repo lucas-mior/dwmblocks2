@@ -4,6 +4,7 @@
 #include <setjmp.h>
 
 static jmp_buf env;
+static volatile int handling = 0;
 
 static Display *display;
 static Window root;
@@ -14,7 +15,7 @@ static void button_block(int, Block *);
 static void button_handler(int, siginfo_t *, void *) __attribute__((noreturn));
 static void get_block_output(const Block *, Output *);
 static void get_block_outputs(int64);
-static void signal_handler(int) __attribute__((noreturn));
+static void signal_handler(int);
 static void status_bar_update(bool);
 static void itoa(int, char *);
 
@@ -262,6 +263,9 @@ void itoa(int num, char *str) {
 }
 
 void signal_handler(int signum) {
+    if (handling == signum)
+        return;
+    handling = signum;
     Block *block_updated = NULL;
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
@@ -279,7 +283,9 @@ void signal_handler(int signum) {
         write(STDERR_FILENO, number, strlen(number));
         write(STDERR_FILENO, ".\n", 2);
     }
-    siglongjmp(env, 1);
+    handling = 0;
+    status_bar_update(true);
+    return;
 }
 
 void button_block(int button, Block *block) {
