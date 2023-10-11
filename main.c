@@ -72,28 +72,19 @@ int main(void) {
 
     root = DefaultRootWindow(display);
     {
+        struct timespec sleep_time;
         struct timespec to_sleep;
         int64 seconds = -1;
+        sleep_time.tv_sec = 1;
+        sleep_time.tv_nsec = 0;
 
         while (true) {
+            to_sleep = sleep_time;
             get_block_outputs(seconds);
             status_bar_update(false);
 
-            fprintf(stderr, "Before sleep %ld\n", seconds);
-
-            clock_gettime(CLOCK_MONOTONIC, &to_sleep);
-            to_sleep.tv_sec += 1;
-            
-            int r;
-            do {
-                r = clock_nanosleep(CLOCK_MONOTONIC,
-                                        TIMER_ABSTIME,
-                                        &to_sleep, NULL);
-            } while (r == EINTR);
-            
-            char *after = "==== after sleep\n";
-            write(STDERR_FILENO, after, strlen(after));
-            seconds += 1;
+            while (nanosleep(&to_sleep, &to_sleep) < 0);
+            seconds += sleep_time.tv_sec;
         }
     }
 }
