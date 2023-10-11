@@ -6,7 +6,7 @@ static Window root;
 static Output status_bar[LENGTH(blocks)] = {0};
 
 static int popen_no_shell(char *);
-static void button_block(char *, Block *);
+static void button_block(int, Block *);
 static void button_handler(int, siginfo_t *, void *);
 static void get_block_output(const Block *, Output *);
 static void get_block_outputs(int64);
@@ -241,24 +241,26 @@ void signal_handler(int signum) {
     return;
 }
 
-void button_block(char *button, Block *block) {
+void button_block(int button, Block *block) {
     char *command[3];
     pid_t child;
 
     if (block->function) {
-        block->function(atoi(button), NULL);
+        block->function(button, NULL);
         // TODO: make block_clock yad work
         return;
     }
     switch ((child = fork())) {
-    case 0:
+    case 0: {
+        char button_string[2] = {'0' + (char) button, '\0'};
         command[0] = block->command;
-        command[1] = button;
+        command[1] = button_string;
         command[2] = NULL;
         execvp(command[0], command);
         fprintf(stderr, "Error running %s: %s\n",
                         command[0], strerror(errno));
         exit(EXIT_SUCCESS);
+    }
     case -1: {
         char *msg = "Error forking: ";
         char *error = strerror(errno);
@@ -277,7 +279,7 @@ void button_block(char *button, Block *block) {
 }
 
 void button_handler(int signum, siginfo_t *signal_info, void *ucontext) {
-    char button[2] = {'0' + (signal_info->si_value.sival_int & 7), '\0'};
+    int button = signal_info->si_value.sival_int & 7;
     bool any = false;
     (void) ucontext;
 
