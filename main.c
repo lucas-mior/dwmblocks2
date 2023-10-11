@@ -16,7 +16,7 @@ static void itos(int, char *);
 
 int main(void) {
     {
-        int sig_max = SIGRTMAX - SIGRTMIN;
+        int signal_max = SIGRTMAX - SIGRTMIN;
         struct sigaction signal_external;
         struct sigaction signal_childs;
         signal_childs.sa_handler = SIG_DFL;
@@ -46,10 +46,10 @@ int main(void) {
                                 "Signals must be grater than 0.\n", i);
                 exit(EXIT_FAILURE);
             }
-            if (blocks->signal >= sig_max) {
+            if (blocks->signal >= signal_max) {
                 fprintf(stderr, "Invalid signal for block."
                                 "Signals must be lower than %d.\n",
-                                sig_max);
+                                signal_max);
                 exit(EXIT_FAILURE);
             }
 
