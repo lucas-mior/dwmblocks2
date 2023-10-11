@@ -51,6 +51,18 @@ $ sudo make install
 In order to use the default blocks, you have to put them in your
 `PATH` and also set the environmental variables (see `blocks.h`).
 
+## Differences from original dwmblocks
+- It's much lighter, since the shell is avoided on every command spawned.
+- A hard to reproduce bug in which `dwmblocks` would freeze has been fixed.
+- Clicks are passed through the first argument, not the `BLOCK_BUTTON`
+  environment variable.
+- Signals are mandatory and set through environment variables, so one
+  can more easily keep dwmblocks signals in sync with scripts which update
+  the contents of the bar.
+- There is the possibility of using C functions as blocks, which is
+  useful for the included clock block, which runs every second, avoiding the
+  overhead of forking and executing a new process.
+
 ## License
 dwmblocks2 is licensed under GPLv2,
 block scripts in `blocks/` are licensed under AGPL.
