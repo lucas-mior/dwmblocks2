@@ -251,16 +251,14 @@ void button_block(int button, Block *block) {
         return;
     }
     switch ((child = fork())) {
-    case 0: {
-        char button_string[2] = {'0' + (char) button, '\0'};
+    case 0:
         command[0] = block->command;
-        command[1] = button_string;
+        command[1] = (char []) {'0' + (char) button, '\0'};
         command[2] = NULL;
         execvp(command[0], command);
         fprintf(stderr, "Error running %s: %s\n",
                         command[0], strerror(errno));
         exit(EXIT_SUCCESS);
-    }
     case -1: {
         char *msg = "Error forking: ";
         char *error = strerror(errno);
