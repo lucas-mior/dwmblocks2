@@ -1,6 +1,8 @@
 #include "dwmblocks2.h"
 #include "blocks.h"
 #include <sys/select.h>
+#include <setjmp.h>
+jmp_buf env;
 
 static Display *display;
 static Window root;
@@ -92,6 +94,7 @@ int main(void) {
             status_bar_update(false);
 
             fprintf(stderr, "before sleep %ld\n", seconds);
+            setjmp(env);
 
             while (nanosleep(&to_sleep, &to_sleep) < 0);
             seconds += sleep_time.tv_sec;
@@ -252,6 +255,7 @@ void itoa(int num, char *str) {
 }
 
 void signal_handler(int signum) {
+    write_error("entered signal_handler\n");
     Block *block_updated = NULL;
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
@@ -271,6 +275,8 @@ void signal_handler(int signum) {
         return;
     }
     status_bar_update(true);
+    write_error("===== exiting signal_handler\n");
+    longjmp(env, 1);
     return;
 }
 
