@@ -202,11 +202,9 @@ void get_block_outputs(int64 seconds) {
 }
 
 void status_bar_update(bool check_changed) {
+    (void) check_changed;
     static char status_new[LENGTH(blocks) * (BLOCK_OUTPUT_LENGTH+1)] = {0};
-    static char status_old[LENGTH(blocks) * (BLOCK_OUTPUT_LENGTH+1)] = {0};
     char *pointer = status_new;
-    if (check_changed)
-        memcpy(status_old, status_new, sizeof (status_new));
 
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
         char *string = status_bar[i].string;
@@ -216,11 +214,6 @@ void status_bar_update(bool check_changed) {
     }
     // Apparently double '\0' means end of bar to // dwm
     *pointer = '\0';
-
-    if (check_changed) {
-        if (!memcmp(status_old, status_new, sizeof (status_new)))
-            return;
-    }
 
     XStoreName(display, root, status_new);
     XFlush(display);
