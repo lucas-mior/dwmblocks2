@@ -50,9 +50,9 @@ $ cd dwmblocks2
 $ make
 $ sudo make install
 ```
-In order to use the default blocks, you have to put them in your
+In order to use the blocks, you have to put them in your
 `PATH` and also set the environmental variables (see `blocks.h`).
-Keep in mind that the blocks may call programs you don't have installed.
+Keep in mind that the default blocks may call programs you don't have installed.
 
 ## Differences from original dwmblocks
 - It's much lighter, since the shell is avoided on every command spawned.
