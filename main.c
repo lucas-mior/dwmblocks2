@@ -1,9 +1,7 @@
 #include "dwmblocks2.h"
 #include "blocks.h"
 #include <sys/select.h>
-#include <setjmp.h>
 
-static jmp_buf env;
 static volatile int handling = 0;
 
 static Display *display;
@@ -12,7 +10,7 @@ static Output status_bar[LENGTH(blocks)] = {0};
 
 static int popen_no_shell(char *);
 static void button_block(int, Block *);
-static void button_handler(int, siginfo_t *, void *) __attribute__((noreturn));
+static void button_handler(int, siginfo_t *, void *);
 static void get_block_output(const Block *, Output *);
 static void get_block_outputs(int64);
 static void signal_handler(int);
@@ -98,13 +96,9 @@ int main(void) {
         sleep_time.tv_nsec = 0;
 
         while (true) {
-            if (sigsetjmp(env, 1) == 0) {
-                to_sleep = sleep_time;
-                get_block_outputs(seconds);
-                status_bar_update(false);
-            } else {
-                status_bar_update(true);
-            }
+            to_sleep = sleep_time;
+            get_block_outputs(seconds);
+            status_bar_update(false);
 
             while (nanosleep(&to_sleep, &to_sleep) < 0);
             seconds += sleep_time.tv_sec;
@@ -344,7 +338,7 @@ void button_handler(int signum, siginfo_t *signal_info, void *ucontext) {
         write_error(number);
         write_error(".\n");
     }
-    siglongjmp(env, 1);
+    return;
 }
 
 int popen_no_shell(char *command) {
