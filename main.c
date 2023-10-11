@@ -17,7 +17,7 @@ static void signal_handler(int);
 static void status_bar_update(bool);
 static void itoa(int, char *);
 
-static void write_error(char *msg) {
+static inline void write_error(char *msg) {
     write(STDERR_FILENO, msg, strlen(msg));
 }
 
