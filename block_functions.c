@@ -16,7 +16,7 @@ void block_clock(int button, Output *out) {
         n = snprintf(string, BLOCK_OUTPUT_LENGTH - 1,
                     "📅 %s %02d/%02d %02d:%02d:%02d ",
                      week, t.tm_mday, t.tm_mon + 1, t.tm_hour, t.tm_min, t.tm_sec);
-        out->length = (uint32) n + 2;
+        out->length = (uint32) n + 1;
     }
 
     switch (button) {

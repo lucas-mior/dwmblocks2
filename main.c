@@ -176,6 +176,8 @@ void status_bar_update(bool check_changed) {
         memcpy(pointer, string, size);
         pointer += size;
     }
+    // Apparently double '\0' means end of bar to // dwm
+    *pointer = '\0';
 
     if (check_changed) {
         if (!memcmp(status_old, status_new, sizeof (status_new)))
