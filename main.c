@@ -65,7 +65,7 @@ int main(void) {
         }
 
         signal_external.sa_sigaction = button_handler;
-        signal_external.sa_flags = SA_SIGINFO | SA_NODEFER;
+        signal_external.sa_flags = SA_SIGINFO;
         sigaction(SIGUSR1, &signal_external, NULL);
         sigaction(SIGCHLD, &signal_childs, NULL);
     }
