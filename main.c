@@ -89,13 +89,15 @@ int main(void) {
         sleep_time.tv_nsec = 0;
 
         while (true) {
-            to_sleep = sleep_time;
-            get_block_outputs(seconds);
-            status_bar_update(false);
+            if (setjmp(env) == 0) {
+                to_sleep = sleep_time;
+                get_block_outputs(seconds);
+                status_bar_update(false);
+            } else {
+                status_bar_update(true);
+            }
 
             fprintf(stderr, "before sleep %ld\n", seconds);
-            setjmp(env);
-
             while (nanosleep(&to_sleep, &to_sleep) < 0);
             seconds += sleep_time.tv_sec;
         }
@@ -274,7 +276,6 @@ void signal_handler(int signum) {
         write(STDERR_FILENO, ".\n", 2);
         return;
     }
-    status_bar_update(true);
     write_error("===== exiting signal_handler\n");
     longjmp(env, 1);
     return;
