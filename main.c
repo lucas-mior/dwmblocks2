@@ -4,7 +4,6 @@
 static Display *display;
 static Window root;
 static Output status_bar[LENGTH(blocks)] = {0};
-static const char delim = ' ';
 
 static int popen_no_shell(char *);
 static void button_block(char *, Block *);
@@ -140,7 +139,7 @@ void get_block_output(const Block *block, Output *out) {
             break;
     }
     if (out->length > 0) {
-        string[out->length] = delim;
+        string[out->length] = ' ';
         string[out->length + 1] = '\0';
         out->length += 1;
         out->length += 1; // because of the first char containing signal number
