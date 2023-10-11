@@ -26,7 +26,7 @@ explain () {
     dunstify -r "$DWMBLOCKS2_RAM" "🧠 Memory" "$memory_hugs"
 }
 
-case $DWMBLOCKS2_BUTTON in
+case $1 in
     1) setsid -f "$TERMINAL" -e htop ;;
     3) explain                       ;;
     6) setsid -f "$TERMINAL" -e "$EDITOR" "$0" ;;

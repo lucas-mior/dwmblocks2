@@ -21,7 +21,7 @@ display () {
           }'
 }
 
-case $DWMBLOCKS2_BUTTON in
+case $1 in
     6) setsid -f "$TERMINAL" -e "$EDITOR" "$0" ;;
     "") display ;;
 esac

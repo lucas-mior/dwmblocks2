@@ -27,9 +27,9 @@ Checkout the clock block for an example.
 ## Clicks
 You need to apply the patch `dwm-statuscmd.diff` on dwm
 for mouse clicks to work.
-Then dwmblocks2 will export `$DWMBLOCKS2_BUTTON` to your block program.
+Then dwmblocks2 will pass the button as the first argument.
 ```
-case $DWMBLOCKS2_BUTTON in
+case $1 in
     1) echo "clicked left button";;
     2) echo "clicked middle button";;
     3) echo "clicked right button";;
@@ -48,11 +48,7 @@ $ cd dwmblocks2
 $ make
 $ sudo make install
 ```
-You also need to set the environment variable `DWMBLOCKS2_CLOCK`
-```
-export DWMBLOCKS2_CLOCK=16 # add this line to your .bash_profile or equivalent
-```
-In order to use the blocks in `blocks/`, you have to put them in your
+In order to use the default blocks, you have to put them in your
 `PATH` and also set the environmental variables (see `blocks.h`).
 
 ## License

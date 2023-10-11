@@ -19,7 +19,7 @@ display () {
                              printf("%s %s", qual, volume)      }' <<< "$pulse"
 }
 
-case $DWMBLOCKS2_BUTTON in
+case $1 in
     1) vol_in.bash toggle ;;
     2) audio_toggle.bash  ;;
     3) st -e pulsemixer   ;;

@@ -26,7 +26,7 @@ printf "$num / $((num-ontemvid+10))" | tee "${cachevid}.h"
 printf " / $((numdeu-ontemdeu+1))"  | tee "${cachedeu}.h"
 echo   " / $((numeng-ontemeng+1))"  | tee "${cacheeng}.h"
 
-case "$DWMBLOCKS2_BUTTON" in
+case "$1" in
     1) setsid -f "$TERMINAL" -e lfimg.bash "$dir" ;;
     6) setsid -f "$TERMINAL" -e "$EDITOR" "$0"    ;;
 esac

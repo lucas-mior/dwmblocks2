@@ -14,7 +14,7 @@ display () {
     dunstify -r $DWMBLOCKS2_BRIGHT "$bril" -t 500
 }
 
-case $DWMBLOCKS2_BUTTON in
+case $1 in
     1|5) bright --less ;;
     2) red.sh        ;;
     3|4) bright --more ;;

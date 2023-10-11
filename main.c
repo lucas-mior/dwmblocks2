@@ -242,7 +242,7 @@ void signal_handler(int signum) {
 }
 
 void button_block(char *button, Block *block) {
-    char *command[2];
+    char *command[3];
     pid_t child;
 
     if (block->function) {
@@ -253,8 +253,8 @@ void button_block(char *button, Block *block) {
     switch ((child = fork())) {
     case 0:
         command[0] = block->command;
-        command[1] = NULL;
-        setenv("DWMBLOCKS2_BUTTON", button, 1);
+        command[1] = button;
+        command[2] = NULL;
         execvp(command[0], command);
         fprintf(stderr, "Error running %s: %s\n",
                         command[0], strerror(errno));

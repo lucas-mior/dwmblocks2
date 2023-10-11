@@ -12,7 +12,7 @@ display () {
     }'
 }
 
-case $DWMBLOCKS2_BUTTON in
+case $1 in
     1) album_art_play.sh toggle ;;
     2) album_art_play.sh toggle ;;
     3) pause.bash wall          ;;

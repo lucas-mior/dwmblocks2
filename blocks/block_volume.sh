@@ -24,7 +24,7 @@ display () {
              }'
 }
 
-case $DWMBLOCKS2_BUTTON in
+case $1 in
     1) vol_out.sh toggle  ;;
     2) audio_toggle.bash  ;;
     3) st -e pulsemixer   ;;

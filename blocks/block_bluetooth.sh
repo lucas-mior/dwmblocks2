@@ -17,7 +17,7 @@ display () {
     fi
 }
 
-case $DWMBLOCKS2_BUTTON in
+case $1 in
     1) bluetoothctl power on  && dunstify " on"  ;;
     3) bluetoothctl power off && dunstify " off" ;;
     6) setsid -f "$TERMINAL" -e "$EDITOR" "$0"    ;;

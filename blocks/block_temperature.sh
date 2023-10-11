@@ -31,7 +31,7 @@ explain() {
     dunstify -r $DWMBLOCKS2_CPU " CPU hogs" "$hogs"
 }
 
-case $DWMBLOCKS2_BUTTON in
+case $1 in
     1) explain ;;
     2) setsid -f "$TERMINAL" -e htop ;;
     3) explain ;;
