@@ -18,11 +18,8 @@ FILENAME ~ "net/w.+flags" {
 FILENAME ~ "net/w.+operstate" {
     if ($1 == "up") {
         printf("📶");
-        while (("nmcli -t -f active,ssid dev wifi" | getline) > 0) {
-            if ($0 ~ "sim") {
-                name = substr($0, 5)
-                printf(" %s", name)
-            }
+        while (("iwgetid -r" | getline) > 0) {
+            printf(" %s", $0)
         }
     } else {
         if (wifi_on) {
