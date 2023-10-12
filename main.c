@@ -102,12 +102,13 @@ int main(void) {
             int ready;
             timeout.tv_sec = 1;
             timeout.tv_usec = 0;
-            fprintf(stderr, "select(max_fd=%d)\n", max_fd);
 
             ready = select(max_fd+1, &input_set, NULL, NULL, &timeout);
             if (ready < 0) {
-                if (errno == EBADFD)
+                if (errno == EBADFD) {
+                    write_error("Select: Bad file descriptor\n");
                     FD_ZERO(&input_set);
+                }
                 continue;
             } else if (ready > 0) {
                 fprintf(stderr, "select: %d blocks are ready\n", ready);
@@ -126,7 +127,6 @@ int main(void) {
                 }
                 status_bar_update(false);
             } else {
-                fprintf(stderr, "Timeout in select()\n");
                 seconds += 1;
                 spawn_blocks(seconds);
                 status_bar_update(false);
@@ -247,16 +247,6 @@ void status_bar_update(bool check_changed) {
     return;
 }
 
-void signal_handler(int signum) {
-    for (uint i = 0; i < LENGTH(blocks); i += 1) {
-        Block *block = &blocks[i];
-        if (block->signal == (signum - SIGRTMIN)) {
-            spawn_block(block);
-        }
-    }
-    return;
-}
-
 void button_block(int button, Block *block) {
     char *command[3];
     pid_t child;
@@ -266,6 +256,10 @@ void button_block(int button, Block *block) {
         // TODO: make block_clock yad work
         return;
     }
+
+    write_error("====== button ======\n");
+    write_error(block->command);
+    write_error("\n============");
 
     if (block->pipe >= 0) {
         close(block->pipe);
@@ -290,31 +284,30 @@ void button_block(int button, Block *block) {
         // wait is supposed to fail because
         // signal_childs.sa_flags is set to SA_NOCLDWAIT;
         waitpid(child, NULL, 0);
-        kill(getpid(), SIGRTMIN + block->signal);
+        if (errno == ECHILD)
+            kill(getpid(), SIGRTMIN + block->signal);
     }
     return;
 }
 
 void button_handler(int signum, siginfo_t *signal_info, void *ucontext) {
     int button = signal_info->si_value.sival_int & 7;
-    bool any = false;
     (void) ucontext;
 
     signum = (signal_info->si_value.sival_int >> 3) - SIGRTMIN;
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
-        if (blocks[i].signal == signum) {
+        if (blocks[i].signal == signum)
             button_block(button, &blocks[i]);
-            any = true;
-        }
     }
-    if (!any) {
-        char *msg = "No block configured for signal ";
-        char number[20];
-        itoa(signum - SIGRTMIN, number);
+    return;
+}
 
-        write_error(msg);
-        write_error(number);
-        write_error(".\n");
+void signal_handler(int signum) {
+    for (uint i = 0; i < LENGTH(blocks); i += 1) {
+        Block *block = &blocks[i];
+        if (block->signal == (signum - SIGRTMIN)) {
+            spawn_block(block);
+        }
     }
     return;
 }
