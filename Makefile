@@ -9,7 +9,7 @@ objs = block_functions.o util.o
 all: release
 
 CFLAGS += -std=c99 -D_DEFAULT_SOURCE
-CFLAGS += -Wextra -Wall
+CFLAGS += -Wextra -Wall -Wno-missing-field-initializers
 LDFLAGS += -lX11
 
 clang: CC=clang
