@@ -1,9 +1,8 @@
-#define _GNU_SOURCE
-
 #include "dwmblocks2.h"
 #include "blocks.h"
 #include "util.h"
 #include <sys/param.h>
+#include <assert.h>
 
 static fd_set input_set;
 static volatile int max_fd = -1;
@@ -48,12 +47,12 @@ int main(void) {
             }
 
             block->signal = atoi(signal_string);
-            if (blocks->signal <= 0) {
+            if (block->signal <= 0) {
                 fprintf(stderr, "Invalid signal for block %d."
                                 "Signals must be grater than 0.\n", i);
                 exit(EXIT_FAILURE);
             }
-            if (blocks->signal >= signal_max) {
+            if (block->signal >= signal_max) {
                 fprintf(stderr, "Invalid signal for block."
                                 "Signals must be lower than %d.\n",
                                 signal_max);
@@ -275,12 +274,11 @@ void button_block(int button, Block *block) {
         fprintf(stderr, "Error running %s: %s\n",
                         command[0], strerror(errno));
         exit(EXIT_SUCCESS);
-    case -1: {
+    case -1:
         write_error("Error forking: ");
         write_error(strerror(errno));
         write_error("\n");
         return;
-    }
     default:
         // wait is supposed to fail because
         // signal_childs.sa_flags is set to SA_NOCLDWAIT;
@@ -294,11 +292,13 @@ void button_block(int button, Block *block) {
 void button_handler(int signum, siginfo_t *signal_info, void *ucontext) {
     int button = signal_info->si_value.sival_int & 7;
     (void) ucontext;
+    assert(signum == SIGUSR1);
 
     signum = (signal_info->si_value.sival_int >> 3) - SIGRTMIN;
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
-        if (blocks[i].signal == signum)
-            button_block(button, &blocks[i]);
+        Block *block = &blocks[i];
+        if (block->signal == signum)
+            button_block(button, block);
     }
     return;
 }
