@@ -64,8 +64,8 @@ int main(void) {
             block->output[0] = (char) block->signal;
             block->output[1] = (char) '\0';
 
-            block->pipe[0] = -1;
-            block->pipe[1] = -1;
+            block->pipe = -1;
+            block->pipe = -1;
             block->length = 0;
 
             signal_this.sa_handler = signal_handler;
@@ -120,11 +120,11 @@ int main(void) {
                         block->function(0, block);
                         continue;
                     }
-                    if (FD_ISSET(block->pipe[0], &input_set)) {
-                        FD_CLR(block->pipe[0], &input_set);
+                    if (FD_ISSET(block->pipe, &input_set)) {
+                        FD_CLR(block->pipe, &input_set);
                         parse_output(block);
-                    } else if (block->pipe[0] >= 0) {
-                        FD_SET(block->pipe[0], &input_set);
+                    } else if (block->pipe >= 0) {
+                        FD_SET(block->pipe, &input_set);
                     }
                 }
                 status_bar_update(false);
@@ -147,9 +147,9 @@ void spawn_block(Block *block) {
         return;
     }
 
-    if (block->pipe[0] >= 0) {
-        close(block->pipe[0]);
-        block->pipe[0] = -1;
+    if (block->pipe >= 0) {
+        close(block->pipe);
+        block->pipe = -1;
     }
 
     if ((command_pipe = popen_no_shell(block->command)) < 0) {
@@ -162,10 +162,10 @@ void spawn_block(Block *block) {
         string[0] = '\0';
         return;
     }
-    block->pipe[0] = command_pipe;
+    block->pipe = command_pipe;
 
-    FD_SET(block->pipe[0], &input_set);
-    max_fd = MAX(max_fd, block->pipe[0]);
+    FD_SET(block->pipe, &input_set);
+    max_fd = MAX(max_fd, block->pipe);
     return;
 }
 
@@ -175,7 +175,7 @@ void parse_output(Block *block) {
     char *string = block->output + 1;
 
     do {
-        r = read(block->pipe[0], string, left);
+        r = read(block->pipe, string, left);
         if (r <= 0)
             break;
         string += r;
@@ -183,8 +183,8 @@ void parse_output(Block *block) {
         if (left <= 0)
             break;
     } while (true);
-    close(block->pipe[0]);
-    block->pipe[0] = -1;
+    close(block->pipe);
+    block->pipe = -1;
 
     if ((r < 0) || (string == (block->output + 1))) {
         string[0] = '\0';
