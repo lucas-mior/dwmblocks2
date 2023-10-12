@@ -281,11 +281,9 @@ void button_block(int button, Block *block) {
                         command[0], strerror(errno));
         exit(EXIT_SUCCESS);
     case -1: {
-        char *msg = "Error forking: ";
-        char *error = strerror(errno);
-        write(STDERR_FILENO, msg, strlen(msg));
-        write(STDERR_FILENO, error, strlen(error));
-        write(STDERR_FILENO, "\n", 2);
+        write_error("Error forking: ");
+        write_error(strerror(errno));
+        write_error("\n");
         return;
     }
     default:
