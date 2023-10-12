@@ -108,6 +108,7 @@ int main(void) {
                 if (errno == EBADFD) {
                     write_error("Select: Bad file descriptor\n");
                     FD_ZERO(&input_set);
+                    spawn_blocks(seconds);
                 }
                 continue;
             } else if (ready > 0) {
