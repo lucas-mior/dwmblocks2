@@ -34,9 +34,6 @@ int main(void) {
         for (uint i = 0; i < LENGTH(blocks); i += 1) {
             struct sigaction signal_this;
             Block *block = &blocks[i];
-            block->pipe[0] = -1;
-            block->pipe[1] = -1;
-            block->length = 0;
             char *signal_string;
 
             if (block->signal_var_name == NULL) {
@@ -67,6 +64,10 @@ int main(void) {
             block->output[0] = (char) block->signal;
             block->output[1] = (char) '\0';
 
+            block->pipe[0] = -1;
+            block->pipe[1] = -1;
+            block->length = 0;
+
             signal_this.sa_handler = signal_handler;
             signal_this.sa_flags = SA_NODEFER;
             for (uint j = 0; j < LENGTH(blocks); j+=1) {
@@ -92,15 +93,13 @@ int main(void) {
     root = DefaultRootWindow(display);
 
     {
-        FD_ZERO(&input_set);
         struct timeval timeout;
-        timeout.tv_sec = 1;
-        timeout.tv_usec = 0;
-        int ready = 0;
         int64 seconds = -1;
         spawn_blocks(seconds);
+        FD_ZERO(&input_set);
 
         while (true) {
+            int ready;
             timeout.tv_sec = 1;
             timeout.tv_usec = 0;
             fprintf(stderr, "select(max_fd=%d)\n", max_fd);
@@ -230,7 +229,6 @@ void spawn_blocks(int64 seconds) {
 }
 
 void status_bar_update(bool check_changed) {
-    fprintf(stderr, "\n========== UPDATING BAR =======\n");
     static char status_new[LENGTH(blocks) * (BLOCK_OUTPUT_LENGTH+1)] = {0};
     char *pointer = status_new;
     (void) check_changed;
