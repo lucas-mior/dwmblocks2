@@ -39,17 +39,15 @@ typedef ssize_t isize;
 #define BLOCK_OUTPUT_LENGTH 64
 #define IS_SPACE(X) ((X == ' ') || (X == '\t') || (X == '\n'))
 
-typedef struct Output {
-    char string[BLOCK_OUTPUT_LENGTH];
-    uint32 length;
-} Output;
-
 typedef struct Block {
-    void (*function)(int, Output *);
+    void (*function)(int, struct Block *);
     char *command;
     char *signal_var_name;
     int interval;
     int signal;
+    int pipe[2];
+    char output[BLOCK_OUTPUT_LENGTH];
+    uint32 length;
 } Block;
 
 extern Block blocks[];

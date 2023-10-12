@@ -20,7 +20,7 @@ Block blocks[] = {
 {NULL, "block_temperature.sh",  "DWMBLOCKS2_CPU",            60,       0},
 {NULL, "block_network.sh",      "DWMBLOCKS2_NETWORK",         0,       0},
 {NULL, "block_bluetooth.sh",    "DWMBLOCKS2_BLUETOOTH",      60,       0},
-{block_clock, NULL,             "DWMBLOCKS2_CLOCK",           1,       0},
+/* {block_clock, NULL,             "DWMBLOCKS2_CLOCK",           1,       0}, */
 {NULL, "block_battery.sh",      "DWMBLOCKS2_BATTERY",        60,       0},
 };
 
