@@ -10,13 +10,11 @@ static volatile int max_fd = -1;
 static Display *display;
 static Window root;
 
-static int popen_no_shell(char *);
+static int popen_no_shell(char *, int);
 static void parse_output(Block *);
-static void button_block(int, Block *);
-static void button_handler(int, siginfo_t *, void *);
-static void spawn_block(Block *);
+static void spawn_block(Block *, int);
 static void spawn_blocks(int64);
-static void signal_handler(int);
+static void signal_handler(int, siginfo_t *, void *);
 static void status_bar_update(bool);
 
 int main(void) {
@@ -67,8 +65,8 @@ int main(void) {
             block->pipe = -1;
             block->length = 0;
 
-            signal_this.sa_handler = signal_handler;
-            signal_this.sa_flags = SA_NODEFER;
+            signal_this.sa_sigaction = signal_handler;
+            signal_this.sa_flags = SA_NODEFER | SA_SIGINFO;
             for (uint j = 0; j < LENGTH(blocks); j+=1) {
                 Block *blockj = &blocks[j];
                 if (j != i)
@@ -78,7 +76,7 @@ int main(void) {
             sigaddset(&signal_external.sa_mask, SIGRTMIN + block->signal);
         }
 
-        signal_external.sa_sigaction = button_handler;
+        signal_external.sa_sigaction = signal_handler;
         signal_external.sa_flags = SA_SIGINFO;
         sigaction(SIGUSR1, &signal_external, NULL);
         sigaction(SIGCHLD, &signal_childs, NULL);
@@ -135,12 +133,12 @@ int main(void) {
     }
 }
 
-void spawn_block(Block *block) {
+void spawn_block(Block *block, int button) {
     int command_pipe;
     char *string = block->output + 1;
 
     if (block->function) {
-        block->function(0, block);
+        block->function(button, block);
         return;
     }
 
@@ -149,7 +147,7 @@ void spawn_block(Block *block) {
         block->pipe = -1;
     }
 
-    if ((command_pipe = popen_no_shell(block->command)) < 0) {
+    if ((command_pipe = popen_no_shell(block->command, button)) < 0) {
         write_error("Failed to run ");
         write_error(block->command);
         write_error(": ");
@@ -183,6 +181,9 @@ void parse_output(Block *block) {
     close(block->pipe);
     block->pipe = -1;
 
+    write_error("read block!\n");
+    write_error(block->output);
+    write_error("===========\n");
     if ((r < 0) || (string == (block->output + 1))) {
         string[0] = '\0';
         block->length = 0;
@@ -214,13 +215,13 @@ void spawn_blocks(int64 seconds) {
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
         if (seconds < 0) {
-            spawn_block(block);
+            spawn_block(block, 0);
             continue;
         }
         if (block->interval == 0)
             continue;
         if ((seconds % block->interval) == 0)
-            spawn_block(block);
+            spawn_block(block, 0);
     }
     return;
 }
@@ -247,77 +248,30 @@ void status_bar_update(bool check_changed) {
     return;
 }
 
-void button_block(int button, Block *block) {
-    char *command[3];
-    pid_t child;
-
-    if (block->function) {
-        block->function(button, NULL);
-        // TODO: make block_clock yad work
-        return;
-    }
-
-    write_error("====== button ======\n");
-    write_error(block->command);
-    write_error("\n============");
-
-    if (block->pipe >= 0) {
-        close(block->pipe);
-        block->pipe = -1;
-    }
-    switch ((child = fork())) {
-    case 0:
-        command[0] = block->command;
-        command[1] = (char []) {'0' + (char) button, '\0'};
-        command[2] = NULL;
-        execvp(command[0], command);
-        fprintf(stderr, "Error running %s: %s\n",
-                        command[0], strerror(errno));
-        exit(EXIT_SUCCESS);
-    case -1:
-        write_error("Error forking: ");
-        write_error(strerror(errno));
-        write_error("\n");
-        return;
-    default:
-        // wait is supposed to fail because
-        // signal_childs.sa_flags is set to SA_NOCLDWAIT;
-        waitpid(child, NULL, 0);
-        if (errno == ECHILD)
-            kill(getpid(), SIGRTMIN + block->signal);
-    }
-    return;
-}
-
-void button_handler(int signum, siginfo_t *signal_info, void *ucontext) {
-    int button = signal_info->si_value.sival_int & 7;
+void signal_handler(int signum, siginfo_t *signal_info, void *ucontext) {
+    int button = 0;
     (void) ucontext;
-    assert(signum == SIGUSR1);
-
-    signum = (signal_info->si_value.sival_int >> 3) - SIGRTMIN;
-    for (uint i = 0; i < LENGTH(blocks); i += 1) {
-        Block *block = &blocks[i];
-        if (block->signal == signum)
-            button_block(button, block);
+    if (signum == SIGUSR1) {
+        write_error("signum == SIGUSR1\n");
+        // number send by dwm
+        signum = (signal_info->si_value.sival_int >> 3) - SIGRTMIN;
+        button = signal_info->si_value.sival_int & 7;
     }
-    return;
-}
-
-void signal_handler(int signum) {
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
         if (block->signal == (signum - SIGRTMIN)) {
-            spawn_block(block);
+            spawn_block(block, button);
         }
     }
     return;
 }
 
-int popen_no_shell(char *command) {
+int popen_no_shell(char *command, int button) {
     int pipefd[2];
     pid_t pid;
 
-    char *argv[2] = { command, NULL };
+    char button_str[2] = {'0' + (char) button, '\0'};
+    char *argv[3] = { command, button_str, NULL };
 
     if (pipe(pipefd) < 0) {
         fprintf(stderr, "Error creating pipe: %s\n", strerror(errno));
@@ -329,7 +283,9 @@ int popen_no_shell(char *command) {
         close(pipefd[0]);
         dup2(pipefd[1], STDOUT_FILENO);
         close(pipefd[1]);
-
+        write_error("running...");
+        write_error(command);
+        write_error("...\n");
         execvp(argv[0], argv);
         fprintf(stderr, "Error executing %s: %s\n",
                         argv[0], strerror(errno));
