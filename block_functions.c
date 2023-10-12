@@ -1,5 +1,6 @@
 #include "dwmblocks2.h"
 #include "block_functions.h"
+#include "util.h"
 
 void block_clock(int button, Block *block) {
     time_t seconds_since_epoch;
@@ -9,14 +10,16 @@ void block_clock(int button, Block *block) {
     char *string = block->output + 1;
     int n;
 
-    seconds_since_epoch = time(NULL);
-    t = *localtime(&seconds_since_epoch);
-    week = week_names[t.tm_wday];
+    if (block) {
+        seconds_since_epoch = time(NULL);
+        t = *localtime(&seconds_since_epoch);
+        week = week_names[t.tm_wday];
 
-    n = snprintf(string, BLOCK_OUTPUT_LENGTH - 1,
-                "📅 %s %02d/%02d %02d:%02d:%02d ",
-                 week, t.tm_mday, t.tm_mon + 1, t.tm_hour, t.tm_min, t.tm_sec);
-    block->length = (uint32) n + 1;
+        n = snprintf(string, BLOCK_OUTPUT_LENGTH - 1,
+                    "📅 %s %02d/%02d %02d:%02d:%02d ",
+                     week, t.tm_mday, t.tm_mon + 1, t.tm_hour, t.tm_min, t.tm_sec);
+        block->length = (uint32) n + 1;
+    }
 
     switch (button) {
     case 1:
