@@ -104,13 +104,10 @@ int main(void) {
             timeout.tv_usec = 0;
             fprintf(stderr, "select(max_fd=%d)\n", max_fd);
 
-            ready = select(max_fd, &input_set, NULL, NULL, &timeout);
+            ready = select(max_fd+1, &input_set, NULL, NULL, &timeout);
             if (ready < 0) {
-                if (errno == EINTR) {
-                    write_error("select() was interrupted...\n");
-                } else {
-                    fprintf(stderr, "Error in select(): %s\n", strerror(errno));
-                }
+                if (errno == EBADFD)
+                    FD_ZERO(&input_set);
                 continue;
             } else if (ready > 0) {
                 fprintf(stderr, "select: %d blocks are ready\n", ready);
@@ -268,6 +265,11 @@ void button_block(int button, Block *block) {
         block->function(button, NULL);
         // TODO: make block_clock yad work
         return;
+    }
+
+    if (block->pipe >= 0) {
+        close(block->pipe);
+        block->pipe = -1;
     }
     switch ((child = fork())) {
     case 0:
