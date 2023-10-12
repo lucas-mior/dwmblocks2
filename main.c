@@ -148,8 +148,10 @@ void spawn_block(Block *block) {
         return;
     }
 
-    if (block->pipe[0] >= 0)
+    if (block->pipe[0] >= 0) {
         close(block->pipe[0]);
+        block->pipe[0] = -1;
+    }
 
     if ((command_pipe = popen_no_shell(block->command)) < 0) {
         write_error("Failed to run ");
