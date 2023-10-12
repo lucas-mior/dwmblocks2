@@ -36,6 +36,7 @@ int main(void) {
             Block *block = &blocks[i];
             block->pipe[0] = -1;
             block->pipe[1] = -1;
+            block->length = 0;
             char *signal_string;
 
             if (block->signal_var_name == NULL) {
@@ -64,20 +65,20 @@ int main(void) {
 
             // used by dwm to send proper signal number back to dwmblocks2
             block->output[0] = (char) block->signal;
+            block->output[1] = (char) '\0';
 
             signal_this.sa_handler = signal_handler;
             signal_this.sa_flags = SA_NODEFER;
             for (uint j = 0; j < LENGTH(blocks); j+=1) {
-                if (j != i) {
-                    Block *blockj = &blocks[j];
+                Block *blockj = &blocks[j];
+                if (j != i)
                     sigaddset(&signal_this.sa_mask, SIGRTMIN + blockj->signal);
-                }
             }
             sigaction(SIGRTMIN + block->signal, &signal_this, NULL);
             sigaddset(&signal_external.sa_mask, SIGRTMIN + block->signal);
         }
 
-        signal_external.sa_handler = SIG_IGN;
+        signal_external.sa_sigaction = button_handler;
         signal_external.sa_flags = SA_SIGINFO;
         sigaction(SIGUSR1, &signal_external, NULL);
         sigaction(SIGCHLD, &signal_childs, NULL);
@@ -97,22 +98,29 @@ int main(void) {
         timeout.tv_usec = 0;
         int ready = 0;
         int64 seconds = -1;
+        spawn_blocks(seconds);
 
         while (true) {
-            timeout.tv_sec = 4;
+            timeout.tv_sec = 1;
             timeout.tv_usec = 0;
-            spawn_blocks(seconds);
-            sleep(2);
             fprintf(stderr, "select(max_fd=%d)\n", max_fd);
 
             ready = select(max_fd, &input_set, NULL, NULL, &timeout);
             if (ready < 0) {
-                fprintf(stderr, "Error in select(): %s\n", strerror(errno));
+                if (errno == EINTR) {
+                    write_error("select() was interrupted...\n");
+                } else {
+                    fprintf(stderr, "Error in select(): %s\n", strerror(errno));
+                }
                 continue;
             } else if (ready > 0) {
                 fprintf(stderr, "select: %d blocks are ready\n", ready);
                 for (uint i = 0; i < LENGTH(blocks); i += 1) {
                     Block *block = &blocks[i];
+                    if (block->function) {
+                        block->function(0, block);
+                        continue;
+                    }
                     if (FD_ISSET(block->pipe[0], &input_set)) {
                         FD_CLR(block->pipe[0], &input_set);
                         parse_output(block);
@@ -123,9 +131,10 @@ int main(void) {
                 status_bar_update(false);
             } else {
                 fprintf(stderr, "Timeout in select()\n");
+                seconds += 1;
+                spawn_blocks(seconds);
+                status_bar_update(false);
             }
-
-            seconds += 1;
         }
     }
 }
@@ -134,13 +143,13 @@ void spawn_block(Block *block) {
     int command_pipe;
     char *string = block->output + 1;
 
-    /* if (block->function) { */
-    /*     block->function(0, out); */
-    /*     return; */
-    /* } */
-    if (block->pipe[0] >= 0) {
-        close(block->pipe[0]);
+    if (block->function) {
+        block->function(0, block);
+        return;
     }
+
+    if (block->pipe[0] >= 0)
+        close(block->pipe[0]);
 
     if ((command_pipe = popen_no_shell(block->command)) < 0) {
         write_error("Failed to run ");
@@ -154,19 +163,16 @@ void spawn_block(Block *block) {
     }
     block->pipe[0] = command_pipe;
 
-    fprintf(stderr, "Spawning %s...\n", block->command);
-    fprintf(stderr, "pipe = %d...\n", block->pipe[0]);
-
     FD_SET(block->pipe[0], &input_set);
     max_fd = MAX(max_fd, block->pipe[0]);
     return;
 }
 
 void parse_output(Block *block) {
-    fprintf(stderr, "parsing block %s...\n", block->command);
     isize r;
     usize left = BLOCK_OUTPUT_LENGTH - 1;
     char *string = block->output + 1;
+
     do {
         r = read(block->pipe[0], string, left);
         if (r <= 0)
@@ -180,20 +186,16 @@ void parse_output(Block *block) {
     block->pipe[0] = -1;
 
     if ((r < 0) || (string == (block->output + 1))) {
-        fprintf(stderr, "%s is empty...\n", block->command);
         string[0] = '\0';
         block->length = 0;
         return;
     }
-
     block->length = (uint32) (string - (block->output + 1));
 
     string = block->output + 1;
     string[block->length] = '\0';
-    if (block->length == 0) {
-        fprintf(stderr, "%s is empty...\n", block->command);
+    if (block->length == 0)
         return;
-    }
 
     while (IS_SPACE(string[block->length - 1])) {
         string[block->length - 1] = '\0';
@@ -207,7 +209,6 @@ void parse_output(Block *block) {
         block->length += 1;
         block->length += 1; // because of the first char containing signal number
     }
-    fprintf(stderr, "=== %s = %s\n", block->command, block->output);
     return;
 }
 
@@ -227,7 +228,7 @@ void spawn_blocks(int64 seconds) {
 }
 
 void status_bar_update(bool check_changed) {
-    fprintf(stderr, "========== UPDATING BAR =======\n");
+    fprintf(stderr, "\n========== UPDATING BAR =======\n");
     static char status_new[LENGTH(blocks) * (BLOCK_OUTPUT_LENGTH+1)] = {0};
     char *pointer = status_new;
     (void) check_changed;
@@ -235,15 +236,15 @@ void status_bar_update(bool check_changed) {
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
         char *string = block->output;
-        usize size = block[i].length;
-        fprintf(stderr, "=======%s=========\n", string);
-        memcpy(pointer, string, size);
-        pointer += size;
+        usize size = block->length;
+        if (size) {
+            memcpy(pointer, string, size);
+            pointer += size;
+        }
     }
     // Apparently double '\0' means end of bar to // dwm
     *pointer = '\0';
 
-    fprintf(stderr, "storing name...\n");
     XStoreName(display, root, status_new);
     XFlush(display);
     return;
@@ -256,7 +257,6 @@ void signal_handler(int signum) {
             spawn_block(block);
         }
     }
-    status_bar_update(true);
     return;
 }
 
@@ -264,11 +264,11 @@ void button_block(int button, Block *block) {
     char *command[3];
     pid_t child;
 
-    /* if (block->function) { */
-    /*     block->function(button, NULL); */
-    /*     // TODO: make block_clock yad work */
-    /*     return; */
-    /* } */
+    if (block->function) {
+        block->function(button, NULL);
+        // TODO: make block_clock yad work
+        return;
+    }
     switch ((child = fork())) {
     case 0:
         command[0] = block->command;
