@@ -48,6 +48,7 @@ typedef struct Block {
     int pipe;
     char output[BLOCK_OUTPUT_LENGTH];
     uint32 length;
+    sigset_t mask;
 } Block;
 
 extern Block blocks[];

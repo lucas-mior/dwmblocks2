@@ -67,8 +67,13 @@ int main(void) {
             block->pipe = -1;
             block->length = 0;
 
+            // always run the newest signal for a block, unless in
+            // a critical part of handler, then sigprocmask()
+            // is called on block->mask to defer newer execution
             signal_this.sa_sigaction = signal_handler;
             signal_this.sa_flags = SA_NODEFER | SA_SIGINFO;
+            sigemptyset(&(block->mask));
+            sigaddset(&(block->mask), block->signal + SIGRTMIN);
 
             sigemptyset(&(signal_this.sa_mask));
             for (uint j = 0; j < LENGTH(blocks); j+=1) {
@@ -144,10 +149,7 @@ void spawn_block(Block *block, int button) {
         return;
     }
 
-    sigset_t mask;
-    sigemptyset(&mask);
-    sigaddset(&mask, block->signal + SIGRTMIN);
-    sigprocmask(SIG_BLOCK, &mask, NULL);
+    sigprocmask(SIG_BLOCK, &(block->mask), NULL);
 
     if (block->pipe >= 0) {
         close(block->pipe);
@@ -167,7 +169,7 @@ void spawn_block(Block *block, int button) {
     FD_SET(block->pipe, &input_set);
     max_fd = MAX(max_fd, block->pipe);
 
-    sigprocmask(SIG_UNBLOCK, &mask, NULL);
+    sigprocmask(SIG_UNBLOCK, &(block->mask), NULL);
     return;
 }
 
@@ -176,10 +178,7 @@ void parse_output(Block *block) {
     usize left = BLOCK_OUTPUT_LENGTH - 1;
     char *string = block->output + 1;
 
-    sigset_t mask;
-    sigemptyset(&mask);
-    sigaddset(&mask, block->signal + SIGRTMIN);
-    sigprocmask(SIG_BLOCK, &mask, NULL);
+    sigprocmask(SIG_BLOCK, &(block->mask), NULL);
 
     do {
         r = read(block->pipe, string, left);
@@ -195,7 +194,7 @@ void parse_output(Block *block) {
     FD_CLR(block->pipe, &input_set);
     block->pipe = -1;
 
-    sigprocmask(SIG_UNBLOCK, &mask, NULL);
+    sigprocmask(SIG_UNBLOCK, &(block->mask), NULL);
 
     if ((r < 0) || (string == (block->output + 1))) {
         string[0] = '\0';
