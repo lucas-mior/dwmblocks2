@@ -21,5 +21,5 @@ case $1 in
     1) bluetoothctl power on  && dunstify " on"  ;;
     3) bluetoothctl power off && dunstify " off" ;;
     6) setsid -f "$TERMINAL" -e "$EDITOR" "$0"    ;;
-    "") display ;;
+    *) display ;;
 esac

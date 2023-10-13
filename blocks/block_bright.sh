@@ -19,5 +19,5 @@ case $1 in
     2) red.sh        ;;
     3|4) bright --more ;;
     6) setsid -f "$TERMINAL" -e "$EDITOR" "$0" ;;
-    "") display ;;
+    *) display ;;
 esac

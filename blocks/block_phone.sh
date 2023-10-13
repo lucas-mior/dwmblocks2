@@ -13,5 +13,5 @@ display () {
 case $1 in
     1) setsid -f android-file-transfer         ;;
     6) setsid -f "$TERMINAL" -e "$EDITOR" "$0" ;;
-    "") display ;;
+    *) display ;;
 esac

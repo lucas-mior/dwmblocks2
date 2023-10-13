@@ -22,5 +22,5 @@ case "$1" in
     1) pgrep clipsim || setsid -f clipsim -d ;;
     2) clipsim --save  && dunstify "📋 clipsim" "History saved" ;;
     6) setsid -f "$TERMINAL" -e "$EDITOR" "$0" ;;
-    "") display ;;
+    *) display ;;
 esac

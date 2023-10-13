@@ -30,5 +30,5 @@ case $1 in
     1) setsid -f "$TERMINAL" -e htop ;;
     3) explain                       ;;
     6) setsid -f "$TERMINAL" -e "$EDITOR" "$0" ;;
-    "") display ;;
+    *) display ;;
 esac

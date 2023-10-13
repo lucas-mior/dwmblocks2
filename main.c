@@ -181,9 +181,6 @@ void parse_output(Block *block) {
     close(block->pipe);
     block->pipe = -1;
 
-    write_error("read block!\n");
-    write_error(block->output);
-    write_error("===========\n");
     if ((r < 0) || (string == (block->output + 1))) {
         string[0] = '\0';
         block->length = 0;

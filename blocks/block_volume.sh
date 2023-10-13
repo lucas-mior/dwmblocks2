@@ -31,5 +31,5 @@ case $1 in
     4) vol_out.sh up      ;;
     5) vol_out.sh down    ;;
     6) setsid -f "$TERMINAL" -e "$EDITOR" "$0" ;;
-    "") display            ;;
+    *) display            ;;
 esac

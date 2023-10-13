@@ -9,5 +9,5 @@ case $1 in
     2) setsid -f st -e nmtui ;;
     3) nmcli radio wifi off  ;;
     6) setsid -f "$TERMINAL" -e "$EDITOR" "$0" ;;
-    "") display ;;
+    *) display ;;
 esac
