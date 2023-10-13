@@ -196,7 +196,7 @@ void parse_output(Block *block) {
         block->length = 0;
         return;
     }
-    block->length = (uint32) (string - (block->output + 1));
+    block->length = (int) (string - (block->output + 1));
 
     string = block->output + 1;
     string[block->length] = '\0';
@@ -242,7 +242,7 @@ void status_bar_update(void) {
     for (int i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
         char *string = block->output;
-        usize size = block->length;
+        usize size = (usize) block->length;
         if (size) {
             memcpy(pointer, string, size);
             pointer += size;

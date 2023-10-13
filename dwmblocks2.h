@@ -49,7 +49,7 @@ typedef struct Block {
     int signal;
     int pipe;
     char output[BLOCK_OUTPUT_LENGTH];
-    uint32 length;
+    int length;
     sigset_t mask;
 } Block;
 
