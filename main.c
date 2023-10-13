@@ -5,7 +5,7 @@
 #include <assert.h>
 
 static fd_set input_set;
-static volatile int max_fd = -1;
+static int max_fd = -1;
 
 static Display *display;
 static Window root;
@@ -108,6 +108,7 @@ int main(void) {
             timeout.tv_sec = 1;
             timeout.tv_usec = 0;
 
+            assert(max_fd >= 0);
             ready = select(max_fd+1, &input_set, NULL, NULL, &timeout);
             if (ready < 0) {
                 if (errno == EBADF) {
@@ -120,7 +121,6 @@ int main(void) {
                 }
                 continue;
             } else if (ready > 0) {
-                fprintf(stderr, "select: %d blocks are ready\n", ready);
                 for (uint i = 0; i < LENGTH(blocks); i += 1) {
                     Block *block = &blocks[i];
                     if (block->function) {
