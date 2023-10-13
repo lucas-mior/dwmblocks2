@@ -10,7 +10,7 @@ static int max_fd = -1;
 static Display *display;
 static Window root;
 
-static int popen_no_shell(char *, int);
+static int popen_no_shell(char *, char *);
 static void parse_output(Block *);
 static void spawn_block(Block *, int);
 static void spawn_blocks(uint64);
@@ -154,6 +154,8 @@ int main(void) {
 }
 
 void spawn_block(Block *block, int button) {
+    char button_str[2] = {'0' + (char) button, '\0'};
+
     if (block->function) {
         block->function(button, block);
         return;
@@ -167,7 +169,7 @@ void spawn_block(Block *block, int button) {
         block->pipe = -1;
     }
 
-    if ((block->pipe = popen_no_shell(block->command, button)) < 0)
+    if ((block->pipe = popen_no_shell(block->command, button_str)) < 0)
         return;
 
     FD_SET(block->pipe, &input_set);
@@ -281,11 +283,10 @@ void signal_handler(int signum, siginfo_t *signal_info, void *ucontext) {
     return;
 }
 
-int popen_no_shell(char *command, int button) {
+int popen_no_shell(char *command, char *button) {
     int pipefd[2];
 
-    char button_str[2] = {'0' + (char) button, '\0'};
-    char *argv[3] = { command, button_str, NULL };
+    char *argv[3] = { command, button, NULL };
 
     if (pipe(pipefd) < 0) {
         write_error("Error creating pipe: ");
