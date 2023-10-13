@@ -18,7 +18,6 @@ static void status_bar_update(void);
 int main(void) {
     uint64 seconds = 0;
     {
-        int signal_max = SIGRTMAX - SIGRTMIN;
         struct sigaction signal_external;
         struct sigaction signal_childs;
         signal_childs.sa_handler = SIG_DFL;
@@ -52,15 +51,16 @@ int main(void) {
                                 "Signals must be grater than 0.\n", i);
                 exit(EXIT_FAILURE);
             }
-            if (block->signal >= signal_max) {
+            block->signal += SIGRTMIN;
+            if (block->signal >= SIGRTMAX) {
                 fprintf(stderr, "Invalid signal for block."
                                 "Signals must be lower than %d.\n",
-                                signal_max);
+                                SIGRTMAX - SIGRTMIN);
                 exit(EXIT_FAILURE);
             }
 
             // used by dwm to send proper signal number back to dwmblocks2
-            block->output[0] = (char) block->signal;
+            block->output[0] = (char) block->signal - SIGRTMIN;
             block->output[1] = (char) '\0';
 
             block->pipe = -1;
@@ -72,16 +72,16 @@ int main(void) {
             signal_this.sa_sigaction = signal_handler;
             signal_this.sa_flags = SA_NODEFER | SA_SIGINFO;
             sigemptyset(&(block->mask));
-            sigaddset(&(block->mask), block->signal + SIGRTMIN);
+            sigaddset(&(block->mask), block->signal);
 
             sigemptyset(&(signal_this.sa_mask));
             for (uint j = 0; j < LENGTH(blocks); j += 1) {
                 Block *blockj = &blocks[j];
                 if (j != i)
-                    sigaddset(&signal_this.sa_mask, SIGRTMIN + blockj->signal);
+                    sigaddset(&signal_this.sa_mask, blockj->signal);
             }
-            sigaction(SIGRTMIN + block->signal, &signal_this, NULL);
-            sigaddset(&signal_external.sa_mask, SIGRTMIN + block->signal);
+            sigaction(block->signal, &signal_this, NULL);
+            sigaddset(&signal_external.sa_mask, block->signal);
         }
 
         signal_external.sa_sigaction = signal_handler;
@@ -265,7 +265,6 @@ void signal_handler(int signum, siginfo_t *signal_info, void *ucontext) {
         signum = signal_info->si_value.sival_int >> 3;
         button = signal_info->si_value.sival_int & 7;
     }
-    signum -= SIGRTMIN;
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
         if (block->signal == signum)
