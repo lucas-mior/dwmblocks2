@@ -107,21 +107,20 @@ int main(void) {
         ready = select(max_fd+1, &input_set, NULL, NULL, &timeout);
         if (ready < 0) {
             switch (errno) {
-                case EBADF:
-                    write_error("Error in select: Bad file descriptor.\n");
-                    write_error("Reseting select file descriptors"
-                                " and spawning blocks again");
-                    FD_ZERO(&input_set);
-                    spawn_blocks(0);
-                    break;
-                case EINTR:
-                    write_error("Select interrupted by signal.\n");
-                    break;
-                default:
-                    write_error("Error in select: ");
-                    write_error(strerror(errno));
-                    write_error("\n");
-                    exit(EXIT_FAILURE);
+            case EBADF:
+                write_error("Error in select: Bad file descriptor.\n");
+                write_error("Reseting select file descriptors and spawning blocks again");
+                FD_ZERO(&input_set);
+                spawn_blocks(0);
+                break;
+            case EINTR:
+                write_error("Select interrupted by signal.\n");
+                break;
+            default:
+                write_error("Error in select: ");
+                write_error(strerror(errno));
+                write_error("\n");
+                exit(EXIT_FAILURE);
             }
             continue;
         }
