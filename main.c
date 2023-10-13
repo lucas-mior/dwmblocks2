@@ -278,7 +278,6 @@ void signal_handler(int signum, siginfo_t *signal_info, void *ucontext) {
 
 int popen_no_shell(char *command, char *button) {
     int pipefd[2];
-
     char *argv[3] = { command, button, NULL };
 
     if (pipe(pipefd) < 0) {
