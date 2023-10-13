@@ -14,7 +14,7 @@ LDFLAGS += -lX11
 
 clang: CC=clang
 clang: clean
-clang: CFLAGS += -Weverything -Wno-unsafe-buffer-usage
+clang: CFLAGS += -Weverything -Wno-unsafe-buffer-usage -Wno-disabled-macro-expansion
 clang: release
 
 release: CFLAGS += -O2
