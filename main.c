@@ -6,6 +6,7 @@
 
 static fd_set input_set;
 static int max_fd = -1;
+uint64 seconds = 0;
 
 static Display *display;
 static Window root;
@@ -97,56 +98,52 @@ int main(void) {
     root = DefaultRootWindow(display);
 
     FD_ZERO(&input_set);
-    {
-        uint64 seconds = 0;
+    while (true) {
+        struct timeval timeout;
+        int ready;
+        timeout.tv_sec = 1;
+        timeout.tv_usec = 0;
 
-        while (true) {
-            struct timeval timeout;
-            int ready;
-            timeout.tv_sec = 1;
-            timeout.tv_usec = 0;
-
-            ready = select(max_fd+1, &input_set, NULL, NULL, &timeout);
-            if (ready < 0) {
-                switch (errno) {
-                    case EBADF:
-                        write_error("Error in select: Bad file descriptor.\n");
-                        write_error("Reseting select file descriptors"
-                                    " and spawning blocks again");
-                        FD_ZERO(&input_set);
-                        spawn_blocks(0);
-                        break;
-                    case EINTR:
-                        write_error("Select interrupted by signal.\n");
-                        break;
-                    default:
-                        write_error("Error in select: ");
-                        write_error(strerror(errno));
-                        write_error("\n");
-                        exit(EXIT_FAILURE);
-                }
-                continue;
+        ready = select(max_fd+1, &input_set, NULL, NULL, &timeout);
+        if (ready < 0) {
+            switch (errno) {
+                case EBADF:
+                    write_error("Error in select: Bad file descriptor.\n");
+                    write_error("Reseting select file descriptors"
+                                " and spawning blocks again");
+                    FD_ZERO(&input_set);
+                    spawn_blocks(0);
+                    break;
+                case EINTR:
+                    write_error("Select interrupted by signal.\n");
+                    break;
+                default:
+                    write_error("Error in select: ");
+                    write_error(strerror(errno));
+                    write_error("\n");
+                    exit(EXIT_FAILURE);
             }
-            if (ready > 0) {
-                for (uint i = 0; i < LENGTH(blocks); i += 1) {
-                    Block *block = &blocks[i];
-                    if (block->function) {
-                        block->function(0, block);
-                        continue;
-                    }
-                    if (FD_ISSET(block->pipe, &input_set)) {
-                        FD_CLR(block->pipe, &input_set);
-                        parse_output(block);
-                    } else if (block->pipe >= 0) {
-                        FD_SET(block->pipe, &input_set);
-                    }
+            continue;
+        }
+        if (ready > 0) {
+            for (uint i = 0; i < LENGTH(blocks); i += 1) {
+                Block *block = &blocks[i];
+                if (block->function) {
+                    block->function(0, block);
+                    continue;
                 }
-                status_bar_update(false);
-            } else {
-                spawn_blocks(seconds);
-                seconds += 1;
-                status_bar_update(false);
+                if (FD_ISSET(block->pipe, &input_set)) {
+                    FD_CLR(block->pipe, &input_set);
+                    parse_output(block);
+                } else if (block->pipe >= 0) {
+                    FD_SET(block->pipe, &input_set);
+                }
             }
+            status_bar_update(false);
+        } else {
+            spawn_blocks(seconds);
+            seconds += 1;
+            status_bar_update(false);
         }
     }
 }
