@@ -62,6 +62,7 @@ Keep in mind that the default blocks may call programs you don't have installed.
 ## Differences from original dwmblocks
 - It's much lighter, since the shell is avoided on every command spawned.
 - A hard to reproduce bug in which `dwmblocks` would freeze has been fixed.
+- Blocks are updated independently (a slow block will not block others).
 - Clicks are passed through the first argument, not the `BLOCK_BUTTON`
   environment variable.
 - Signals are mandatory and set through environment variables, so one
@@ -70,7 +71,6 @@ Keep in mind that the default blocks may call programs you don't have installed.
 - There is the possibility of using C functions as blocks, which is
   useful for the included clock block, which runs every second, avoiding the
   overhead of forking and executing a new process.
-- TODO: Async blocks.
 
 ## License
 dwmblocks2 is licensed under GPLv2,
