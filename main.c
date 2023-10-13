@@ -113,7 +113,6 @@ int main(void) {
                 spawn_blocks(0);
                 break;
             case EINTR:
-                write_error("Select interrupted by signal.\n");
                 break;
             default:
                 write_error("Error in select: ");
