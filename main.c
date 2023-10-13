@@ -16,7 +16,7 @@ static void parse_output(Block *);
 static void spawn_block(Block *, int);
 static void spawn_blocks(uint64);
 static void signal_handler(int, siginfo_t *, void *);
-static void status_bar_update(bool);
+static void status_bar_update(void);
 
 int main(void) {
     {
@@ -139,11 +139,11 @@ int main(void) {
                     FD_SET(block->pipe, &input_set);
                 }
             }
-            status_bar_update(false);
+            status_bar_update();
         } else {
             spawn_blocks(seconds);
             seconds += 1;
-            status_bar_update(false);
+            status_bar_update();
         }
     }
 }
@@ -238,10 +238,9 @@ void spawn_blocks(uint64 seconds) {
     return;
 }
 
-void status_bar_update(bool check_changed) {
+void status_bar_update(void) {
     static char status_new[LENGTH(blocks) * (BLOCK_OUTPUT_LENGTH + 1)] = {0};
     char *pointer = status_new;
-    (void) check_changed;
 
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
