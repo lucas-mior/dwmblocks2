@@ -45,7 +45,7 @@ typedef struct Block {
     void (*function)(int, struct Block *);
     char *command;
     char *signal_var_name;
-    uint interval;
+    int interval;
     int signal;
     int pipe;
     char output[BLOCK_OUTPUT_LENGTH];

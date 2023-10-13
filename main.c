@@ -11,12 +11,12 @@ static Window root;
 static int popen_no_shell(char *, char *);
 static void parse_output(Block *);
 static void spawn_block(Block *, int);
-static void spawn_blocks(uint64);
+static void spawn_blocks(int);
 static void signal_handler(int, siginfo_t *, void *);
 static void status_bar_update(void);
 
 int main(void) {
-    uint64 seconds = 0;
+    int seconds = 0;
     {
         struct sigaction signal_external;
         struct sigaction signal_childs;
@@ -60,7 +60,7 @@ int main(void) {
             }
 
             // used by dwm to send proper signal number back to dwmblocks2
-            block->output[0] = (char) block->signal - SIGRTMIN;
+            block->output[0] = (char) (block->signal - SIGRTMIN);
             block->output[1] = (char) '\0';
 
             block->pipe = -1;
@@ -219,7 +219,7 @@ void parse_output(Block *block) {
     return;
 }
 
-void spawn_blocks(uint64 seconds) {
+void spawn_blocks(int seconds) {
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
         if (block->pipe >= 0)
