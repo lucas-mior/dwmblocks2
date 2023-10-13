@@ -6,7 +6,7 @@
 
 static fd_set input_set;
 static int max_fd = -1;
-uint64 seconds = 0;
+static uint64 seconds = 0;
 
 static Display *display;
 static Window root;
@@ -120,7 +120,7 @@ int main(void) {
                 write_error("Error in select: ");
                 write_error(strerror(errno));
                 write_error("\n");
-                exit(EXIT_FAILURE);
+                _exit(EXIT_FAILURE);
             }
             continue;
         }
@@ -299,7 +299,7 @@ int popen_no_shell(char *command, char *button) {
         write_error(": ");
         write_error(strerror(errno));
         write_error(".\n");
-        exit(EXIT_FAILURE);
+        _exit(EXIT_FAILURE);
     case -1:
         write_error("Error forking: ");
         write_error(strerror(errno));
