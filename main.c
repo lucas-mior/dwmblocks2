@@ -232,7 +232,7 @@ void parse_output(Block *block) {
 void spawn_blocks(uint64 seconds) {
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
-        if (block->pipe)
+        if (block->pipe >= 0)
             FD_SET(block->pipe, &input_set);
         if (seconds == 0) {
             spawn_block(block, 0);
