@@ -64,7 +64,7 @@ Keep in mind that the default blocks may call programs you don't have installed.
 - A hard to reproduce bug in which `dwmblocks` would freeze has been fixed.
 - Blocks are updated independently (a slow block will not block others).
 - Clicks are passed through the first argument, not the `BLOCK_BUTTON`
-  environment variable.
+  environment variable, which makes it easier to debug scripts.
 - Signals are mandatory and set through environment variables, so one
   can more easily keep dwmblocks signals in sync with scripts which update
   the contents of the bar.
