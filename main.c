@@ -249,9 +249,8 @@ void signal_handler(int signum, siginfo_t *signal_info, void *ucontext) {
     int button = 0;
     (void) ucontext;
     if (signum == SIGUSR1) {
-        write_error("signum == SIGUSR1\n");
         // number send by dwm
-        signum = (signal_info->si_value.sival_int >> 3);
+        signum = signal_info->si_value.sival_int >> 3;
         button = signal_info->si_value.sival_int & 7;
     }
     signum -= SIGRTMIN;
