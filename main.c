@@ -310,6 +310,8 @@ int popen_no_shell(char *command, int button) {
         write_error("Error forking: ");
         write_error(strerror(errno));
         write_error(".\n");
+        close(pipefd[0]);
+        close(pipefd[1]);
         return -1;
     default:
         close(pipefd[1]);
