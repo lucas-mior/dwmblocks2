@@ -149,8 +149,9 @@ void spawn_block(Block *block, int button) {
     sigprocmask(SIG_BLOCK, &mask, NULL);
 
     if (block->pipe >= 0) {
-        FD_SET(block->pipe, &input_set);
-        return;
+        close(block->pipe);
+        FD_CLR(block->pipe, &input_set);
+        block->pipe = -1;
     }
 
     if ((block->pipe = popen_no_shell(block->command, button)) < 0) {
@@ -193,6 +194,7 @@ void parse_output(Block *block) {
     } while (true);
 
     close(block->pipe);
+    FD_CLR(block->pipe, &input_set);
     block->pipe = -1;
 
     sigprocmask(SIG_UNBLOCK, &mask, NULL);
