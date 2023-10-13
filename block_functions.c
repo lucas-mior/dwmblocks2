@@ -15,6 +15,7 @@ void block_clock(int button, Block *block) {
         localtime_r(&seconds_since_epoch, &t);
         week = week_names[t.tm_wday];
 
+        // TODO: use async-safe snprintf
         n = snprintf(string, BLOCK_OUTPUT_LENGTH - 1,
                     "📅 %s %02d/%02d %02d:%02d:%02d ",
                      week, t.tm_mday, t.tm_mon + 1, t.tm_hour, t.tm_min, t.tm_sec);
