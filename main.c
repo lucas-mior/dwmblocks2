@@ -143,8 +143,15 @@ void spawn_block(Block *block, int button) {
     }
 
     if (block->pipe >= 0) {
+        sigset_t set;
+        sigset_t oldset;
+        sigemptyset(&set);
+        sigaddset(&set, block->signal + SIGRTMIN);
+        sigprocmask(SIG_BLOCK, &set, &oldset);
         close(block->pipe);
         block->pipe = -1;
+        sigprocmask(SIG_UNBLOCK, &set, NULL);
+        sigprocmask(SIG_UNBLOCK, &oldset, NULL);
     }
 
     if ((command_pipe = popen_no_shell(block->command, button)) < 0) {
@@ -178,8 +185,15 @@ void parse_output(Block *block) {
         if (left <= 0)
             break;
     } while (true);
+    sigset_t set;
+    sigset_t oldset;
+    sigemptyset(&set);
+    sigaddset(&set, block->signal + SIGRTMIN);
+    sigprocmask(SIG_BLOCK, &set, &oldset);
     close(block->pipe);
     block->pipe = -1;
+    sigprocmask(SIG_UNBLOCK, &set, NULL);
+    sigprocmask(SIG_UNBLOCK, &oldset, NULL);
 
     if ((r < 0) || (string == (block->output + 1))) {
         string[0] = '\0';
