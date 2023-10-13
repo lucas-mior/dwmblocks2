@@ -6,7 +6,6 @@
 
 static fd_set input_set;
 static int max_fd = -1;
-static uint64 seconds = 0;
 
 static Display *display;
 static Window root;
@@ -19,6 +18,7 @@ static void signal_handler(int, siginfo_t *, void *);
 static void status_bar_update(void);
 
 int main(void) {
+    uint64 seconds = 0;
     {
         int signal_max = SIGRTMAX - SIGRTMIN;
         struct sigaction signal_external;
