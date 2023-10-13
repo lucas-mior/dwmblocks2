@@ -32,9 +32,9 @@ explain() {
 }
 
 case $1 in
-    1) explain ;;
+    1) explain; display ;;
     2) setsid -f "$TERMINAL" -e htop ;;
-    3) explain ;;
+    3) explain; display ;;
     6) setsid -f "$TERMINAL" -e "$EDITOR" "$0" ;;
     *) display ;;
 esac

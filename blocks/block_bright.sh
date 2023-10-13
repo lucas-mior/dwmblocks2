@@ -1,6 +1,7 @@
 #!/bin/sh
 
 display () {
+    color=""
     if [ -e "$REDSHIFT_CACHE" ]; then
         red=$(cat "$REDSHIFT_CACHE")
         if [ $red -gt 5000 ]; then
@@ -15,9 +16,9 @@ display () {
 }
 
 case $1 in
-    1|5) bright --less ;;
-    2) red.sh        ;;
-    3|4) bright --more ;;
+    1|5) bright --less ; display ;;
+    2) red.sh          ; display ;;
+    3|4) bright --more ; display ;;
     6) setsid -f "$TERMINAL" -e "$EDITOR" "$0" ;;
     *) display ;;
 esac

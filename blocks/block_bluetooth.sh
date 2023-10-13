@@ -17,9 +17,13 @@ display () {
     fi
 }
 
+power () {
+    bluetoothctl power $1
+}
+
 case $1 in
-    1) bluetoothctl power on  && dunstify " on"  ;;
-    3) bluetoothctl power off && dunstify " off" ;;
+    1) power on  > /dev/null ; display ;;
+    3) power off > /dev/null ; display ;;
     6) setsid -f "$TERMINAL" -e "$EDITOR" "$0"    ;;
     *) display ;;
 esac

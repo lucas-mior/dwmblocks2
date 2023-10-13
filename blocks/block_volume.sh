@@ -25,11 +25,11 @@ display () {
 }
 
 case $1 in
-    1) vol_out.sh toggle  ;;
-    2) audio_toggle.bash  ;;
-    3) st -e pulsemixer   ;;
-    4) vol_out.sh up      ;;
-    5) vol_out.sh down    ;;
+    1) vol_out.sh toggle ; display ;;
+    2) audio_toggle.bash ; display ;;
+    3) st -e pulsemixer  ; display ;;
+    4) vol_out.sh up     ; display ;;
+    5) vol_out.sh down   ; display ;;
     6) setsid -f "$TERMINAL" -e "$EDITOR" "$0" ;;
     *) display            ;;
 esac

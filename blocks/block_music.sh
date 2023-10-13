@@ -13,9 +13,9 @@ display () {
 }
 
 case $1 in
-    1) album_art_play.sh toggle ;;
-    2) album_art_play.sh toggle ;;
-    3) pause.bash wall          ;;
+    1) album_art_play.sh toggle ; display ;;
+    2) album_art_play.sh toggle ; display ;;
+    3) pause.bash wall          ; display ;;
     6) setsid -f "$TERMINAL" -e "$EDITOR" "$0" ;;
     *) display ;;
 esac

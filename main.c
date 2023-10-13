@@ -13,7 +13,7 @@ static Window root;
 static int popen_no_shell(char *, int);
 static void parse_output(Block *);
 static void spawn_block(Block *, int);
-static void spawn_blocks(int64);
+static void spawn_blocks(uint64);
 static void signal_handler(int, siginfo_t *, void *);
 static void status_bar_update(bool);
 
@@ -91,7 +91,7 @@ int main(void) {
 
     {
         struct timeval timeout;
-        int64 seconds = -1;
+        uint64 seconds = 0;
         spawn_blocks(seconds);
         FD_ZERO(&input_set);
 
@@ -226,10 +226,10 @@ void parse_output(Block *block) {
     return;
 }
 
-void spawn_blocks(int64 seconds) {
+void spawn_blocks(uint64 seconds) {
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
-        if (seconds < 0) {
+        if (seconds == 0) {
             spawn_block(block, 0);
             continue;
         }
