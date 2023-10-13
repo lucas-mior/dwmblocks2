@@ -96,18 +96,16 @@ int main(void) {
     }
     root = DefaultRootWindow(display);
 
+    FD_ZERO(&input_set);
     {
-        struct timeval timeout;
         uint64 seconds = 0;
-        FD_ZERO(&input_set);
-        spawn_blocks(seconds);
 
         while (true) {
+            struct timeval timeout;
             int ready;
             timeout.tv_sec = 1;
             timeout.tv_usec = 0;
 
-            assert(max_fd >= 0);
             ready = select(max_fd+1, &input_set, NULL, NULL, &timeout);
             if (ready < 0) {
                 switch (errno) {
@@ -145,8 +143,8 @@ int main(void) {
                 }
                 status_bar_update(false);
             } else {
-                seconds += 1;
                 spawn_blocks(seconds);
+                seconds += 1;
                 status_bar_update(false);
             }
         }
