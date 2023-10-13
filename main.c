@@ -143,6 +143,11 @@ void spawn_block(Block *block, int button) {
         return;
     }
 
+    sigset_t mask;
+    sigemptyset(&mask);
+    sigaddset(&mask, block->signal + SIGRTMIN);
+    sigprocmask(SIG_BLOCK, &mask, NULL);
+
     if (block->pipe >= 0) {
         FD_SET(block->pipe, &input_set);
         return;
@@ -161,13 +166,21 @@ void spawn_block(Block *block, int button) {
 
     FD_SET(block->pipe, &input_set);
     max_fd = MAX(max_fd, block->pipe);
+
+    sigprocmask(SIG_UNBLOCK, &mask, NULL);
     return;
 }
 
 void parse_output(Block *block) {
+    write_error("parsing output...\n");
     isize r;
     usize left = BLOCK_OUTPUT_LENGTH - 1;
     char *string = block->output + 1;
+
+    sigset_t mask;
+    sigemptyset(&mask);
+    sigaddset(&mask, block->signal + SIGRTMIN);
+    sigprocmask(SIG_BLOCK, &mask, NULL);
 
     do {
         r = read(block->pipe, string, left);
@@ -178,8 +191,11 @@ void parse_output(Block *block) {
         if (left <= 0)
             break;
     } while (true);
+
     close(block->pipe);
     block->pipe = -1;
+
+    sigprocmask(SIG_UNBLOCK, &mask, NULL);
 
     if ((r < 0) || (string == (block->output + 1))) {
         string[0] = '\0';
