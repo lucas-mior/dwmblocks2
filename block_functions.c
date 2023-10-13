@@ -12,7 +12,7 @@ void block_clock(int button, Block *block) {
 
     if (block) {
         seconds_since_epoch = time(NULL);
-        t = *localtime(&seconds_since_epoch);
+        localtime_r(&seconds_since_epoch, &t);
         week = week_names[t.tm_wday];
 
         n = snprintf(string, BLOCK_OUTPUT_LENGTH - 1,
