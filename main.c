@@ -300,11 +300,16 @@ int popen_no_shell(char *command, int button) {
         dup2(pipefd[1], STDOUT_FILENO);
         close(pipefd[1]);
         execvp(argv[0], argv);
-        fprintf(stderr, "Error executing %s: %s\n",
-                        argv[0], strerror(errno));
+        write_error("Error executing");
+        write_error(command);
+        write_error(": ");
+        write_error(strerror(errno));
+        write_error(".\n");
         exit(EXIT_FAILURE);
     case -1:
-        fprintf(stderr, "Error forking: %s\n", strerror(errno));
+        write_error("Error forking: ");
+        write_error(strerror(errno));
+        write_error(".\n");
         return -1;
     default:
         close(pipefd[1]);
