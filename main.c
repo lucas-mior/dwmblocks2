@@ -94,7 +94,6 @@ int main(void) {
         fprintf(stderr, "Error opening X display\n");
         exit(EXIT_FAILURE);
     }
-
     root = DefaultRootWindow(display);
 
     {
@@ -113,8 +112,9 @@ int main(void) {
             if (ready < 0) {
                 switch (errno) {
                     case EBADF:
-                        write_error("Error in select(): Bad file descriptor.\n");
-                        write_error("Reseting select file descriptors and spawning blocks again");
+                        write_error("Error in select: Bad file descriptor.\n");
+                        write_error("Reseting select file descriptors"
+                                    " and spawning blocks again");
                         FD_ZERO(&input_set);
                         spawn_blocks(0);
                         break;
@@ -122,7 +122,7 @@ int main(void) {
                         write_error("Select interrupted by signal.\n");
                         break;
                     default:
-                        write_error("Error in select(): ");
+                        write_error("Error in select: ");
                         write_error(strerror(errno));
                         write_error("\n");
                         exit(EXIT_FAILURE);
@@ -222,7 +222,7 @@ void parse_output(Block *block) {
         string[block->length] = ' ';
         string[block->length + 1] = '\0';
         block->length += 1;
-        block->length += 1; // because of the first char containing signal number
+        block->length += 1; // because of the first char with signal number
     }
     return;
 }
