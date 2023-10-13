@@ -251,12 +251,13 @@ void signal_handler(int signum, siginfo_t *signal_info, void *ucontext) {
     if (signum == SIGUSR1) {
         write_error("signum == SIGUSR1\n");
         // number send by dwm
-        signum = (signal_info->si_value.sival_int >> 3) - SIGRTMIN;
+        signum = (signal_info->si_value.sival_int >> 3);
         button = signal_info->si_value.sival_int & 7;
     }
+    signum -= SIGRTMIN;
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
-        if (block->signal == (signum - SIGRTMIN)) {
+        if (block->signal == signum) {
             spawn_block(block, button);
         }
     }
