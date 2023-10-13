@@ -65,7 +65,6 @@ int main(void) {
             block->output[1] = (char) '\0';
 
             block->pipe = -1;
-            block->pipe = -1;
             block->length = 0;
 
             signal_this.sa_sigaction = signal_handler;
@@ -96,8 +95,8 @@ int main(void) {
     {
         struct timeval timeout;
         uint64 seconds = 0;
-        spawn_blocks(seconds);
         FD_ZERO(&input_set);
+        spawn_blocks(seconds);
 
         while (true) {
             int ready;
@@ -109,7 +108,7 @@ int main(void) {
                 if (errno == EBADF) {
                     write_error("Select: Bad file descriptor\n");
                     FD_ZERO(&input_set);
-                    spawn_blocks(-1);
+                    spawn_blocks(0);
                 } else {
                     fprintf(stderr, "Error in select: %s\n", strerror(errno));
                 }
