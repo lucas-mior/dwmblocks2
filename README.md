@@ -37,7 +37,7 @@ will be the new status bar until another signal arrives or
 the block interval passes.
 ```sh
 case $1 in
-    0) echo "no click (other signal/interval) ;;
+    0) echo "no click (other signal/interval)" ;;
     1) echo "clicked left button";;
     2) echo "clicked middle button";;
     3) echo "clicked right button";;
