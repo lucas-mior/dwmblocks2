@@ -280,9 +280,6 @@ int popen_no_shell(char *command, int button) {
         close(pipefd[0]);
         dup2(pipefd[1], STDOUT_FILENO);
         close(pipefd[1]);
-        write_error("running...");
-        write_error(command);
-        write_error("...\n");
         execvp(argv[0], argv);
         fprintf(stderr, "Error executing %s: %s\n",
                         argv[0], strerror(errno));
