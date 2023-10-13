@@ -29,7 +29,7 @@ int main(void) {
         for (int i = SIGRTMIN; i <= SIGRTMAX; i += 1)
             signal(i, SIG_IGN);
 
-        for (uint i = 0; i < LENGTH(blocks); i += 1) {
+        for (int i = 0; i < LENGTH(blocks); i += 1) {
             struct sigaction signal_this;
             Block *block = &blocks[i];
             char *signal_string;
@@ -75,7 +75,7 @@ int main(void) {
             sigaddset(&(block->mask), block->signal);
 
             sigemptyset(&(signal_this.sa_mask));
-            for (uint j = 0; j < LENGTH(blocks); j += 1) {
+            for (int j = 0; j < LENGTH(blocks); j += 1) {
                 Block *other = &blocks[j];
                 if (j != i)
                     sigaddset(&signal_this.sa_mask, other->signal);
@@ -124,7 +124,7 @@ int main(void) {
             continue;
         }
         if (ready > 0) {
-            for (uint i = 0; i < LENGTH(blocks); i += 1) {
+            for (int i = 0; i < LENGTH(blocks); i += 1) {
                 Block *block = &blocks[i];
                 if (block->function) {
                     block->function(0, block);
@@ -220,7 +220,7 @@ void parse_output(Block *block) {
 }
 
 void spawn_blocks(int seconds) {
-    for (uint i = 0; i < LENGTH(blocks); i += 1) {
+    for (int i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
         if (block->pipe >= 0)
             FD_SET(block->pipe, &input_set);
@@ -240,7 +240,7 @@ void status_bar_update(void) {
     static char status_new[LENGTH(blocks) * (BLOCK_OUTPUT_LENGTH + 1)] = {0};
     char *pointer = status_new;
 
-    for (uint i = 0; i < LENGTH(blocks); i += 1) {
+    for (int i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
         char *string = block->output;
         usize size = block->length;
@@ -265,7 +265,7 @@ void signal_handler(int signum, siginfo_t *signal_info, void *ucontext) {
         signum = signal_info->si_value.sival_int >> 3;
         button = signal_info->si_value.sival_int & 7;
     }
-    for (uint i = 0; i < LENGTH(blocks); i += 1) {
+    for (int i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
         if (block->signal == signum)
             spawn_block(block, button);

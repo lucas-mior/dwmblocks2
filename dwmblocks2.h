@@ -37,7 +37,7 @@ typedef size_t usize;
 typedef ssize_t isize;
 #endif
 
-#define LENGTH(X) (sizeof (X) / sizeof (*X))
+#define LENGTH(X) ((isize) (sizeof (X) / sizeof (*X)))
 #define BLOCK_OUTPUT_LENGTH 64
 #define IS_SPACE(X) ((X == ' ') || (X == '\t') || (X == '\n'))
 
