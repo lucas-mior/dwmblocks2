@@ -11,7 +11,7 @@ Edit `blocks.h`.
 By default it uses all blocks in `blocks/` directory,
 plus the clock block.
 You can use external programs or C functions of
-prototype `void function_name(int, Output *)`,
+prototype `void function_name(int, Block *)`,
 defined in `block_functions.c` and declared in `block_functions.h`.
 Checkout the clock block for an example.
 
