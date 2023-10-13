@@ -1,8 +1,6 @@
 #include "dwmblocks2.h"
 #include "blocks.h"
 #include "util.h"
-#include <sys/param.h>
-#include <assert.h>
 
 static fd_set input_set;
 static int max_fd = -1;

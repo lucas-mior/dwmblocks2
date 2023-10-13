@@ -2,6 +2,7 @@
 #define DWMBLOCKS2_H
 
 #include <X11/Xlib.h>
+#include <assert.h>
 #include <errno.h>
 #include <signal.h>
 #include <stdbool.h>
@@ -9,10 +10,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/param.h>
+#include <sys/select.h>
 #include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
-#include <sys/select.h>
 
 #ifndef INTEGERS
 #define INTEGERS
