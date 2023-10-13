@@ -25,6 +25,9 @@ int main(void) {
         signal_childs.sa_handler = SIG_DFL;
         signal_childs.sa_flags = SA_NOCLDWAIT;
 
+        sigemptyset(&(signal_childs.sa_mask));
+        sigemptyset(&(signal_external.sa_mask));
+
         for (int i = SIGRTMIN; i <= SIGRTMAX; i += 1)
             signal(i, SIG_IGN);
 
@@ -67,10 +70,11 @@ int main(void) {
 
             signal_this.sa_sigaction = signal_handler;
             signal_this.sa_flags = SA_NODEFER | SA_SIGINFO;
+
+            sigemptyset(&(signal_this.sa_mask));
             for (uint j = 0; j < LENGTH(blocks); j+=1) {
                 Block *blockj = &blocks[j];
-                if (j != i)
-                    sigaddset(&signal_this.sa_mask, SIGRTMIN + blockj->signal);
+                sigaddset(&signal_this.sa_mask, SIGRTMIN + blockj->signal);
             }
             sigaction(SIGRTMIN + block->signal, &signal_this, NULL);
             sigaddset(&signal_external.sa_mask, SIGRTMIN + block->signal);
@@ -136,8 +140,6 @@ int main(void) {
 }
 
 void spawn_block(Block *block, int button) {
-    char *string = block->output + 1;
-
     if (block->function) {
         block->function(button, block);
         return;
@@ -160,8 +162,6 @@ void spawn_block(Block *block, int button) {
         write_error(": ");
         write_error(strerror(errno));
         write_error("\n");
-
-        string[0] = '\0';
         return;
     }
 
@@ -173,7 +173,6 @@ void spawn_block(Block *block, int button) {
 }
 
 void parse_output(Block *block) {
-    write_error("parsing output...\n");
     isize r;
     usize left = BLOCK_OUTPUT_LENGTH - 1;
     char *string = block->output + 1;
@@ -274,16 +273,14 @@ void signal_handler(int signum, siginfo_t *signal_info, void *ucontext) {
     signum -= SIGRTMIN;
     for (uint i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
-        if (block->signal == signum) {
+        if (block->signal == signum)
             spawn_block(block, button);
-        }
     }
     return;
 }
 
 int popen_no_shell(char *command, int button) {
     int pipefd[2];
-    pid_t pid;
 
     char button_str[2] = {'0' + (char) button, '\0'};
     char *argv[3] = { command, button_str, NULL };
@@ -293,7 +290,7 @@ int popen_no_shell(char *command, int button) {
         return -1;
     }
 
-    switch ((pid = fork())) {
+    switch (fork()) {
     case 0:
         close(pipefd[0]);
         dup2(pipefd[1], STDOUT_FILENO);
