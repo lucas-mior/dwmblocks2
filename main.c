@@ -180,15 +180,12 @@ void parse_output(Block *block) {
 
     sigprocmask(SIG_BLOCK, &(block->mask), NULL);
 
-    do {
-        r = read(block->pipe, string, left);
-        if (r <= 0)
-            break;
+    while ((r = read(block->pipe, string, left)) > 0) {
         string += r;
         left -= (usize) r;
         if (left <= 0)
             break;
-    } while (true);
+    }
 
     close(block->pipe);
     FD_CLR(block->pipe, &input_set);
