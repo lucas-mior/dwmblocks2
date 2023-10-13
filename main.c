@@ -76,9 +76,9 @@ int main(void) {
 
             sigemptyset(&(signal_this.sa_mask));
             for (uint j = 0; j < LENGTH(blocks); j += 1) {
-                Block *blockj = &blocks[j];
+                Block *other = &blocks[j];
                 if (j != i)
-                    sigaddset(&signal_this.sa_mask, blockj->signal);
+                    sigaddset(&signal_this.sa_mask, other->signal);
             }
             sigaction(block->signal, &signal_this, NULL);
             sigaddset(&signal_external.sa_mask, block->signal);
