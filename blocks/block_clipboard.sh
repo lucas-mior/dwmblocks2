@@ -1,8 +1,8 @@
 #!/bin/sh
 
 display () {
-    printf "📋 "
     sleep 0.1
+    printf "📋 "
     result="$(timeout 0.5s xclip -selection clipboard -o -t TARGETS)"
 
     if echo "$result" | grep -q "image/png"; then
