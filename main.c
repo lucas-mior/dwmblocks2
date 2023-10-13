@@ -111,7 +111,8 @@ int main(void) {
             ready = select(max_fd+1, &input_set, NULL, NULL, &timeout);
             if (ready < 0) {
                 if (errno == EBADF) {
-                    write_error("Select: Bad file descriptor\n");
+                    write_error("Error in select(): Bad file descriptor.\n");
+                    write_error("Reseting select file descriptors and spawning blocks again");
                     FD_ZERO(&input_set);
                     spawn_blocks(0);
                 } else {
@@ -157,14 +158,8 @@ void spawn_block(Block *block, int button) {
         block->pipe = -1;
     }
 
-    if ((block->pipe = popen_no_shell(block->command, button)) < 0) {
-        write_error("Failed to run ");
-        write_error(block->command);
-        write_error(": ");
-        write_error(strerror(errno));
-        write_error("\n");
+    if ((block->pipe = popen_no_shell(block->command, button)) < 0)
         return;
-    }
 
     FD_SET(block->pipe, &input_set);
     max_fd = MAX(max_fd, block->pipe);
@@ -284,7 +279,9 @@ int popen_no_shell(char *command, int button) {
     char *argv[3] = { command, button_str, NULL };
 
     if (pipe(pipefd) < 0) {
-        fprintf(stderr, "Error creating pipe: %s\n", strerror(errno));
+        write_error("Error creating pipe: ");
+        write_error(strerror(errno));
+        write_error("\n");
         return -1;
     }
 
