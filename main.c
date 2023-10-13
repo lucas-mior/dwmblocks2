@@ -255,7 +255,7 @@ void status_bar_update(bool check_changed) {
             pointer += size;
         }
     }
-    // Apparently double '\0' means end of bar to // dwm
+    // Apparently double '\0' means end of bar to dwm
     *pointer = '\0';
 
     XStoreName(display, root, status_new);
