@@ -77,9 +77,10 @@ int main(void) {
             sigaddset(&(block->mask), block->signal + SIGRTMIN);
 
             sigemptyset(&(signal_this.sa_mask));
-            for (uint j = 0; j < LENGTH(blocks); j+=1) {
+            for (uint j = 0; j < LENGTH(blocks); j += 1) {
                 Block *blockj = &blocks[j];
-                sigaddset(&signal_this.sa_mask, SIGRTMIN + blockj->signal);
+                if (j != i)
+                    sigaddset(&signal_this.sa_mask, SIGRTMIN + blockj->signal);
             }
             sigaction(SIGRTMIN + block->signal, &signal_this, NULL);
             sigaddset(&signal_external.sa_mask, SIGRTMIN + block->signal);
@@ -104,7 +105,7 @@ int main(void) {
         timeout.tv_sec = 1;
         timeout.tv_usec = 0;
 
-        ready = select(max_fd+1, &input_set, NULL, NULL, &timeout);
+        ready = select(max_fd + 1, &input_set, NULL, NULL, &timeout);
         if (ready < 0) {
             switch (errno) {
             case EBADF:
@@ -238,7 +239,7 @@ void spawn_blocks(uint64 seconds) {
 }
 
 void status_bar_update(bool check_changed) {
-    static char status_new[LENGTH(blocks) * (BLOCK_OUTPUT_LENGTH+1)] = {0};
+    static char status_new[LENGTH(blocks) * (BLOCK_OUTPUT_LENGTH + 1)] = {0};
     char *pointer = status_new;
     (void) check_changed;
 
