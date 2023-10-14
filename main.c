@@ -101,11 +101,6 @@ int main(void) {
     root = DefaultRootWindow(display);
 
     while (true) {
-        struct timespec to_sleep;
-        to_sleep.tv_sec = 1;
-        to_sleep.tv_nsec = 0;
-        /* struct timespec after; */
-
         int ready = poll(pfds, LENGTH(blocks), 1000);
         if (ready < 0) {
             fprintf(stderr, "poll() error: %s\n", strerror(errno));
@@ -127,6 +122,7 @@ int main(void) {
             }
             status_bar_update();
         } else {
+            write_error("poll timeout!!!\n");
             spawn_blocks(seconds);
             seconds += 1;
             status_bar_update();
