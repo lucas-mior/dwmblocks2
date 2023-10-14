@@ -1,8 +1,6 @@
 #include "dwmblocks2.h"
 #include "blocks.h"
 #include "util.h"
-#include <fcntl.h>
-#include <poll.h>
 
 static struct pollfd pfds[LENGTH(blocks)];
 
@@ -86,7 +84,7 @@ int main(void) {
             sigaddset(&signal_external.sa_mask, block->signal);
 
             pfds[i].fd = -1;
-            pfds[i].events = 0;
+            pfds[i].events = 0; // listen only to POLLHUP to avoid partial reads
             pfds[i].revents = 0;
         }
 
@@ -104,11 +102,11 @@ int main(void) {
 
     while (true) {
         struct timespec to_sleep;
-        to_sleep.tv_sec = 0;
-        to_sleep.tv_nsec = 900000000;
+        to_sleep.tv_sec = 1;
+        to_sleep.tv_nsec = 0;
         /* struct timespec after; */
 
-        int ready = poll(pfds, LENGTH(blocks), 100);
+        int ready = poll(pfds, LENGTH(blocks), 1000);
         if (ready < 0) {
             fprintf(stderr, "poll() error: %s\n", strerror(errno));
             continue;
@@ -117,18 +115,17 @@ int main(void) {
             fprintf(stderr, "%d block ready!\n", ready);
             for (int i = 0; i < LENGTH(blocks); i += 1) {
                 Block *block = &blocks[i];
-                fprintf(stderr, "reading pfds[%d] fd = %d, revents=%08b\n",
-                                i, pfds[i].fd, pfds[i].revents);
                 if (pfds[i].revents & POLLHUP) {
-                    pfds[i].fd = -1;
                     parse_output(block);
                     continue;
+                } else if (pfds[i].revents & POLLNVAL) {
+                    block->pipe = -1;
+                    pfds[i].fd = -1;
                 }
                 if (block->function)
                     block->function(0, block);
             }
             status_bar_update();
-            nanosleep(&to_sleep, NULL);
         } else {
             spawn_blocks(seconds);
             seconds += 1;
@@ -226,7 +223,6 @@ void spawn_blocks(int seconds) {
 }
 
 void status_bar_update(void) {
-    write_error("\n========== UPDATING STATUS BAR ==========\n");
     static char status_new[LENGTH(blocks) * (BLOCK_OUTPUT_LENGTH + 1)] = {0};
     char *pointer = status_new;
 
@@ -234,9 +230,6 @@ void status_bar_update(void) {
         Block *block = &blocks[i];
         char *string = block->output;
         usize size = (usize) block->length;
-        write_error("======");
-        write_error(string);
-        write_error("\n");
         if (size) {
             memcpy(pointer, string, size);
             pointer += size;
