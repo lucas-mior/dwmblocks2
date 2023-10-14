@@ -1,2 +1,2 @@
-void itoa(int, char *);
+char *itoa(int, char *);
 void write_error(char *);

@@ -1,7 +1,7 @@
 #include "dwmblocks2.h"
 #include "util.h"
 
-void itoa(int num, char *str) {
+char *itoa(int num, char *str) {
     int i = 0;
     bool negative = false;
     usize length;
@@ -27,7 +27,7 @@ void itoa(int num, char *str) {
         str[j] = str[length - j - 1];
         str[length - j - 1] = temp;
     }
-    return;
+    return str;
 }
 
 void write_error(char *msg) {

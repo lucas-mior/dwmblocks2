@@ -13,6 +13,7 @@ static void spawn_block(Block *, int);
 static void spawn_blocks(int);
 static void signal_handler(int, siginfo_t *, void *);
 static void status_bar_update(void);
+static void int_handler(int);
 
 int main(void) {
     int seconds = 0;
@@ -24,6 +25,8 @@ int main(void) {
 
         sigemptyset(&(signal_childs.sa_mask));
         sigemptyset(&(signal_external.sa_mask));
+
+        signal(SIGINT, int_handler);
 
         for (int i = SIGRTMIN; i <= SIGRTMAX; i += 1)
             signal(i, SIG_IGN);
@@ -292,4 +295,19 @@ int popen_no_shell(char *command, char *button) {
         close(pipefd[1]);
         return pipefd[0];
     }
+}
+
+void int_handler(int unused) {
+    (void) unused;
+    char num[20];
+    for (int i = 0; i < LENGTH(blocks); i += 1) {
+        Block *block = &blocks[i];
+        if (*block->pipe >= 0) {
+            write_error("closing block ");
+            write_error(itoa(*block->pipe, num));
+            write_error("...\n");
+            close(*block->pipe);
+        }
+    }
+    exit(EXIT_FAILURE);
 }
