@@ -123,8 +123,6 @@ int main(void) {
                     fprintf(stderr, "Error polling: Error condition.\n");
                     pipes[i].fd = -1;
                 }
-                if (block->function)
-                    block->function(0, block);
             }
         } else {
             for (int i = 0; i < LENGTH(blocks); i += 1) {
@@ -139,6 +137,11 @@ int main(void) {
                     spawn_block(block, 0);
             }
             seconds += 1;
+        }
+        for (int i = 0; i < LENGTH(blocks); i += 1) {
+            Block *block = &blocks[i];
+            if (block->function)
+                block->function(0, block);
         }
         status_bar_update();
     }
