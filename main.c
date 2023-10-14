@@ -177,6 +177,14 @@ void parse_output(Block *block) {
             break;
     }
 
+    if (r < 0) {
+        write_error("Error reading from block ");
+        write_error(block->command);
+        write_error(": ");
+        write_error(strerror(errno));
+        write_error(".\n");
+    }
+
     close(*block->pipe);
     *block->pipe = -1;
 
