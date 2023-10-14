@@ -61,9 +61,12 @@ int main(void) {
             // used by dwm to send proper signal number back to dwmblocks2
             block->output[0] = (char) (block->signal - SIGRTMIN);
             block->output[1] = (char) '\0';
+            block->length = 0;
 
             block->pipe = &(pipes[i].fd);
-            block->length = 0;
+            pipes[i].fd = -1;
+            pipes[i].events = 0; // listen only to POLLHUP to avoid partial reads
+            pipes[i].revents = 0;
 
             // always run the newest signal for a block, unless in
             // a critical part of handler, then sigprocmask()
@@ -81,10 +84,6 @@ int main(void) {
             }
             sigaction(block->signal, &signal_this, NULL);
             sigaddset(&signal_external.sa_mask, block->signal);
-
-            pipes[i].fd = -1;
-            pipes[i].events = 0; // listen only to POLLHUP to avoid partial reads
-            pipes[i].revents = 0;
         }
 
         signal_external.sa_sigaction = signal_handler;
