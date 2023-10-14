@@ -112,7 +112,7 @@ int main(void) {
                 WRITE_ERROR("Error polling: ");
                 WRITE_ERROR(strerror(errno));
                 WRITE_ERROR(".\n");
-                exit(EXIT_FAILURE);
+                _exit(EXIT_FAILURE);
             }
         }
         if (ready > 0) {
@@ -316,5 +316,5 @@ void int_handler(int unused) {
             close(*block->pipe);
         }
     }
-    exit(EXIT_FAILURE);
+    _exit(EXIT_FAILURE);
 }
