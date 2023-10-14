@@ -1,9 +1,10 @@
 #include "dwmblocks2.h"
 #include "blocks.h"
 #include "util.h"
+#include <fcntl.h>
+#include <poll.h>
 
-static fd_set input_set;
-static int max_fd = -1;
+static struct pollfd pfds[LENGTH(blocks)];
 
 static Display *display;
 static Window root;
@@ -34,6 +35,7 @@ int main(void) {
             Block *block = &blocks[i];
             char *signal_string;
 
+            block->id = i;
             if (block->signal_var_name == NULL) {
                 fprintf(stderr, "Error: Signal environmental variable"
                                 " must be defined for every block.\n");
@@ -82,6 +84,10 @@ int main(void) {
             }
             sigaction(block->signal, &signal_this, NULL);
             sigaddset(&signal_external.sa_mask, block->signal);
+
+            pfds[i].fd = -1;
+            pfds[i].events = 0;
+            pfds[i].revents = 0;
         }
 
         signal_external.sa_sigaction = signal_handler;
@@ -96,47 +102,33 @@ int main(void) {
     }
     root = DefaultRootWindow(display);
 
-    FD_ZERO(&input_set);
     while (true) {
-        struct timeval timeout;
-        int ready;
-        timeout.tv_sec = 1;
-        timeout.tv_usec = 0;
+        struct timespec to_sleep;
+        to_sleep.tv_sec = 0;
+        to_sleep.tv_nsec = 900000000;
+        /* struct timespec after; */
 
-        ready = select(max_fd + 1, &input_set, NULL, NULL, &timeout);
+        int ready = poll(pfds, LENGTH(blocks), 100);
         if (ready < 0) {
-            switch (errno) {
-            case EBADF:
-                write_error("Error in select: Bad file descriptor.\n");
-                write_error("Reseting select file descriptors and spawning blocks again");
-                FD_ZERO(&input_set);
-                spawn_blocks(0);
-                break;
-            case EINTR:
-                break;
-            default:
-                write_error("Error in select: ");
-                write_error(strerror(errno));
-                write_error("\n");
-                _exit(EXIT_FAILURE);
-            }
+            fprintf(stderr, "poll() error: %s\n", strerror(errno));
             continue;
         }
         if (ready > 0) {
+            fprintf(stderr, "%d block ready!\n", ready);
             for (int i = 0; i < LENGTH(blocks); i += 1) {
                 Block *block = &blocks[i];
-                if (block->function) {
-                    block->function(0, block);
+                fprintf(stderr, "reading pfds[%d] fd = %d, revents=%08b\n",
+                                i, pfds[i].fd, pfds[i].revents);
+                if (pfds[i].revents & POLLHUP) {
+                    pfds[i].fd = -1;
+                    parse_output(block);
                     continue;
                 }
-                if (FD_ISSET(block->pipe, &input_set)) {
-                    FD_CLR(block->pipe, &input_set);
-                    parse_output(block);
-                } else if (block->pipe >= 0) {
-                    FD_SET(block->pipe, &input_set);
-                }
+                if (block->function)
+                    block->function(0, block);
             }
             status_bar_update();
+            nanosleep(&to_sleep, NULL);
         } else {
             spawn_blocks(seconds);
             seconds += 1;
@@ -156,16 +148,16 @@ void spawn_block(Block *block, int button) {
     sigprocmask(SIG_BLOCK, &(block->mask), NULL);
 
     if (block->pipe >= 0) {
-        close(block->pipe);
-        FD_CLR(block->pipe, &input_set);
-        block->pipe = -1;
+        sigprocmask(SIG_UNBLOCK, &(block->mask), NULL);
+        return;
+        /* close(block->pipe); */
+        /* block->pipe = -1; */
     }
 
-    if ((block->pipe = popen_no_shell(block->command, button_str)) < 0)
+    block->pipe = popen_no_shell(block->command, button_str);
+    pfds[block->id].fd = block->pipe;
+    if (block->pipe < 0)
         return;
-
-    FD_SET(block->pipe, &input_set);
-    max_fd = MAX(max_fd, block->pipe);
 
     sigprocmask(SIG_UNBLOCK, &(block->mask), NULL);
     return;
@@ -186,8 +178,8 @@ void parse_output(Block *block) {
     }
 
     close(block->pipe);
-    FD_CLR(block->pipe, &input_set);
     block->pipe = -1;
+    pfds[block->id].fd = -1;
 
     sigprocmask(SIG_UNBLOCK, &(block->mask), NULL);
 
@@ -221,8 +213,6 @@ void parse_output(Block *block) {
 void spawn_blocks(int seconds) {
     for (int i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
-        if (block->pipe >= 0)
-            FD_SET(block->pipe, &input_set);
         if (seconds == 0) {
             spawn_block(block, 0);
             continue;
@@ -236,6 +226,7 @@ void spawn_blocks(int seconds) {
 }
 
 void status_bar_update(void) {
+    write_error("\n========== UPDATING STATUS BAR ==========\n");
     static char status_new[LENGTH(blocks) * (BLOCK_OUTPUT_LENGTH + 1)] = {0};
     char *pointer = status_new;
 
@@ -243,6 +234,9 @@ void status_bar_update(void) {
         Block *block = &blocks[i];
         char *string = block->output;
         usize size = (usize) block->length;
+        write_error("======");
+        write_error(string);
+        write_error("\n");
         if (size) {
             memcpy(pointer, string, size);
             pointer += size;

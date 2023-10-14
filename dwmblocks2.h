@@ -50,6 +50,7 @@ typedef struct Block {
     int pipe;
     char output[BLOCK_OUTPUT_LENGTH];
     int length;
+    int id;
     sigset_t mask;
 } Block;
 
