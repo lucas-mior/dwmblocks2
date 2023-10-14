@@ -7,11 +7,11 @@ static struct pollfd pipes[LENGTH(blocks)];
 static Display *display;
 static Window root;
 
-static void parse_output(Block *);
-static void spawn_block(Block *, int);
-static void signal_handler(int, siginfo_t *, void *);
-static void status_bar_update(void);
 static void int_handler(int) __attribute__((noreturn));
+static void parse_output(Block *);
+static void signal_handler(int, siginfo_t *, void *);
+static void spawn_block(Block *, int);
+static void status_bar_update(void);
 
 int main(void) {
     int seconds = 0;
@@ -66,7 +66,8 @@ int main(void) {
 
             block->pipe = &(pipes[i].fd);
             pipes[i].fd = -1;
-            pipes[i].events = 0; // listen only to POLLHUP to avoid partial reads
+            // listen only to POLLHUP to avoid partial reads
+            pipes[i].events = 0;
             pipes[i].revents = 0;
 
             // always run the newest signal for a block, unless in
@@ -116,7 +117,7 @@ int main(void) {
                     parse_output(block);
                     continue;
                 } else if (pipes[i].revents & POLLNVAL) {
-                    fprintf(stderr, "Error polling: Invalid file descriptor.\n");
+                    fprintf(stderr, "Error polling: Invalid fd.\n");
                     pipes[i].fd = -1;
                 } else if (pipes[i].revents & POLLERR) {
                     fprintf(stderr, "Error polling: Error condition.\n");
