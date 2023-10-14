@@ -106,12 +106,12 @@ int main(void) {
         if (ready < 0) {
             switch (errno) {
             case EINTR:
-                write_error("Signal arrived while waiting for blocks\n");
+                WRITE_ERROR("Signal arrived while waiting for blocks\n");
                 continue;
             default:
-                write_error("Error polling: ");
-                write_error(strerror(errno));
-                write_error(".\n");
+                WRITE_ERROR("Error polling: ");
+                WRITE_ERROR(strerror(errno));
+                WRITE_ERROR(".\n");
                 exit(EXIT_FAILURE);
             }
         }
@@ -126,7 +126,7 @@ int main(void) {
                     fprintf(stderr, "file descriptor = %d.\n", pipes[i].fd);
                     pipes[i].fd = -1;
                 } else if (pipes[i].revents & POLLERR) {
-                    write_error("poll returned POLLERR.\n");
+                    WRITE_ERROR("poll returned POLLERR.\n");
                 }
                 if (block->function)
                     block->function(0, block);
@@ -178,11 +178,11 @@ void parse_output(Block *block) {
     }
 
     if (r < 0) {
-        write_error("Error reading from block ");
-        write_error(block->command);
-        write_error(": ");
-        write_error(strerror(errno));
-        write_error(".\n");
+        WRITE_ERROR("Error reading from block ");
+        WRITE_ERROR(block->command);
+        WRITE_ERROR(": ");
+        WRITE_ERROR(strerror(errno));
+        WRITE_ERROR(".\n");
     }
 
     close(*block->pipe);
@@ -274,9 +274,9 @@ int popen_no_shell(char *command, char *button) {
     char *argv[3] = { command, button, NULL };
 
     if (pipe(pipefd) < 0) {
-        write_error("Error creating pipe: ");
-        write_error(strerror(errno));
-        write_error("\n");
+        WRITE_ERROR("Error creating pipe: ");
+        WRITE_ERROR(strerror(errno));
+        WRITE_ERROR("\n");
         return -1;
     }
 
@@ -286,16 +286,16 @@ int popen_no_shell(char *command, char *button) {
         dup2(pipefd[1], STDOUT_FILENO);
         close(pipefd[1]);
         execvp(argv[0], argv);
-        write_error("Error executing");
-        write_error(command);
-        write_error(": ");
-        write_error(strerror(errno));
-        write_error(".\n");
+        WRITE_ERROR("Error executing");
+        WRITE_ERROR(command);
+        WRITE_ERROR(": ");
+        WRITE_ERROR(strerror(errno));
+        WRITE_ERROR(".\n");
         _exit(EXIT_FAILURE);
     case -1:
-        write_error("Error forking: ");
-        write_error(strerror(errno));
-        write_error(".\n");
+        WRITE_ERROR("Error forking: ");
+        WRITE_ERROR(strerror(errno));
+        WRITE_ERROR(".\n");
         close(pipefd[0]);
         close(pipefd[1]);
         return -1;
@@ -311,9 +311,9 @@ void int_handler(int unused) {
     for (int i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
         if (*block->pipe >= 0) {
-            write_error("closing block ");
-            write_error(itoa(*block->pipe, num));
-            write_error("...\n");
+            WRITE_ERROR("closing block ");
+            WRITE_ERROR(itoa(*block->pipe, num));
+            WRITE_ERROR("...\n");
             close(*block->pipe);
         }
     }

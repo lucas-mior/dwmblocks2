@@ -29,7 +29,3 @@ char *itoa(int num, char *str) {
     }
     return str;
 }
-
-void write_error(char *msg) {
-    write(STDERR_FILENO, msg, strlen(msg));
-}
