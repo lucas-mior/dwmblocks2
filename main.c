@@ -112,6 +112,8 @@ int main(void) {
                     parse_output(block);
                     continue;
                 } else if (pipes[i].revents & POLLNVAL) {
+                    fprintf(stderr, "poll returned POLLNVAL for block %d.\n", i);
+                    fprintf(stderr, "file descriptor = %d.\n", pipes[i].fd);
                     pipes[i].fd = -1;
                 } else if (pipes[i].revents & POLLERR) {
                     write_error("poll returned POLLERR.\n");
