@@ -2,7 +2,7 @@
 #include "blocks.h"
 #include "util.h"
 
-static struct pollfd pfds[LENGTH(blocks)];
+static struct pollfd pipes[LENGTH(blocks)];
 
 static Display *display;
 static Window root;
@@ -83,9 +83,9 @@ int main(void) {
             sigaction(block->signal, &signal_this, NULL);
             sigaddset(&signal_external.sa_mask, block->signal);
 
-            pfds[i].fd = -1;
-            pfds[i].events = 0; // listen only to POLLHUP to avoid partial reads
-            pfds[i].revents = 0;
+            pipes[i].fd = -1;
+            pipes[i].events = 0; // listen only to POLLHUP to avoid partial reads
+            pipes[i].revents = 0;
         }
 
         signal_external.sa_sigaction = signal_handler;
@@ -101,7 +101,7 @@ int main(void) {
     root = DefaultRootWindow(display);
 
     while (true) {
-        int ready = poll(pfds, LENGTH(blocks), 1000);
+        int ready = poll(pipes, LENGTH(blocks), 1000);
         if (ready < 0) {
             fprintf(stderr, "poll() error: %s\n", strerror(errno));
             continue;
@@ -110,13 +110,13 @@ int main(void) {
             fprintf(stderr, "%d block ready!\n", ready);
             for (int i = 0; i < LENGTH(blocks); i += 1) {
                 Block *block = &blocks[i];
-                if (pfds[i].revents & POLLHUP) {
+                if (pipes[i].revents & POLLHUP) {
                     parse_output(block);
                     continue;
-                } else if (pfds[i].revents & POLLNVAL) {
+                } else if (pipes[i].revents & POLLNVAL) {
                     block->pipe = -1;
-                    pfds[i].fd = -1;
-                } else if (pfds[i].revents & POLLERR) {
+                    pipes[i].fd = -1;
+                } else if (pipes[i].revents & POLLERR) {
                     write_error("poll returned POLLERR.\n");
                 }
                 if (block->function)
@@ -143,14 +143,13 @@ void spawn_block(Block *block, int button) {
     sigprocmask(SIG_BLOCK, &(block->mask), NULL);
 
     if (block->pipe >= 0) {
-        sigprocmask(SIG_UNBLOCK, &(block->mask), NULL);
-        return;
-        /* close(block->pipe); */
-        /* block->pipe = -1; */
+        close(block->pipe);
+        block->pipe = -1;
+        pipes[block->id].fd = -1;
     }
 
     block->pipe = popen_no_shell(block->command, button_str);
-    pfds[block->id].fd = block->pipe;
+    pipes[block->id].fd = block->pipe;
     if (block->pipe < 0)
         return;
 
@@ -174,7 +173,7 @@ void parse_output(Block *block) {
 
     close(block->pipe);
     block->pipe = -1;
-    pfds[block->id].fd = -1;
+    pipes[block->id].fd = -1;
 
     sigprocmask(SIG_UNBLOCK, &(block->mask), NULL);
 
