@@ -1,10 +1,9 @@
-#include "dwmblocks2.h"
+#include <stdbool.h>
 #include "util.h"
 
 char *itoa(int num, char *str) {
     int i = 0;
     bool negative = false;
-    usize length;
 
     if (num < 0) {
         negative = true;
@@ -21,11 +20,10 @@ char *itoa(int num, char *str) {
 
     str[i] = '\0';
 
-    length = strlen(str);
-    for (usize j = 0; j < length / 2; j++) {
+    for (int j = 0; j < i / 2; j++) {
         char temp = str[j];
-        str[j] = str[length - j - 1];
-        str[length - j - 1] = temp;
+        str[j] = str[i - j - 1];
+        str[i - j - 1] = temp;
     }
     return str;
 }
