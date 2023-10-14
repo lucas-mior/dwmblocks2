@@ -125,7 +125,6 @@ int main(void) {
                 if (block->function)
                     block->function(0, block);
             }
-            status_bar_update();
         } else {
             for (int i = 0; i < LENGTH(blocks); i += 1) {
                 Block *block = &blocks[i];
@@ -139,8 +138,8 @@ int main(void) {
                     spawn_block(block, 0);
             }
             seconds += 1;
-            status_bar_update();
         }
+        status_bar_update();
     }
 }
 
