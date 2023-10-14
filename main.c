@@ -101,11 +101,11 @@ int main(void) {
     while (true) {
         int ready = poll(pipes, LENGTH(blocks), 1000);
         if (ready < 0) {
+            // TODO: handle all possible errnos
             fprintf(stderr, "poll() error: %s\n", strerror(errno));
             continue;
         }
         if (ready > 0) {
-            fprintf(stderr, "%d block ready!\n", ready);
             for (int i = 0; i < LENGTH(blocks); i += 1) {
                 Block *block = &blocks[i];
                 if (pipes[i].revents & POLLHUP) {
@@ -123,7 +123,6 @@ int main(void) {
             }
             status_bar_update();
         } else {
-            write_error("poll timeout!!!\n");
             spawn_blocks(seconds);
             seconds += 1;
             status_bar_update();
