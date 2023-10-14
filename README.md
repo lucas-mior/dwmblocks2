@@ -27,14 +27,13 @@ Checkout the clock block for an example.
   (including those send by dwm through clicks).
 
 ## Clicks
-You need to apply the patch `dwm-statuscmd.diff` on dwm
-for mouse clicks to work.
-Then dwmblocks2 will pass the button as the first argument.
-dwmblocks2 will update the block after running
-the commands with the click, which means that any output
-from the program with the button number passed
-will be the new status bar until another signal arrives or
-the block interval passes.
+- You need to apply the patch `dwm-statuscmd.diff` on dwm
+  for mouse clicks to work.
+- dwmblocks2 will pass the button as the first argument
+  to your script.
+- dwmblocks2 will update the block
+  with the output of the command with the click.
+
 ```sh
 case $1 in
     0) echo "no click (other signal/interval)" ;;
