@@ -35,13 +35,13 @@ Checkout the clock block for an example.
 ```sh
 case $1 in
     0) echo "no click (other signal/interval)" ;;
-    1) echo "clicked left button";;
-    2) echo "clicked middle button";;
-    3) echo "clicked right button";;
-    4) echo "scroll up";;
-    5) echo "scroll down";;
-    6) echo "shift + left button";;
-    7) echo "control + left button";;
+    1) echo "clicked left button" ;;
+    2) echo "clicked middle button" ;;
+    3) echo "clicked right button" ;;
+    4) echo "scroll up" ;;
+    5) echo "scroll down" ;;
+    6) echo "shift + left button" ;;
+    7) echo "control + left button" ;;
 esac
 ```
 
