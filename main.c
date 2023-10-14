@@ -101,9 +101,16 @@ int main(void) {
     while (true) {
         int ready = poll(pipes, LENGTH(blocks), 1000);
         if (ready < 0) {
-            // TODO: handle all possible errnos
-            fprintf(stderr, "poll() error: %s\n", strerror(errno));
-            continue;
+            switch (errno) {
+            case EINTR:
+                write_error("Signal arrived while waiting for blocks\n");
+                continue;
+            default:
+                write_error("Error polling: ");
+                write_error(strerror(errno));
+                write_error(".\n");
+                exit(EXIT_FAILURE);
+            }
         }
         if (ready > 0) {
             for (int i = 0; i < LENGTH(blocks); i += 1) {
