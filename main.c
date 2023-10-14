@@ -33,7 +33,6 @@ int main(void) {
             Block *block = &blocks[i];
             char *signal_string;
 
-            block->id = i;
             if (block->signal_var_name == NULL) {
                 fprintf(stderr, "Error: Signal environmental variable"
                                 " must be defined for every block.\n");
@@ -63,7 +62,7 @@ int main(void) {
             block->output[0] = (char) (block->signal - SIGRTMIN);
             block->output[1] = (char) '\0';
 
-            block->pipe = -1;
+            block->pipe = &(pipes[i].fd);
             block->length = 0;
 
             // always run the newest signal for a block, unless in
@@ -114,7 +113,6 @@ int main(void) {
                     parse_output(block);
                     continue;
                 } else if (pipes[i].revents & POLLNVAL) {
-                    block->pipe = -1;
                     pipes[i].fd = -1;
                 } else if (pipes[i].revents & POLLERR) {
                     write_error("poll returned POLLERR.\n");
@@ -142,15 +140,13 @@ void spawn_block(Block *block, int button) {
 
     sigprocmask(SIG_BLOCK, &(block->mask), NULL);
 
-    if (block->pipe >= 0) {
-        close(block->pipe);
-        block->pipe = -1;
-        pipes[block->id].fd = -1;
+    if (*(block->pipe) >= 0) {
+        close(*(block->pipe));
+        *(block->pipe) = -1;
     }
 
-    block->pipe = popen_no_shell(block->command, button_str);
-    pipes[block->id].fd = block->pipe;
-    if (block->pipe < 0)
+    *(block->pipe) = popen_no_shell(block->command, button_str);
+    if (*(block->pipe) < 0)
         return;
 
     sigprocmask(SIG_UNBLOCK, &(block->mask), NULL);
@@ -164,16 +160,15 @@ void parse_output(Block *block) {
 
     sigprocmask(SIG_BLOCK, &(block->mask), NULL);
 
-    while ((r = read(block->pipe, string, left)) > 0) {
+    while ((r = read(*(block->pipe), string, left)) > 0) {
         string += r;
         left -= (usize) r;
         if (left <= 0)
             break;
     }
 
-    close(block->pipe);
-    block->pipe = -1;
-    pipes[block->id].fd = -1;
+    close(*(block->pipe));
+    *(block->pipe) = -1;
 
     sigprocmask(SIG_UNBLOCK, &(block->mask), NULL);
 
