@@ -12,7 +12,7 @@ static void spawn_block(Block *, int);
 static void spawn_blocks(int);
 static void signal_handler(int, siginfo_t *, void *);
 static void status_bar_update(void);
-static void int_handler(int);
+static void int_handler(int) __attribute__((noreturn));
 
 int main(void) {
     int seconds = 0;
@@ -136,7 +136,9 @@ int main(void) {
 }
 
 void spawn_block(Block *block, int button) {
+    int pipefd[2];
     char button_str[2] = {'0' + (char) button, '\0'};
+    char *argv[3] = { block->command, button_str, NULL };
 
     if (block->function) {
         block->function(button, block);
@@ -149,9 +151,6 @@ void spawn_block(Block *block, int button) {
         close(*block->pipe);
         *block->pipe = -1;
     }
-
-    int pipefd[2];
-    char *argv[3] = { block->command, button_str, NULL };
 
     if (pipe(pipefd) < 0) {
         WRITE_ERROR("Error creating pipe: ");
@@ -301,9 +300,9 @@ void signal_handler(int signum, siginfo_t *signal_info, void *ucontext) {
 
 void int_handler(int unused) {
     (void) unused;
-    char num[20];
     for (int i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
+        char num[20];
         if (*block->pipe >= 0) {
             WRITE_ERROR("closing block ");
             WRITE_ERROR(itoa(*block->pipe, num));
