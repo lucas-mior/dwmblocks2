@@ -106,13 +106,10 @@ int main(void) {
         if (ready < 0) {
             switch (errno) {
             case EINTR:
-                WRITE_ERROR("Signal arrived while waiting for blocks\n");
                 continue;
             default:
-                WRITE_ERROR("Error polling: ");
-                WRITE_ERROR(strerror(errno));
-                WRITE_ERROR(".\n");
-                _exit(EXIT_FAILURE);
+                fprintf(stderr, "Error polling: %s\n", strerror(errno));
+                exit(EXIT_FAILURE);
             }
         }
         if (ready > 0) {
@@ -122,10 +119,11 @@ int main(void) {
                     parse_output(block);
                     continue;
                 } else if (pipes[i].revents & POLLNVAL) {
-                    WRITE_ERROR("Error in poll: Invalid file descriptor.\n");
+                    fprintf(stderr, "Error polling: Invalid file descriptor.\n");
                     pipes[i].fd = -1;
                 } else if (pipes[i].revents & POLLERR) {
-                    WRITE_ERROR("poll returned POLLERR.\n");
+                    fprintf(stderr, "Error polling: Error condition.\n");
+                    pipes[i].fd = -1;
                 }
                 if (block->function)
                     block->function(0, block);
