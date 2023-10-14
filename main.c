@@ -193,9 +193,6 @@ void spawn_block(Block *block, int button) {
         *block->pipe = pipefd[0];
     }
 
-    if (*block->pipe < 0)
-        return;
-
     sigprocmask(SIG_UNBLOCK, &(block->mask), NULL);
     return;
 }
