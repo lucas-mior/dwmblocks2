@@ -64,7 +64,7 @@ int main(void) {
             block->output[1] = (char) '\0';
             block->length = 0;
 
-            block->pipe = &(pipes[i].fd);
+            block->fd = &(pipes[i].fd);
             pipes[i].fd = -1;
             // listen only to POLLHUP to avoid partial reads
             pipes[i].events = 0;
@@ -156,16 +156,16 @@ void spawn_block(Block *block, int button) {
 
     sigprocmask(SIG_BLOCK, &(block->mask), NULL);
 
-    if (*block->pipe >= 0) {
-        close(*block->pipe);
-        *block->pipe = -1;
+    if (*block->fd >= 0) {
+        close(*block->fd);
+        *block->fd = -1;
     }
 
     if (pipe(pipefd) < 0) {
         WRITE_ERROR("Error creating pipe: ");
         WRITE_ERROR(strerror(errno));
         WRITE_ERROR("\n");
-        *block->pipe = -1;
+        *block->fd = -1;
         return;
     }
 
@@ -187,11 +187,11 @@ void spawn_block(Block *block, int button) {
         WRITE_ERROR(".\n");
         close(pipefd[0]);
         close(pipefd[1]);
-        *block->pipe = -1;
+        *block->fd = -1;
         break;
     default:
         close(pipefd[1]);
-        *block->pipe = pipefd[0];
+        *block->fd = pipefd[0];
     }
 
     sigprocmask(SIG_UNBLOCK, &(block->mask), NULL);
@@ -205,7 +205,7 @@ void parse_output(Block *block) {
 
     sigprocmask(SIG_BLOCK, &(block->mask), NULL);
 
-    while ((r = read(*block->pipe, string, left)) > 0) {
+    while ((r = read(*block->fd, string, left)) > 0) {
         string += r;
         left -= (usize) r;
         if (left <= 0)
@@ -220,8 +220,8 @@ void parse_output(Block *block) {
         WRITE_ERROR(".\n");
     }
 
-    close(*block->pipe);
-    *block->pipe = -1;
+    close(*block->fd);
+    *block->fd = -1;
 
     sigprocmask(SIG_UNBLOCK, &(block->mask), NULL);
 
@@ -294,11 +294,11 @@ void int_handler(int unused) {
     for (int i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
         char num[20];
-        if (*block->pipe >= 0) {
+        if (*block->fd >= 0) {
             WRITE_ERROR("closing block ");
-            WRITE_ERROR(itoa(*block->pipe, num));
+            WRITE_ERROR(itoa(*block->fd, num));
             WRITE_ERROR("...\n");
-            close(*block->pipe);
+            close(*block->fd);
         }
     }
     _exit(EXIT_FAILURE);
