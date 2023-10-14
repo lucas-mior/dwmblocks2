@@ -140,13 +140,13 @@ void spawn_block(Block *block, int button) {
 
     sigprocmask(SIG_BLOCK, &(block->mask), NULL);
 
-    if (*(block->pipe) >= 0) {
-        close(*(block->pipe));
-        *(block->pipe) = -1;
+    if (*block->pipe >= 0) {
+        close(*block->pipe);
+        *block->pipe = -1;
     }
 
-    *(block->pipe) = popen_no_shell(block->command, button_str);
-    if (*(block->pipe) < 0)
+    *block->pipe = popen_no_shell(block->command, button_str);
+    if (*block->pipe < 0)
         return;
 
     sigprocmask(SIG_UNBLOCK, &(block->mask), NULL);
@@ -160,15 +160,15 @@ void parse_output(Block *block) {
 
     sigprocmask(SIG_BLOCK, &(block->mask), NULL);
 
-    while ((r = read(*(block->pipe), string, left)) > 0) {
+    while ((r = read(*block->pipe, string, left)) > 0) {
         string += r;
         left -= (usize) r;
         if (left <= 0)
             break;
     }
 
-    close(*(block->pipe));
-    *(block->pipe) = -1;
+    close(*block->pipe);
+    *block->pipe = -1;
 
     sigprocmask(SIG_UNBLOCK, &(block->mask), NULL);
 
