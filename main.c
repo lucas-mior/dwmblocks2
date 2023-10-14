@@ -104,10 +104,9 @@ int main(void) {
     while (true) {
         int ready = poll(pipes, LENGTH(blocks), 1000);
         if (ready < 0) {
-            switch (errno) {
-            case EINTR:
+            if (errno == EINTR) {
                 continue;
-            default:
+            } else {
                 fprintf(stderr, "Error polling: %s\n", strerror(errno));
                 exit(EXIT_FAILURE);
             }
