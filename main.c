@@ -122,8 +122,7 @@ int main(void) {
                     parse_output(block);
                     continue;
                 } else if (pipes[i].revents & POLLNVAL) {
-                    fprintf(stderr, "poll returned POLLNVAL for block %d.\n", i);
-                    fprintf(stderr, "file descriptor = %d.\n", pipes[i].fd);
+                    WRITE_ERROR("Error in poll: Invalid file descriptor.\n");
                     pipes[i].fd = -1;
                 } else if (pipes[i].revents & POLLERR) {
                     WRITE_ERROR("poll returned POLLERR.\n");
