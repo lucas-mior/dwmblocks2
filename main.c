@@ -7,7 +7,6 @@ static struct pollfd pipes[LENGTH(blocks)];
 static Display *display;
 static Window root;
 
-static int popen_no_shell(char *, char *);
 static void parse_output(Block *);
 static void spawn_block(Block *, int);
 static void spawn_blocks(int);
@@ -151,7 +150,42 @@ void spawn_block(Block *block, int button) {
         *block->pipe = -1;
     }
 
-    *block->pipe = popen_no_shell(block->command, button_str);
+    int pipefd[2];
+    char *argv[3] = { block->command, button_str, NULL };
+
+    if (pipe(pipefd) < 0) {
+        WRITE_ERROR("Error creating pipe: ");
+        WRITE_ERROR(strerror(errno));
+        WRITE_ERROR("\n");
+        *block->pipe = -1;
+        return;
+    }
+
+    switch (fork()) {
+    case 0:
+        close(pipefd[0]);
+        dup2(pipefd[1], STDOUT_FILENO);
+        close(pipefd[1]);
+        execvp(argv[0], argv);
+        WRITE_ERROR("Error executing");
+        WRITE_ERROR(block->command);
+        WRITE_ERROR(": ");
+        WRITE_ERROR(strerror(errno));
+        WRITE_ERROR(".\n");
+        _exit(EXIT_FAILURE);
+    case -1:
+        WRITE_ERROR("Error forking: ");
+        WRITE_ERROR(strerror(errno));
+        WRITE_ERROR(".\n");
+        close(pipefd[0]);
+        close(pipefd[1]);
+        *block->pipe = -1;
+        break;
+    default:
+        close(pipefd[1]);
+        *block->pipe = pipefd[0];
+    }
+
     if (*block->pipe < 0)
         return;
 
@@ -263,42 +297,6 @@ void signal_handler(int signum, siginfo_t *signal_info, void *ucontext) {
             spawn_block(block, button);
     }
     return;
-}
-
-int popen_no_shell(char *command, char *button) {
-    int pipefd[2];
-    char *argv[3] = { command, button, NULL };
-
-    if (pipe(pipefd) < 0) {
-        WRITE_ERROR("Error creating pipe: ");
-        WRITE_ERROR(strerror(errno));
-        WRITE_ERROR("\n");
-        return -1;
-    }
-
-    switch (fork()) {
-    case 0:
-        close(pipefd[0]);
-        dup2(pipefd[1], STDOUT_FILENO);
-        close(pipefd[1]);
-        execvp(argv[0], argv);
-        WRITE_ERROR("Error executing");
-        WRITE_ERROR(command);
-        WRITE_ERROR(": ");
-        WRITE_ERROR(strerror(errno));
-        WRITE_ERROR(".\n");
-        _exit(EXIT_FAILURE);
-    case -1:
-        WRITE_ERROR("Error forking: ");
-        WRITE_ERROR(strerror(errno));
-        WRITE_ERROR(".\n");
-        close(pipefd[0]);
-        close(pipefd[1]);
-        return -1;
-    default:
-        close(pipefd[1]);
-        return pipefd[0];
-    }
 }
 
 void int_handler(int unused) {
