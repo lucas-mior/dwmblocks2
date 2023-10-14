@@ -39,7 +39,7 @@ typedef ssize_t isize;
 #endif
 
 #define LENGTH(X) ((isize) (sizeof (X) / sizeof (*X)))
-#define BLOCK_OUTPUT_LENGTH 64
+#define BLOCK_OUTPUT_LENGTH 60
 #define IS_SPACE(X) ((X == ' ') || (X == '\t') || (X == '\n'))
 
 typedef struct Block {
@@ -51,7 +51,6 @@ typedef struct Block {
     int *pipe;
     char output[BLOCK_OUTPUT_LENGTH];
     int length;
-    int id;
     sigset_t mask;
 } Block;
 
