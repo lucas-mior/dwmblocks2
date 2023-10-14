@@ -116,6 +116,8 @@ int main(void) {
                 } else if (pfds[i].revents & POLLNVAL) {
                     block->pipe = -1;
                     pfds[i].fd = -1;
+                } else if (pfds[i].revents & POLLERR) {
+                    write_error("poll returned POLLERR.\n");
                 }
                 if (block->function)
                     block->function(0, block);
