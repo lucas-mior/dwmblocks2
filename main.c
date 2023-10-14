@@ -9,7 +9,6 @@ static Window root;
 
 static void parse_output(Block *);
 static void spawn_block(Block *, int);
-static void spawn_blocks(int);
 static void signal_handler(int, siginfo_t *, void *);
 static void status_bar_update(void);
 static void int_handler(int) __attribute__((noreturn));
@@ -128,7 +127,17 @@ int main(void) {
             }
             status_bar_update();
         } else {
-            spawn_blocks(seconds);
+            for (int i = 0; i < LENGTH(blocks); i += 1) {
+                Block *block = &blocks[i];
+                if (seconds == 0) {
+                    spawn_block(block, 0);
+                    continue;
+                }
+                if (block->interval == 0)
+                    continue;
+                if ((seconds % block->interval) == 0)
+                    spawn_block(block, 0);
+            }
             seconds += 1;
             status_bar_update();
         }
@@ -242,21 +251,6 @@ void parse_output(Block *block) {
         string[block->length + 1] = '\0';
         block->length += 1;
         block->length += 1; // because of the first char with signal number
-    }
-    return;
-}
-
-void spawn_blocks(int seconds) {
-    for (int i = 0; i < LENGTH(blocks); i += 1) {
-        Block *block = &blocks[i];
-        if (seconds == 0) {
-            spawn_block(block, 0);
-            continue;
-        }
-        if (block->interval == 0)
-            continue;
-        if ((seconds % block->interval) == 0)
-            spawn_block(block, 0);
     }
     return;
 }
