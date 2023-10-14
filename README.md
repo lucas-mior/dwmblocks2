@@ -27,12 +27,10 @@ Checkout the clock block for an example.
   (including those send by dwm through clicks).
 
 ## Clicks
-- You need to apply the patch `dwm-statuscmd.diff` on dwm
-  for mouse clicks to work.
-- dwmblocks2 will pass the button as the first argument
-  to your script.
-- dwmblocks2 will update the block
-  with the output of the command with the click.
+- You need to apply the patch `dwm-statuscmd.diff`
+  on dwm for mouse clicks to work.
+- The button number will be passed as the first argument.
+- dwmblocks2 will update the block with the output.
 
 ```sh
 case $1 in
