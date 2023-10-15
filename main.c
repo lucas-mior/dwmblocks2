@@ -276,11 +276,13 @@ void status_bar_update(void) {
 void signal_handler(int signum, siginfo_t *signal_info, void *ucontext) {
     int button = 0;
     (void) ucontext;
+
     if (signum == SIGUSR1) {
         // number send by dwm
         signum = signal_info->si_value.sival_int >> 3;
         button = signal_info->si_value.sival_int & 7;
     }
+
     for (int i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
         if (block->signal == signum)
@@ -291,9 +293,10 @@ void signal_handler(int signum, siginfo_t *signal_info, void *ucontext) {
 
 void int_handler(int unused) {
     (void) unused;
+
     for (int i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
-        char num[20];
+        char num[16];
         if (*block->fd >= 0) {
             WRITE_ERROR("closing block ");
             WRITE_ERROR(itoa(*block->fd, num));
