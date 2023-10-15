@@ -69,13 +69,6 @@ Keep in mind that the default blocks may call programs you don't have installed.
   useful for the included clock block, which runs every second, avoiding the
   overhead of forking and executing a new process.
 
-### Why `poll` and not `epoll`?
-The file descriptors watched in dwmblocks2 change all the time, so if `epoll` was
-used, there would be lots of system calls to update them. Using `poll`, is
-only a matter of assigning to the poll events array. `epoll` is meant to be used
-for handling a *huge* number of (ideally fixed) connections, not a simple
-program reading from some pipes. Besides, `poll` is more portable.
-
 ## License
 dwmblocks2 is licensed under GPLv2,
 block scripts in `blocks/` are licensed under AGPL.
