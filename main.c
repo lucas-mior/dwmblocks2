@@ -18,13 +18,17 @@ int main(void) {
     {
         struct sigaction signal_external;
         struct sigaction signal_childs;
+        struct sigaction signal_int;
+
+        signal_int.sa_handler = int_handler;
+        sigemptyset(&(signal_int.sa_mask));
+        sigaction(SIGINT, &signal_int, NULL);
+
         signal_childs.sa_handler = SIG_DFL;
         signal_childs.sa_flags = SA_NOCLDWAIT;
 
         sigemptyset(&(signal_childs.sa_mask));
         sigemptyset(&(signal_external.sa_mask));
-
-        signal(SIGINT, int_handler);
 
         for (int i = SIGRTMIN; i <= SIGRTMAX; i += 1)
             signal(i, SIG_IGN);
