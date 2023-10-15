@@ -36,9 +36,11 @@ dwmblocks2: $(objs) main.c
 
 install: all
 	install -Dm755 dwmblocks2 $(DESTDIR)$(PREFIX)/bin/dwmblocks2
+	install -Dm644 dwmblocks2.1 $(DESTDIR)$(PREFIX)/man/man1/dwmblocks2.1
 
 uninstall: all
 	rm -f $(DESTDIR)$(PREFIX)/bin/dwmblocks2
+	rm -f $(DESTDIR)$(PREFIX)/man/man1/dwmblocks2.1
 
 clean:
 	rm -rf ./dwmblocks2 *.o

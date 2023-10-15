@@ -1,0 +1,167 @@
+.TH dwmblocks2 1 "2023"
+.SH NAME
+dwmblocks2 \- Lightweight status bar for dwm, a fork of dwmblocks (not a drop-in replacement)
+
+.SH SYNOPSIS
+.B dwmblocks2
+
+.SH DESCRIPTION
+.I dwmblocks2
+is a lightweight status bar for the
+.I dwm
+window manager. It is a fork of the original dwmblocks, designed to provide an efficient and customizable status bar. 
+.I dwmblocks2
+allows you to display various information in your dwm status bar, such as system statistics, the time, and more. This man page provides an overview of how to use and configure 
+.I dwmblocks2.
+
+.SH USAGE
+To run
+.I dwmblocks2,
+add the following line to your
+.I xinitrc
+or startup script:
+.PP
+.B dwmblocks2 &
+.PP
+This command will start
+.I dwmblocks2
+in the background.
+
+.SH CONFIGURATION
+Configuration for
+.I dwmblocks2
+is done by editing the
+.I blocks.h
+file. By default,
+.I dwmblocks2
+uses all blocks defined in the
+.I blocks/
+directory, in addition to the built-in clock block. You can customize the blocks to display external programs or C functions.
+
+.TP
+.B Block Configuration
+Blocks are defined in the
+.I blocks.h
+file. Each block is represented as a command, but it is not interpreted by the shell. Instead, it is likely a script or program. The overhead and loss of readability due to shell interpretation are avoided for efficiency.
+
+.TP
+.B Signal Numbers
+A signal number, specified through an environmental variable, is mandatory for each block. These signals allow
+.I dwmblocks2
+to update specific blocks. Signal numbers must be unique and fall within the range of 1 to SIGRTMAX - SIGRTMIN. You can set the same signal for multiple blocks if needed.
+
+.TP
+.B Block Updates
+Blocks whose interval is set to 0 will only be updated through signals, including those sent by
+.I dwm
+through clicks. This allows for efficient and independent updates of blocks.
+
+.SH CLICKS
+For mouse clicks to work with
+.I dwmblocks2,
+you need to apply the
+.I dwm-statuscmd.diff
+patch to your
+.I dwm
+installation. The button number clicked is passed as the first argument to the block, and
+.I dwmblocks2
+will update the block accordingly.
+
+.PP
+The following click events are supported:
+.TP
+.B 0
+No click (other signal/interval)
+.TP
+.B 1
+Left button click
+.TP
+.B 2
+Middle button click
+.TP
+.B 3
+Right button click
+.TP
+.B 4
+Scroll up
+.TP
+.B 5
+Scroll down
+.TP
+.B 6
+Shift + left button click
+.TP
+.B 7
+Control + left button click
+.PP
+You can customize the action taken in response to these click events by modifying your block scripts.
+
+.SH INSTALLATION
+To install
+.I dwmblocks2,
+follow these steps:
+.PP
+1. Clone the
+.I dwmblocks2
+repository from GitHub:
+.PP
+.B $ git clone https://github.com/lucas-mior/dwmblocks2
+.PP
+2. Navigate to the
+.I dwmblocks2
+directory:
+.PP
+.B $ cd dwmblocks2
+.PP
+3. Build and install
+.I dwmblocks2:
+.PP
+.B $ make
+.B $ sudo make install
+.PP
+After installation, make sure to add the block scripts to your
+.I PATH
+and set the environmental variables according to your block configuration in the
+.I blocks.h
+file. Note that some default blocks may call programs that need to be installed on your system.
+
+.SH DIFFERENCES FROM ORIGINAL DWMBLOCKS
+.I dwmblocks2
+offers several improvements and differences compared to the original dwmblocks:
+
+.TP
+.B \- It's much lighter, since the shell is avoided on every command spawned.
+.TP
+.B \- A hard-to-reproduce bug in which
+.I dwmblocks
+would freeze has been fixed.
+.TP
+.B \- Blocks are updated independently (a slow block will not block others).
+.TP
+.B \- Clicks are passed through the first argument, not the BLOCK_BUTTON environment variable, which makes it easier to debug scripts.
+.TP
+.B \- Signals are mandatory and set through environmental variables, so one can more easily keep dwmblocks signals in sync with scripts which update the contents of the bar.
+.TP
+.B \- There is the possibility of using C functions as blocks, which is useful for the included clock block, which runs every second, avoiding the overhead of forking and executing a new process.
+
+.SH Why poll and not epoll?
+The file descriptors watched in
+.I dwmblocks2
+change all the time, so if
+.I epoll
+was used, there would be lots of system calls to update them. Using
+.I poll,
+it's only a matter of assigning to the poll events array.
+.I epoll
+is meant to be used for handling a huge number of ideally fixed connections, not a simple program reading from some pipes. Besides,
+.I poll
+is more portable.
+
+.SH LICENSE
+.I dwmblocks2
+is licensed under GPLv2, and the block scripts in the
+.I blocks/
+directory are licensed under AGPL.
+
+.SH SEE ALSO
+.BR dwm (1)
