@@ -74,7 +74,7 @@ In order to use the blocks, you have to put them in your
 - redshift
 - bright
 - xclip
-- clipsim
+- [clipsim](https://github.com/lucas-mior/clipsim)
 - dash
 - mpc
 - nmcli
