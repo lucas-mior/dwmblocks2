@@ -45,17 +45,6 @@ case $1 in
 esac
 ```
 
-## Instalation
-```sh
-$ git clone https://github.com/lucas-mior/dwmblocks2
-$ cd dwmblocks2
-$ make
-$ sudo make install
-```
-In order to use the blocks, you have to put them in your
-`PATH` and also set the environmental variables (see `blocks.h`).
-Keep in mind that the default blocks may call programs you don't have installed.
-
 ## Differences from original dwmblocks
 - It's much lighter, since the shell is avoided on every command spawned.
 - A hard to reproduce bug in which `dwmblocks` would freeze has been fixed.
@@ -68,6 +57,30 @@ Keep in mind that the default blocks may call programs you don't have installed.
 - There is the possibility of using C functions as blocks, which is
   useful for the included clock block, which runs every second, avoiding the
   overhead of forking and executing a new process.
+
+## Instalation
+```sh
+$ git clone https://github.com/lucas-mior/dwmblocks2
+$ cd dwmblocks2
+$ make
+$ sudo make install
+```
+In order to use the blocks, you have to put them in your
+`PATH` and also set the environmental variables (see `blocks.h`).
+
+### Programs used by default blocks
+- dunstify
+- bluetoothctl
+- redshift
+- bright
+- xclip
+- clipsim
+- dash
+- mpc
+- nmcli
+- simple-mtpfs
+- android-file-transfer
+- iwgetid
 
 ## License
 dwmblocks2 is licensed under GPLv2,
