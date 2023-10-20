@@ -1,1 +1,1 @@
-char *itoa(int, char *);
+char *itoa(long, char *);

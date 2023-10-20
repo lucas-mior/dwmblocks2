@@ -1,9 +1,8 @@
 #include <stdbool.h>
-#include <stdint.h>
 #include <string.h>
 #include "util.h"
 
-char *itoa(int32_t num, char *str) {
+char *itoa(long num, char *str) {
     int i = 0;
     bool negative = false;
 
