@@ -3,17 +3,10 @@
 #include <string.h>
 #include "util.h"
 
-#define STRINGIFY(x) #x
-#define TOSTRING(x) STRINGIFY(x)
-
 char *itoa(int32_t num, char *str) {
     int i = 0;
     bool negative = false;
 
-    if (num == INT32_MIN) {
-        strcpy(str, TOSTRING(INT32_MIN));
-        return str;
-    }
     if (num < 0) {
         negative = true;
         num = -num;
