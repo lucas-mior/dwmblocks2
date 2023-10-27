@@ -5,12 +5,11 @@
 #include "util.h"
 
 void block_clock(int button, Block *block) {
-    time_t seconds_since_epoch;
-    struct tm t;
-    char *string = block->output + 1;
-    size_t n;
-
     if (block) {
+        time_t seconds_since_epoch;
+        struct tm t;
+        char *string = block->output + 1;
+        size_t n;
         seconds_since_epoch = time(NULL);
         localtime_r(&seconds_since_epoch, &t);
 
