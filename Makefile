@@ -17,7 +17,7 @@ clang: clean
 clang: CFLAGS += -Weverything -Wno-unsafe-buffer-usage -Wno-disabled-macro-expansion
 clang: release
 
-release: CFLAGS += -O2
+release: CFLAGS += -O2 -flto
 release: dwmblocks2
 
 debug: CFLAGS += -g -fsanitize=undefined
