@@ -179,7 +179,7 @@ void spawn_block(Block *block, int button) {
         dup2(pipefd[1], STDOUT_FILENO);
         close(pipefd[1]);
         execvp(argv[0], argv);
-        WRITE_ERROR("Error executing");
+        WRITE_ERROR("Error executing ");
         WRITE_ERROR(block->command);
         WRITE_ERROR(": ");
         WRITE_ERROR(strerror(errno));
