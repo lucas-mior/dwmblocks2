@@ -230,6 +230,10 @@ void parse_output(Block *block) {
     sigprocmask(SIG_UNBLOCK, &(block->mask), NULL);
 
     if ((r < 0) || (string == (block->output + 1))) {
+        WRITE_ERROR("Read nothing from block ");
+        WRITE_ERROR(block->command);
+        WRITE_ERROR(".\n");
+
         string[0] = '\0';
         block->length = 0;
         return;
@@ -238,8 +242,13 @@ void parse_output(Block *block) {
 
     string = block->output + 1;
     string[block->length] = '\0';
-    if (block->length == 0)
+    if (block->length == 0) {
+        WRITE_ERROR("Read nothing from block ");
+        WRITE_ERROR(block->command);
+        WRITE_ERROR(".\n");
+
         return;
+    }
 
     while (IS_SPACE(string[block->length - 1])) {
         string[block->length - 1] = '\0';
