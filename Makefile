@@ -1,7 +1,5 @@
 PREFIX ?= /usr/local
 
-objs = block_functions.o util.o
-
 .PHONY: all clean install uninstall release debug clang
 .SUFFIXES:
 .SUFFIXES: .c .o
@@ -24,15 +22,13 @@ debug: CFLAGS += -g -fsanitize=undefined
 debug: clean
 debug: dwmblocks2
 
-$(objs): Makefile dwmblocks2.h blocks.h block_functions.h
+src = block_functions.c main.c util.c
+headers = dwmblocks2.h blocks.h block_functions.h
 
-dwmblocks2: $(objs) main.c 
+dwmblocks2: $(src) $(headers) Makefile
 	ctags --kinds-C=+l *.h *.c
 	vtags.sed tags > .tags.vim
-	$(CC) $(CFLAGS) -o $@ $(objs) main.c $(LDFLAGS)
-
-.c.o:
-	$(CC) $(CFLAGS) -c -o $@ $<
+	$(CC) $(CFLAGS) -o $@ $(src) $(LDFLAGS)
 
 install: all
 	install -Dm755 dwmblocks2 $(DESTDIR)$(PREFIX)/bin/dwmblocks2
@@ -43,4 +39,4 @@ uninstall: all
 	rm -f $(DESTDIR)$(PREFIX)/man/man1/dwmblocks2.1
 
 clean:
-	rm -rf ./dwmblocks2 *.o
+	rm -rf ./dwmblocks2
