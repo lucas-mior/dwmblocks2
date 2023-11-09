@@ -204,7 +204,7 @@ void spawn_block(Block *block, int button) {
 
 void parse_output(Block *block) {
     isize r;
-    usize left = BLOCK_OUTPUT_LENGTH - 1;
+    usize left = BLOCK_OUTPUT_LENGTH - 2;
     char *string = block->output + 1;
 
     sigprocmask(SIG_BLOCK, &(block->mask), NULL);
