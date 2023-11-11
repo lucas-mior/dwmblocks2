@@ -40,6 +40,7 @@ typedef ssize_t isize;
 
 #define LENGTH(X) ((isize) (sizeof (X) / sizeof (*X)))
 #define BLOCK_OUTPUT_LENGTH 60
+#define LONG_OUTPUT 40
 #define IS_SPACE(X) ((X == ' ') || (X == '\t') || (X == '\n'))
 #define WRITE_ERROR(X) do { write(STDERR_FILENO, X, strlen(X)); } while (0)
 

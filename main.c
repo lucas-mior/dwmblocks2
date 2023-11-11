@@ -262,6 +262,11 @@ void parse_output(Block *block) {
         block->length += 1;
         block->length += 1; // because of the first char with signal number
     }
+    if (block->length >= LONG_OUTPUT) {
+        int delim = strcspn(string + LONG_OUTPUT, " .:-_()[]{}");
+        string[LONG_OUTPUT + delim] = '\0';
+        block->length = LONG_OUTPUT + delim;
+    }
     return;
 }
 
