@@ -256,16 +256,16 @@ void parse_output(Block *block) {
         if (block->length == 0)
             break;
     }
+    if (block->length >= LONG_OUTPUT) {
+        int delim = strcspn(string + LONG_OUTPUT, " .:-_()[]{}");
+        string[LONG_OUTPUT + delim] = '\0';
+        block->length = LONG_OUTPUT + delim;
+    }
     if (block->length > 0) {
         string[block->length] = ' ';
         string[block->length + 1] = '\0';
         block->length += 1;
         block->length += 1; // because of the first char with signal number
-    }
-    if (block->length >= LONG_OUTPUT) {
-        int delim = strcspn(string + LONG_OUTPUT, " .:-_()[]{}");
-        string[LONG_OUTPUT + delim] = '\0';
-        block->length = LONG_OUTPUT + delim;
     }
     return;
 }
