@@ -30,8 +30,14 @@ int main(void) {
         sigemptyset(&(signal_childs.sa_mask));
         sigemptyset(&(signal_external.sa_mask));
 
-        for (int i = SIGRTMIN; i <= SIGRTMAX; i += 1)
-            signal(i, SIG_IGN);
+        for (int i = SIGRTMIN; i <= SIGRTMAX; i += 1) {
+            struct sigaction signal_this;
+
+            sigemptyset(&(signal_this.sa_mask));
+            sigaddset(&(signal_this.sa_mask), i);
+            signal_int.sa_handler = SIG_IGN;
+            sigaction(i, &signal_int, NULL);
+        }
 
         for (int i = 0; i < LENGTH(blocks); i += 1) {
             struct sigaction signal_this;
