@@ -257,7 +257,7 @@ void parse_output(Block *block) {
             break;
     }
     if (block->length >= LONG_OUTPUT) {
-        int delim = strcspn(string + LONG_OUTPUT, " .:-_()[]{}");
+        int delim = (int) strcspn(string + LONG_OUTPUT, " .:-_()[]{}");
         string[LONG_OUTPUT + delim] = '\0';
         block->length = LONG_OUTPUT + delim;
     }
