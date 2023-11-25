@@ -13,13 +13,6 @@ void block_clock(int button, Block *block) {
         seconds_since_epoch = time(NULL);
         localtime_r(&seconds_since_epoch, &t);
 
-        if (setlocale(LC_ALL, "") == NULL) {
-            fprintf(stderr, "dwmblocks2: Error setting locale in clock block."
-                            " Check your locale configuration.\n");
-            block->length = 0;
-            return;
-        }
-
         // TODO: use async-safe strftime
         n = strftime(string, BLOCK_OUTPUT_LENGTH - 1,
                      "📅 %a %d/%m %T ", &t);

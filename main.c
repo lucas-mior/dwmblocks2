@@ -15,6 +15,11 @@ static void status_bar_update(void);
 
 int main(void) {
     int seconds = 0;
+    if (setlocale(LC_ALL, "") == NULL) {
+        fprintf(stderr, "dwmblocks2: Error setting locale."
+                        " Check your locale configuration.\n");
+        exit(EXIT_FAILURE);
+    }
     {
         struct sigaction signal_external;
         struct sigaction signal_childs;
