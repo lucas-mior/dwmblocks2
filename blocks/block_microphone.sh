@@ -25,6 +25,6 @@ case $1 in
     3) st -e pulsemixer   ; display ;;
     4) vol_in.bash up     ; display ;;
     5) vol_in.bash down   ; display ;;
-    6) setsid -f "$TERMINAL" -e "$EDITOR" "$0" ;;
+    6) setsid -f $TERMINAL -e $EDITOR "$0" ;;
     *) display ;;
 esac

@@ -24,6 +24,6 @@ power () {
 case $1 in
     1) power on  > /dev/null ; display ;;
     3) power off > /dev/null ; display ;;
-    6) setsid -f "$TERMINAL" -e "$EDITOR" "$0"    ;;
+    6) setsid -f $TERMINAL -e $EDITOR "$0" ;;
     *) display ;;
 esac

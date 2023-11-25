@@ -23,12 +23,12 @@ display () {
 
 explain () {
     memory_hugs="$(ps axch -o cmd:15,%mem --sort=-%mem | head)"
-    dunstify -r "$DWMBLOCKS2_RAM" "🧠 Memory" "$memory_hugs"
+    dunstify -r $DWMBLOCKS2_RAM "🧠 Memory" "$memory_hugs"
 }
 
 case $1 in
-    1) setsid -f "$TERMINAL" -e htop ;;
-    3) explain ; display             ;;
-    6) setsid -f "$TERMINAL" -e "$EDITOR" "$0" ;;
+    1) setsid -f $TERMINAL -e htop         ;;
+    3) explain ; display ;;
+    6) setsid -f $TERMINAL -e $EDITOR "$0" ;;
     *) display ;;
 esac
