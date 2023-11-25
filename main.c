@@ -11,7 +11,6 @@ static void int_handler(int) __attribute__((noreturn));
 static void parse_output(Block *);
 static void signal_handler(int, siginfo_t *, void *);
 static void spawn_block(Block *, int);
-static void status_bar_update(void);
 
 int main(void) {
     if (setlocale(LC_ALL, "") == NULL) {
@@ -156,7 +155,25 @@ int main(void) {
             }
             seconds += 1;
         }
-        status_bar_update();
+        {
+            static char status_new[LENGTH(blocks) * (BLOCK_OUTPUT_LENGTH + 1)] = {0};
+            char *pointer = status_new;
+
+            for (int i = 0; i < LENGTH(blocks); i += 1) {
+                Block *block = &blocks[i];
+                char *string = block->output;
+                usize size = (usize) block->length;
+                if (size) {
+                    memcpy(pointer, string, size);
+                    pointer += size;
+                }
+            }
+            // Apparently double '\0' means end of bar to dwm
+            *pointer = '\0';
+
+            XStoreName(display, root, status_new);
+            XFlush(display);
+        }
     }
 }
 
@@ -279,27 +296,6 @@ void parse_output(Block *block) {
         block->length += 1;
         block->length += 1; // because of the first char with signal number
     }
-    return;
-}
-
-void status_bar_update(void) {
-    static char status_new[LENGTH(blocks) * (BLOCK_OUTPUT_LENGTH + 1)] = {0};
-    char *pointer = status_new;
-
-    for (int i = 0; i < LENGTH(blocks); i += 1) {
-        Block *block = &blocks[i];
-        char *string = block->output;
-        usize size = (usize) block->length;
-        if (size) {
-            memcpy(pointer, string, size);
-            pointer += size;
-        }
-    }
-    // Apparently double '\0' means end of bar to dwm
-    *pointer = '\0';
-
-    XStoreName(display, root, status_new);
-    XFlush(display);
     return;
 }
 
