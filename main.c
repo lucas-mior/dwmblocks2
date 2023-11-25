@@ -14,7 +14,6 @@ static void spawn_block(Block *, int);
 static void status_bar_update(void);
 
 int main(void) {
-    int seconds = 0;
     if (setlocale(LC_ALL, "") == NULL) {
         fprintf(stderr, "dwmblocks2: Error setting locale."
                         " Check your locale configuration.\n");
@@ -115,7 +114,12 @@ int main(void) {
     }
     root = DefaultRootWindow(display);
 
+    for (int i = 0; i < LENGTH(blocks); i += 1) {
+        Block *block = &blocks[i];
+        spawn_block(block, 0);
+    }
     while (true) {
+        int seconds = 1;
         int ready = poll(pipes, LENGTH(blocks), 1000);
         if (ready < 0) {
             if (errno == EINTR) {
@@ -144,10 +148,7 @@ int main(void) {
         } else {
             for (int i = 0; i < LENGTH(blocks); i += 1) {
                 Block *block = &blocks[i];
-                if (seconds == 0) {
-                    spawn_block(block, 0);
-                    continue;
-                }
+
                 if (block->interval == 0)
                     continue;
                 if ((seconds % block->interval) == 0)
