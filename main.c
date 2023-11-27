@@ -118,7 +118,7 @@ int main(void) {
         spawn_block(block, 0);
     }
     while (true) {
-        int seconds = 1;
+        static int seconds = 1;
         int ready = poll(pipes, LENGTH(blocks), 1000);
         if (ready < 0) {
             if (errno == EINTR) {
