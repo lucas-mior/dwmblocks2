@@ -170,6 +170,7 @@ int main(void) {
             }
             // Apparently double '\0' means end of bar to dwm
             *pointer = '\0';
+            *(pointer+1) = '\0';
 
             XStoreName(display, root, status_new);
             XFlush(display);
