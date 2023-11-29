@@ -156,7 +156,7 @@ int main(void) {
             seconds += 1;
         }
         {
-            static char status_new[LENGTH(blocks) * (BLOCK_OUTPUT_LENGTH + 1)] = {0};
+            char status_new[LENGTH(blocks) * (BLOCK_OUTPUT_LENGTH + 1)];
             char *pointer = status_new;
 
             for (int i = 0; i < LENGTH(blocks); i += 1) {
