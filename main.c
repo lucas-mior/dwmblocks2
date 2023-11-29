@@ -156,7 +156,7 @@ int main(void) {
             seconds += 1;
         }
         {
-            char status_new[LENGTH(blocks) * (BLOCK_OUTPUT_LENGTH + 1) + 2];
+            char status_new[LENGTH(blocks) * (MAX_BLOCK_OUTPUT_LENGTH + 1) + 2];
             char *pointer = status_new;
 
             for (int i = 0; i < LENGTH(blocks); i += 1) {
@@ -236,7 +236,7 @@ void spawn_block(Block *block, int button) {
 
 void parse_output(Block *block) {
     isize r;
-    usize left = BLOCK_OUTPUT_LENGTH - 2;
+    usize left = MAX_BLOCK_OUTPUT_LENGTH - 2;
     char *string = block->output + 1;
 
     sigprocmask(SIG_BLOCK, &(block->mask), NULL);

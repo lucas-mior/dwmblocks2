@@ -14,7 +14,7 @@ void block_clock(int button, Block *block) {
         localtime_r(&seconds_since_epoch, &t);
 
         // TODO: use async-safe strftime
-        n = strftime(string, BLOCK_OUTPUT_LENGTH - 1,
+        n = strftime(string, MAX_BLOCK_OUTPUT_LENGTH - 1,
                      "📅 %a %d/%m %T ", &t);
         block->length = (int) n + 1;
     }
