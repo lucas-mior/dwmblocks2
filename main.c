@@ -329,7 +329,11 @@ void int_handler(int unused) {
             WRITE_ERROR("closing block ");
             WRITE_ERROR(itoa(*block->fd, num));
             WRITE_ERROR("...\n");
-            close(*block->fd);
+            if (close(*block->fd) < 0) {
+                WRITE_ERROR("Error closing: ");
+                WRITE_ERROR(strerror(errno));
+                WRITE_ERROR(".\n");
+            }
         }
     }
     _exit(EXIT_FAILURE);
