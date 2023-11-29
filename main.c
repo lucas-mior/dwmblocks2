@@ -208,6 +208,7 @@ void spawn_block(Block *block, int button) {
         dup2(pipefd[1], STDOUT_FILENO);
         close(pipefd[1]);
         execvp(argv[0], argv);
+
         WRITE_ERROR("Error executing ");
         WRITE_ERROR(block->command);
         WRITE_ERROR(": ");
@@ -218,6 +219,7 @@ void spawn_block(Block *block, int button) {
         WRITE_ERROR("Error forking: ");
         WRITE_ERROR(strerror(errno));
         WRITE_ERROR(".\n");
+
         close(pipefd[0]);
         close(pipefd[1]);
         *block->fd = -1;
