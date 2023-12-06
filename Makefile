@@ -11,16 +11,14 @@ CFLAGS += -Wextra -Wall -Wno-missing-field-initializers
 LDFLAGS += -lX11
 
 clang: CC=clang
-clang: clean
+clang: clean release
 clang: CFLAGS += -Weverything -Wno-unsafe-buffer-usage -Wno-disabled-macro-expansion
-clang: release
 
 release: CFLAGS += -O2 -flto
 release: dwmblocks2
 
 debug: CFLAGS += -g -fsanitize=undefined
-debug: clean
-debug: dwmblocks2
+debug: clean dwmblocks2
 
 src = block_functions.c main.c util.c
 headers = dwmblocks2.h blocks.h block_functions.h
