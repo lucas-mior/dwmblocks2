@@ -23,7 +23,8 @@ void block_clock(int button, Block *block) {
     case 1:
         if (fork() == 0) {
             execlp("sh", "sh", "-c",
-                   "yad --calendar --date-format='%A, %x' --undecorated --fixed --no-buttons "
+                   "yad --calendar --date-format='%A, %x'"
+				   " --undecorated --fixed --no-buttons "
                    "| tr -d '\n' | xsel -b");
             exit(EXIT_SUCCESS);
         }
