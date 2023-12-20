@@ -8,7 +8,7 @@ display () {
     else
         printf " "
         name="$(bluetoothctl devices Connected \
-                | cut -d ' ' -f 3- | sed -E ':a;N;$!ba;s/\n/  /g;')"
+                | cut -d ' ' -f 3-4 | sed -E ':a;N;$!ba; s/\n/  /g;')"
         if [ "$name" != "$HOST" ]; then
             echo "$name"
         else

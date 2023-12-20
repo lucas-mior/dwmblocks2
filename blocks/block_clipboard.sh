@@ -9,7 +9,8 @@ display () {
         image=true
         printf "PNG\n"
     elif [ -n "$result" ]; then
-        content="$(timeout 1s dash -c "xclip -selection clipboard -o | head -n 100")"
+        content="$(timeout 1s dash -c \
+                   "xclip -selection clipboard -o | head -n 100")"
         echo "$content" \
             | tr '\n\0' ' ' \
             | sed -E 's/^\s+//g;
