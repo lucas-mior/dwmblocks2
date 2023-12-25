@@ -14,8 +14,7 @@ static void spawn_block(Block *, int);
 
 int main(void) {
     if (setlocale(LC_ALL, "") == NULL) {
-        fprintf(stderr, "dwmblocks2: Error setting locale."
-                        " Check your locale configuration.\n");
+        error("Error setting locale. Check your locale configuration.\n");
         exit(EXIT_FAILURE);
     }
     {
@@ -48,27 +47,25 @@ int main(void) {
             char *signal_string;
 
             if (block->signal_var_name == NULL) {
-                fprintf(stderr, "Error: Signal environmental variable"
-                                " must be defined for every block.\n");
+                error("Error: signal environmental variable"
+                      " must be defined for every block.\n");
                 exit(EXIT_FAILURE);
             }
             if ((signal_string = getenv(block->signal_var_name)) == NULL) {
-                fprintf(stderr, "Error: %s is not defined.\n",
-                                block->signal_var_name);
+                error("Error: %s is not defined.\n", block->signal_var_name);
                 exit(EXIT_FAILURE);
             }
 
             block->signal = atoi(signal_string);
             if (block->signal <= 0) {
-                fprintf(stderr, "Invalid signal for block %d."
-                                "Signals must be grater than 0.\n", i);
+                error("Invalid signal for block %d."
+                      " Signals must be grater than 0.\n", i);
                 exit(EXIT_FAILURE);
             }
             block->signal += SIGRTMIN;
             if (block->signal >= SIGRTMAX) {
-                fprintf(stderr, "Invalid signal for block."
-                                "Signals must be lower than %d.\n",
-                                SIGRTMAX - SIGRTMIN);
+                error("Invalid signal for block."
+                      " Signals must be lower than %d.\n", SIGRTMAX - SIGRTMIN);
                 exit(EXIT_FAILURE);
             }
 
@@ -108,7 +105,7 @@ int main(void) {
     }
 
     if ((display = XOpenDisplay(NULL)) == NULL) {
-        fprintf(stderr, "Error opening X display\n");
+        error("Error opening X display\n");
         exit(EXIT_FAILURE);
     }
     root = DefaultRootWindow(display);
@@ -124,7 +121,7 @@ int main(void) {
             if (errno == EINTR) {
                 continue;
             } else {
-                fprintf(stderr, "Error polling: %s\n", strerror(errno));
+                error("Error polling: %s\n", strerror(errno));
                 exit(EXIT_FAILURE);
             }
         }
@@ -135,10 +132,10 @@ int main(void) {
                     parse_output(block);
                     continue;
                 } else if (pipes[i].revents & POLLNVAL) {
-                    fprintf(stderr, "Error polling: Invalid fd.\n");
+                    error("Error polling: Invalid fd.\n");
                     pipes[i].fd = -1;
                 } else if (pipes[i].revents & POLLERR) {
-                    fprintf(stderr, "Error polling: Error condition.\n");
+                    error("Error polling: Error condition.\n");
                     pipes[i].fd = -1;
                 }
                 if (block->function)
