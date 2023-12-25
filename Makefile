@@ -12,7 +12,7 @@ LDFLAGS += -lX11
 
 clang: CC=clang
 clang: clean release
-clang: CFLAGS += -Weverything -Wno-unsafe-buffer-usage -Wno-disabled-macro-expansion
+clang: CFLAGS += -Weverything -Wno-unsafe-buffer-usage -Wno-disabled-macro-expansion -Wno-format-nonliteral
 
 release: CFLAGS += -O2 -flto
 release: dwmblocks2

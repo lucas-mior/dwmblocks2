@@ -58,5 +58,6 @@ typedef struct Block {
 } Block;
 
 extern Block blocks[];
+extern char *program;
 
 #endif /* DWMBLOCKS2_H */

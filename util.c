@@ -6,6 +6,7 @@
 #include <unistd.h>
 
 #include "util.h"
+#include "dwmblocks2.h"
 
 char *itoa(long num, char *str) {
     int i = 0;

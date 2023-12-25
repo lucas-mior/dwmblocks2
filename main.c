@@ -6,13 +6,16 @@ static struct pollfd pipes[LENGTH(blocks)];
 
 static Display *display;
 static Window root;
+char *program;
 
 static void int_handler(int) __attribute__((noreturn));
 static void parse_output(Block *);
 static void signal_handler(int, siginfo_t *, void *);
 static void spawn_block(Block *, int);
 
-int main(void) {
+int main(int argc, char **argv) {
+    program = argv[0];
+    (void) argc;
     if (setlocale(LC_ALL, "") == NULL) {
         error("Error setting locale. Check your locale configuration.\n");
         exit(EXIT_FAILURE);
