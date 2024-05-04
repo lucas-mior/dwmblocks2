@@ -10,7 +10,8 @@
 
 #include "dwmblocks2.h"
 
-char *itoa(long num, char *str) {
+static char *
+itoa(long num, char *str) {
     int i = 0;
     bool negative = false;
 
@@ -37,7 +38,8 @@ char *itoa(long num, char *str) {
     return str;
 }
 
-void error(char *format, ...) {
+static void
+error(char *format, ...) {
     int n;
     va_list args;
     char buffer[BUFSIZ];

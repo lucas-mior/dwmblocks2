@@ -2,21 +2,21 @@
 #define DWMBLOCKS2_H
 
 #include <X11/Xlib.h>
-#include <assert.h>
-#include <errno.h>
 #include <fcntl.h>
-#include <locale.h>
 #include <poll.h>
-#include <signal.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <sys/param.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/param.h>
-#include <sys/wait.h>
-#include <time.h>
-#include <unistd.h>
+#include <signal.h>
+#include <assert.h>
+#include <errno.h>
+#include <locale.h>
 
 #ifndef INTEGERS
 #define INTEGERS

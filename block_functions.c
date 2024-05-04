@@ -8,11 +8,9 @@
 #pragma push_macro("TESTING_THIS_FILE")
 #define TESTING_THIS_FILE 0
 
-#include "util.c"
-
 #pragma pop_macro("TESTING_THIS_FILE")
 
-void
+static void
 block_clock(int button, Block *block) {
     if (block) {
         time_t seconds_since_epoch;

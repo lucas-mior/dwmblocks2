@@ -2,6 +2,7 @@
 #include "blocks.h"
 
 #include "block_functions.c"
+#include "util.c"
 
 static struct pollfd pipes[LENGTH(blocks)];
 
