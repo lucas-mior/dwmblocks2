@@ -2,7 +2,7 @@
 #define BLOCKS_H
 
 #include "dwmblocks2.h"
-#include "block_functions.h"
+#include "block_functions.c"
 
 Block blocks[] = {
 /* function | command           signal environment variable |interval */

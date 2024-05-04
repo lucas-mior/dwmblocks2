@@ -1,10 +1,19 @@
+#ifndef BLOCK_FUNCTIONS_C
+#define BLOCK_FUNCTIONS_C
+
 #include <locale.h>
 
 #include "dwmblocks2.h"
-#include "block_functions.h"
-#include "util.h"
 
-void block_clock(int button, Block *block) {
+#pragma push_macro("TESTING_THIS_FILE")
+#define TESTING_THIS_FILE 0
+
+#include "util.c"
+
+#pragma pop_macro("TESTING_THIS_FILE")
+
+void
+block_clock(int button, Block *block) {
     if (block) {
         time_t seconds_since_epoch;
         struct tm t;
@@ -31,7 +40,7 @@ void block_clock(int button, Block *block) {
         break;
     case 2:
         if (fork() == 0) {
-            execlp("print_screen.sh", "print_screen.sh", "tela", NULL);
+            execlp("printscreen.sh", "printscreen.sh", "tela", NULL);
             exit(EXIT_SUCCESS);
         }
         break;
@@ -46,3 +55,20 @@ void block_clock(int button, Block *block) {
     }
     return;
 }
+
+#ifndef TESTING_THIS_FILE
+#define TESTING_THIS_FILE 0
+#endif
+
+#if TESTING_THIS_FILE
+#include <assert.h>
+
+int
+main(void) {
+    assert(true);
+    exit(EXIT_SUCCESS);
+}
+
+#endif
+
+#endif

@@ -1,3 +1,6 @@
+#ifndef UTIL_C
+#define UTIL_C
+
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -5,7 +8,6 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "util.h"
 #include "dwmblocks2.h"
 
 char *itoa(long num, char *str) {
@@ -71,3 +73,20 @@ void error(char *format, ...) {
     exit(EXIT_FAILURE);
 #endif
 }
+
+#ifndef TESTING_THIS_FILE
+#define TESTING_THIS_FILE 0
+#endif
+
+#if TESTING_THIS_FILE
+#include <assert.h>
+
+int
+main(void) {
+    assert(true);
+    exit(EXIT_SUCCESS);
+}
+
+#endif
+
+#endif

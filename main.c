@@ -1,6 +1,7 @@
 #include "dwmblocks2.h"
 #include "blocks.h"
-#include "util.h"
+
+#include "block_functions.c"
 
 static struct pollfd pipes[LENGTH(blocks)];
 
