@@ -5,10 +5,9 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
-
-#include "dwmblocks2.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 static char *
 itoa(long num, char *str) {

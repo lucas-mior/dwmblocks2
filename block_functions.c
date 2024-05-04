@@ -2,6 +2,11 @@
 #define BLOCK_FUNCTIONS_C
 
 #include <locale.h>
+#include <time.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <locale.h>
 
 #include "dwmblocks2.h"
 
