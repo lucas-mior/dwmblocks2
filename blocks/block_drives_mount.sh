@@ -6,7 +6,7 @@ display () {
           BEGIN {
               i = 0;
           }
-          NF >= 4 && $4 !~ /\/boot|\/home$|SWAP|\/$/ {
+          NF >= 4 && $4 !~ /\/boot|\/home$|SWAP|\/efi|\/$/ {
               arr[i] = gensub("^.*/", "", "g", $NF);
               i++;
           }

@@ -19,8 +19,10 @@ FILENAME ~ "net/w.+operstate" {
     if ($1 == "up") {
         printf("📶");
         while (("iwgetid -r" | getline) > 0) {
-            for (i = 1; i <= NF && i <= 2; i += 1)
-                printf(" %s", $i)
+            for (i = 1; i <= NF && i <= 2; i += 1) {
+                name = gensub("[wW][iI][fF][iI][^[:alnum:]]", "", "g", $i)
+                printf(" %s", name)
+            }
         }
     } else {
         if (wifi_on) {
