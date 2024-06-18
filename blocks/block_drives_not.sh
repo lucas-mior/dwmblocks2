@@ -6,7 +6,7 @@ display () {
         BEGIN {
             i = 0;
         }
-        NF == 3 && $2 == "part" {
+        NF >= 4 {
             drive = $NF;
             if (substr(drive, length(drive), 1) ~ "[GT]") {
                 arr[i] = $NF
@@ -22,6 +22,6 @@ display () {
 }
 
 case $1 in
-    6) setsid -f $TERMINAL -e $EDITOR "$0" ;;
+    6) setsid -f "$TERMINAL" -e "$EDITOR" "$0" ;;
     *) display ;;
 esac

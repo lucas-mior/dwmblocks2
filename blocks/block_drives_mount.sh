@@ -6,7 +6,7 @@ display () {
           BEGIN {
               i = 0;
           }
-          NF >= 4 && $4 !~ /\/boot|\/home$|SWAP|\/efi|\/$/ {
+          NF >= 4 && $4 !~ /\/boot|\/home$|\/efi|SWAP|\/$/ {
               arr[i] = gensub("^.*/", "", "g", $NF);
               i++;
           }
@@ -22,6 +22,6 @@ display () {
 }
 
 case $1 in
-    6) setsid -f $TERMINAL -e $EDITOR "$0" ;;
+    6) setsid -f "$TERMINAL" -e "$EDITOR" "$0" ;;
     *) display ;;
 esac

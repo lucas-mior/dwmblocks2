@@ -26,4 +26,6 @@ update() {
 rx=$(update /sys/class/net/[ew]*/statistics/rx_bytes)
 tx=$(update /sys/class/net/[ew]*/statistics/tx_bytes)
 
-printf "🔻%4sB 🔺%4sB\\n" $(numfmt --to=iec $rx $tx)
+# shellcheck disable=SC2183
+# shellcheck disable=SC2046
+printf "🔻%sB 🔺%sB\\n" $(numfmt --to=iec "$rx" "$tx")

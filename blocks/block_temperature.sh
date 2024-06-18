@@ -28,13 +28,13 @@ display () {
 
 explain() {
     hogs="$(ps axch -o cmd:15,%cpu --sort=-%cpu | head)\\n(100% per core)"
-    dunstify -r $DWMBLOCKS2_CPU " CPU hogs" "$hogs"
+    dunstify -r "$DWMBLOCKS2_CPU" " CPU hogs" "$hogs"
 }
 
 case $1 in
     1) explain; display ;;
-    2) setsid -f $TERMINAL -e htop ;;
+    2) setsid -f "$TERMINAL" -e htop ;;
     3) explain; display ;;
-    6) setsid -f $TERMINAL -e $EDITOR "$0" ;;
+    6) setsid -f "$TERMINAL" -e "$EDITOR" "$0" ;;
     *) display ;;
 esac
