@@ -36,6 +36,7 @@ typedef ssize_t isize;
 #define LONG_OUTPUT 40
 #define IS_SPACE(X) ((X == ' ') || (X == '\t') || (X == '\n'))
 #define WRITE_ERROR(X) do { write(STDERR_FILENO, X, strlen(X)); } while (0)
+#define DWM_BAR_SEPARATOR ((char) -1)
 
 typedef struct Block {
     void (*function)(int, struct Block *);

@@ -35,9 +35,10 @@ Block blocks[] = {
 {NULL, "block_bright.sh",       "DWMBLOCKS2_BRIGHT",          0},
 {NULL, "block_memory.sh",       "DWMBLOCKS2_RAM",             0},
 {NULL, "block_temperature.sh",  "DWMBLOCKS2_CPU",            60},
+{NULL, "block_mining.sh",       "DWMBLOCKS2_CPU",            10},
 {NULL, "block_network.sh",      "DWMBLOCKS2_NETWORK",         0},
-{NULL, "block_written.sh",      "DWMBLOCKS2_NETWORK",        10},
 {NULL, "block_ip.sh",      "DWMBLOCKS2_NETWORK",        10},
+{NULL, "block_written.sh",      "DWMBLOCKS2_NETWORK",        10},
 /* {NULL, "block_trafic.sh",       "DWMBLOCKS2_TRAFIC",          1}, */
 {NULL, "block_bluetooth.sh",    "DWMBLOCKS2_BLUETOOTH",      60},
 {block_clock, NULL,             "DWMBLOCKS2_CLOCK",           1},

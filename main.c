@@ -176,6 +176,12 @@ int main(int argc, char **argv) {
                     memcpy(pointer, string, size);
                     pointer += size;
                 }
+                if (i == (LENGTH(blocks) / 2)) {
+                    pointer += 1;
+                    *pointer = DWM_BAR_SEPARATOR;
+                    pointer += 1;
+                    *pointer = '\0';
+                }
             }
             // Apparently double '\0' means end of bar to dwm
             *pointer = '\0';

@@ -42,5 +42,8 @@ END {
             icon="🔌❓"
         }
     }
-    printf("%s%d%%\n", icon, capacity);
+    printf("%s\n", icon);
+    if (capacity < 100) {
+        printf("%d%%", capacity);
+    }
 }
