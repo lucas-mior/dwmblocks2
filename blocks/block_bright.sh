@@ -12,7 +12,7 @@ display () {
     fi
     bril="$(bright --print)"
     echo "$bril $color"
-    dunstify -r "$DWMBLOCKS2_BRIGHT" "$bril" -t 500
+    # dunstify -r "$DWMBLOCKS2_BRIGHT" "$bril" -t 500
 }
 
 case $1 in
