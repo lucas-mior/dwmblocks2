@@ -42,7 +42,7 @@ Block blocks[] = {
 {NULL, "block_memory.sh",       "DWMBLOCKS2_RAM",             0},
 {NULL, "block_temperature.sh",  "DWMBLOCKS2_CPU",            60},
 {NULL, "block_mining.sh",       "DWMBLOCKS2_CPU",            10},
-{NULL, "block_ip.sh",           "DWMBLOCKS2_NETWORK",        10},
+{NULL, "block_ip.sh",           "DWMBLOCKS2_NETWORK",        60},
 {NULL, "block_bluetooth.sh",    "DWMBLOCKS2_BLUETOOTH",      60},
 };
 
