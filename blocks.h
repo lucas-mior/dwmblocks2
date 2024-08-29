@@ -29,7 +29,7 @@ Block blocks[] = {
 {NULL, "block_microphone.sh",   "DWMBLOCKS2_MICROPHONE",      0},
 {NULL, "block_bright.sh",       "DWMBLOCKS2_BRIGHT",          0},
 {NULL, "block_network.sh",      "DWMBLOCKS2_NETWORK",         0},
-{block_clock, NULL,             "DWMBLOCKS2_CLOCK",           1},
+{block_clock, NULL,             "DWMBLOCKS2_CLOCK",           60},
 {NULL, "block_battery.sh",      "DWMBLOCKS2_BATTERY",        60},
 {NULL, "block_uptime.sh",       "DWMBLOCKS2_UPTIME",         60},
 {NULL, "block_ytdlp.sh",        "DWMBLOCKS2_YOUTUBE",         0},

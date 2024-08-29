@@ -176,7 +176,7 @@ int main(int argc, char **argv) {
                     memcpy(pointer, string, size);
                     pointer += size;
                 }
-                if (i == (LENGTH(blocks) / 2)) {
+               if (i == (LENGTH(blocks) / 2)) {
                     pointer += 1;
                     *pointer = DWM_BAR_SEPARATOR;
                     pointer += 1;
