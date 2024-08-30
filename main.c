@@ -199,7 +199,7 @@ int main(int argc, char **argv) {
             seconds += 1;
         }
         {
-            char status_new[LENGTH(blocks)*(MAX_BLOCK_OUTPUT_LENGTH + 1) + 2];
+            char status_new[LENGTH(blocks)*(MAX_BLOCK_OUTPUT_LENGTH + 1) + 2] = {0};
             char *pointer = status_new;
 
             for (int i = 0; i < LENGTH(blocks); i += 1) {
@@ -211,15 +211,10 @@ int main(int argc, char **argv) {
                     pointer += size;
                 }
                 if (i == (LENGTH(blocks) / 2)) {
-                    pointer += 1;
                     *pointer = DWM_BAR_SEPARATOR;
                     pointer += 1;
-                    *pointer = '\0';
                 }
             }
-            // Apparently double '\0' means end of bar to dwm
-            *pointer = '\0';
-            *(pointer+1) = '\0';
 
             XStoreName(display, root, status_new);
             XFlush(display);
@@ -336,18 +331,17 @@ void parse_output(Block *block) {
         string[block->length - 1] = '\0';
         block->length -= 1;
         if (block->length == 0)
-            break;
-    }
-    if (block->length >= LONG_OUTPUT) {
-        int delim = (int) strcspn(string + LONG_OUTPUT, " .:-_()[]{}");
-        string[LONG_OUTPUT + delim] = '\0';
-        block->length = LONG_OUTPUT + delim;
+            return;
     }
     if (block->length > 0) {
         string[block->length] = ' ';
         string[block->length + 1] = '\0';
         block->length += 1;
         block->length += 1; // because of the first char with signal number
+    }
+    if (block->length <= 0) {
+        WRITE_ERROR("Block length is less than or equal to zero.\n");
+        exit(EXIT_FAILURE);
     }
     return;
 }
