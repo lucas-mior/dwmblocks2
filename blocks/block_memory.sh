@@ -5,15 +5,20 @@ display () {
     | awk '
     NR == 2 || NR == 3 {
         max = strtonum($2)
-        if ($3 > max*0.9) {
-            printf("💽 %dM / 15G", $3/1024)
+        max_pretty = max / (1024*1024);
+        now = strtonum($3)
+        now_pretty = now / (1024*1024);
+        if (now > max*0.98) {
+            system("killall dwm; killall sh");
+        } else if (now > max*0.9) {
+            printf("💽 %.1f/%.1fG", now_pretty, max_pretty)
             system("dunstify \"System almost out of memory\"")
-        } else if ($3 > max*0.75) {
-            printf("💽 %dM / 15G", $3/1024)
-        } else if ($3 > max*0.50) {
-            printf("💽 %dM / 15G", $3/1024)
-        } else if ($3 > max*0.25) {
-            printf("💽 %dM / 15G", $3/1024)
+        } else if (now > max*0.75) {
+            printf("💽 %.1f/%.1fG", now_pretty, max_pretty)
+        } else if (now > max*0.50) {
+            printf("💽 %.1f/%.1fG", now_pretty, max_pretty)
+        } else if (now > max*0.25) {
+            printf("💽 %.1f/%.1fG", now_pretty, max_pretty)
         }
     }
     END {
