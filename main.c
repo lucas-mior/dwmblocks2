@@ -23,7 +23,6 @@ static void int_handler(int) __attribute__((noreturn));
 static void parse_output(Block *);
 static void signal_handler(int, siginfo_t *, void *);
 static void spawn_block(Block *, int);
-static volatile sig_atomic_t interrupted = false;
 
 int main(int argc, char **argv) {
     program = argv[0];
@@ -130,6 +129,7 @@ int main(int argc, char **argv) {
         spawn_block(block, 0);
     }
     while (true) {
+        static bool interrupted = false;
         static int seconds = 1;
         struct timespec t0;
         struct timespec t1;
@@ -142,7 +142,6 @@ int main(int argc, char **argv) {
         int ready = poll(pipes, LENGTH(blocks), 1000);
         if (ready < 0) {
             if (errno == EINTR) {
-                printf("EINTR!!!\n");
                 interrupted = true; 
                 continue;
             } else {
@@ -356,7 +355,6 @@ void signal_handler(int signum, siginfo_t *signal_info, void *ucontext) {
         signum = signal_info->si_value.sival_int >> 3;
         button = signal_info->si_value.sival_int & 7;
     }
-    interrupted = true;
 
     for (int i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
