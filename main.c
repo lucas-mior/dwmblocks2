@@ -19,10 +19,14 @@ static Display *display;
 static Window root;
 char *program;
 
+#define TIMEOUT_INTERRUPTED 200
+#define TIMEOUT_NORMAL 1000
+
 static void int_handler(int) __attribute__((noreturn));
 static void parse_output(Block *);
 static void signal_handler(int, siginfo_t *, void *);
 static void spawn_block(Block *, int);
+static int timeout = TIMEOUT_NORMAL;
 
 int main(int argc, char **argv) {
     program = argv[0];
@@ -129,7 +133,6 @@ int main(int argc, char **argv) {
         spawn_block(block, 0);
     }
     while (true) {
-        static bool interrupted = false;
         static int seconds = 1;
         struct timespec t0;
         struct timespec t1;
@@ -139,10 +142,10 @@ int main(int argc, char **argv) {
             exit(EXIT_FAILURE);
         }
 
-        int ready = poll(pipes, LENGTH(blocks), 1000);
+        int ready = poll(pipes, LENGTH(blocks), timeout);
         if (ready < 0) {
             if (errno == EINTR) {
-                interrupted = true; 
+                timeout = TIMEOUT_INTERRUPTED;
                 continue;
             } else {
                 error("Error polling: %s\n", strerror(errno));
@@ -150,7 +153,7 @@ int main(int argc, char **argv) {
             }
         }
         if (ready > 0) {
-            if (!interrupted) {
+            if (timeout == TIMEOUT_NORMAL) {
                 struct timespec complete;
 
                 if (clock_gettime(CLOCK, &t1) < 0) {
@@ -166,9 +169,11 @@ int main(int argc, char **argv) {
                 }
 
                 if (complete.tv_sec < 1) {
+                    timeout = TIMEOUT_INTERRUPTED;
                     complete.tv_sec = 0;
                     complete.tv_nsec = 999999999 - complete.tv_nsec;
                     nanosleep(&complete, NULL);
+                    timeout = TIMEOUT_NORMAL;
                 }
                 seconds += 1;
             }
@@ -218,7 +223,7 @@ int main(int argc, char **argv) {
 
             XStoreName(display, root, status_new);
             XFlush(display);
-            interrupted = false;
+            timeout = TIMEOUT_NORMAL;
         }
     }
 }
