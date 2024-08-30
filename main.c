@@ -150,21 +150,6 @@ int main(int argc, char **argv) {
             }
         }
         if (ready > 0) {
-            for (int i = 0; i < LENGTH(blocks); i += 1) {
-                Block *block = &blocks[i];
-                if (pipes[i].revents & POLLHUP) {
-                    parse_output(block);
-                    continue;
-                } else if (pipes[i].revents & POLLNVAL) {
-                    error("Error polling: Invalid fd.\n");
-                    pipes[i].fd = -1;
-                } else if (pipes[i].revents & POLLERR) {
-                    error("Error polling: Error condition.\n");
-                    pipes[i].fd = -1;
-                }
-                if (block->function)
-                    block->function(0, block);
-            }
             if (!interrupted) {
                 struct timespec complete;
 
@@ -185,6 +170,21 @@ int main(int argc, char **argv) {
                     complete.tv_nsec = 999999999 - complete.tv_nsec;
                     nanosleep(&complete, NULL);
                 }
+            }
+            for (int i = 0; i < LENGTH(blocks); i += 1) {
+                Block *block = &blocks[i];
+                if (pipes[i].revents & POLLHUP) {
+                    parse_output(block);
+                    continue;
+                } else if (pipes[i].revents & POLLNVAL) {
+                    error("Error polling: Invalid fd.\n");
+                    pipes[i].fd = -1;
+                } else if (pipes[i].revents & POLLERR) {
+                    error("Error polling: Error condition.\n");
+                    pipes[i].fd = -1;
+                }
+                if (block->function)
+                    block->function(0, block);
             }
         } else {
             for (int i = 0; i < LENGTH(blocks); i += 1) {
@@ -209,7 +209,7 @@ int main(int argc, char **argv) {
                     memcpy(pointer, string, size);
                     pointer += size;
                 }
-               if (i == (LENGTH(blocks) / 2)) {
+                if (i == (LENGTH(blocks) / 2)) {
                     pointer += 1;
                     *pointer = DWM_BAR_SEPARATOR;
                     pointer += 1;
