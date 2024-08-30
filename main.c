@@ -11,6 +11,8 @@
 
 #include "util.c"
 
+#define CLOCK CLOCK_REALTIME
+
 static struct pollfd pipes[LENGTH(blocks)];
 
 static Display *display;
@@ -126,14 +128,13 @@ int main(int argc, char **argv) {
         Block *block = &blocks[i];
         spawn_block(block, 0);
     }
-    int clock = CLOCK_REALTIME;
     while (true) {
         static bool interrupted = false;
         static int seconds = 1;
         struct timespec t0;
         struct timespec t1;
 
-        if (clock_gettime(clock, &t0) < 0) {
+        if (clock_gettime(CLOCK, &t0) < 0) {
             fprintf(stderr, "Error getting clock: %s\n", strerror(errno));
             exit(EXIT_FAILURE);
         }
@@ -166,7 +167,7 @@ int main(int argc, char **argv) {
                     block->function(0, block);
             }
             if (!interrupted) {
-                if (clock_gettime(clock, &t1) < 0) {
+                if (clock_gettime(CLOCK, &t1) < 0) {
                     fprintf(stderr, "Error getting clock: %s\n", strerror(errno));
                     exit(EXIT_FAILURE);
                 }
