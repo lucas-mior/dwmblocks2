@@ -126,17 +126,8 @@ int main(int argc, char **argv) {
         Block *block = &blocks[i];
         spawn_block(block, 0);
     }
-    int clock = CLOCK_REALTIME;
     while (true) {
         static int seconds = 1;
-        struct timespec t0;
-        struct timespec t1;
-
-        if (clock_gettime(clock, &t0) < 0) {
-            fprintf(stderr, "Error getting clock: %s\n", strerror(errno));
-            exit(EXIT_FAILURE);
-        }
-
         int ready = poll(pipes, LENGTH(blocks), 1000);
         if (ready < 0) {
             if (errno == EINTR) {
@@ -171,24 +162,6 @@ int main(int argc, char **argv) {
                 if ((seconds % block->interval) == 0)
                     spawn_block(block, 0);
             }
-            if (clock_gettime(clock, &t1) < 0) {
-                fprintf(stderr, "Error getting clock: %s\n", strerror(errno));
-                exit(EXIT_FAILURE);
-            }
-            struct timespec complete;
-            complete.tv_sec = t1.tv_sec - t0.tv_sec;
-            complete.tv_nsec = t1.tv_nsec - t0.tv_nsec;
-            if (complete.tv_nsec < 0) {
-                complete.tv_nsec += 999999999;
-                complete.tv_sec -= 1;
-            }
-
-            if (complete.tv_sec < 1) {
-                printf("PAUSING MORE...\n");
-                complete.tv_sec = 0;
-                complete.tv_nsec = 999999999 - complete.tv_nsec;
-                nanosleep(&complete, NULL);
-            }
             seconds += 1;
         }
         {
@@ -213,8 +186,6 @@ int main(int argc, char **argv) {
             // Apparently double '\0' means end of bar to dwm
             *pointer = '\0';
             *(pointer+1) = '\0';
-
-            system("dunstify XStoreName");
 
             XStoreName(display, root, status_new);
             XFlush(display);
