@@ -170,6 +170,7 @@ int main(int argc, char **argv) {
                     complete.tv_nsec = 999999999 - complete.tv_nsec;
                     nanosleep(&complete, NULL);
                 }
+                seconds += 1;
             }
             for (int i = 0; i < LENGTH(blocks); i += 1) {
                 Block *block = &blocks[i];
