@@ -29,7 +29,7 @@ Block blocks[] = {
 {NULL, "block_microphone.sh",   "DWMBLOCKS2_MICROPHONE",      0},
 {NULL, "block_bright.sh",       "DWMBLOCKS2_BRIGHT",          0},
 {NULL, "block_network.sh",      "DWMBLOCKS2_NETWORK",         0},
-{block_clock, NULL,             "DWMBLOCKS2_CLOCK",           60},
+{block_clock, NULL,             "DWMBLOCKS2_CLOCK",           1},
 {NULL, "block_battery.sh",      "DWMBLOCKS2_BATTERY",        60},
 {NULL, "block_uptime.sh",       "DWMBLOCKS2_UPTIME",         60},
 {NULL, "block_ytdlp.sh",        "DWMBLOCKS2_YOUTUBE",         0},
@@ -41,7 +41,7 @@ Block blocks[] = {
 {NULL, "block_music.sh",        "DWMBLOCKS2_MUSIC",           0},
 {NULL, "block_memory.sh",       "DWMBLOCKS2_RAM",             0},
 {NULL, "block_temperature.sh",  "DWMBLOCKS2_CPU",            60},
-{NULL, "block_mining.sh",       "DWMBLOCKS2_CPU",            10},
+{NULL, "block_mining.sh",       "DWMBLOCKS2_CPU",            30},
 {NULL, "block_ip.sh",           "DWMBLOCKS2_NETWORK",        60},
 {NULL, "block_bluetooth.sh",    "DWMBLOCKS2_BLUETOOTH",      60},
 };

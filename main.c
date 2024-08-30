@@ -16,6 +16,7 @@ static struct pollfd pipes[LENGTH(blocks)];
 static Display *display;
 static Window root;
 char *program;
+volatile sig_atomic_t urgent = 0;
 
 static void int_handler(int) __attribute__((noreturn));
 static void parse_output(Block *);
@@ -128,6 +129,12 @@ int main(int argc, char **argv) {
     }
     while (true) {
         static int seconds = 1;
+        struct timespec before_poll;
+        struct timespec after_poll;
+        struct timespec complete;
+
+        clock_gettime(CLOCK_MONOTONIC_RAW, &before_poll);
+
         int ready = poll(pipes, LENGTH(blocks), 1000);
         if (ready < 0) {
             if (errno == EINTR) {
@@ -138,6 +145,7 @@ int main(int argc, char **argv) {
             }
         }
         if (ready > 0) {
+            /* system("dunstify \"ready>0\""); */
             for (int i = 0; i < LENGTH(blocks); i += 1) {
                 Block *block = &blocks[i];
                 if (pipes[i].revents & POLLHUP) {
@@ -154,6 +162,7 @@ int main(int argc, char **argv) {
                     block->function(0, block);
             }
         } else {
+            /* system("dunstify \"ready==0\""); */
             for (int i = 0; i < LENGTH(blocks); i += 1) {
                 Block *block = &blocks[i];
 
@@ -162,8 +171,26 @@ int main(int argc, char **argv) {
                 if ((seconds % block->interval) == 0)
                     spawn_block(block, 0);
             }
-            seconds += 1;
         }
+
+        if (!urgent) {
+            clock_gettime(CLOCK_MONOTONIC_RAW, &after_poll);
+
+            complete.tv_sec = after_poll.tv_sec - before_poll.tv_sec;
+            complete.tv_nsec = after_poll.tv_nsec - before_poll.tv_nsec;
+            if (complete.tv_nsec < 0) {
+                complete.tv_nsec += 999999999;
+                complete.tv_sec -= 1;
+            }
+
+            if (complete.tv_sec < 1) {
+                complete.tv_sec = 0;
+                complete.tv_nsec = 999999999 - complete.tv_nsec;
+                nanosleep(&complete, NULL);
+            }
+        }
+        seconds += 1;
+
         {
             char status_new[LENGTH(blocks)*(MAX_BLOCK_OUTPUT_LENGTH + 1) + 2];
             char *pointer = status_new;
@@ -186,9 +213,9 @@ int main(int argc, char **argv) {
             // Apparently double '\0' means end of bar to dwm
             *pointer = '\0';
             *(pointer+1) = '\0';
-
             XStoreName(display, root, status_new);
             XFlush(display);
+            urgent = 0;
         }
     }
 }
@@ -329,8 +356,11 @@ void signal_handler(int signum, siginfo_t *signal_info, void *ucontext) {
 
     for (int i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
-        if (block->signal == signum)
+        if (block->signal == signum) {
+            urgent = 1;
+            printf("urgent = true\n");
             spawn_block(block, button);
+        }
     }
     return;
 }
