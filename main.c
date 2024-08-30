@@ -19,14 +19,14 @@ static Display *display;
 static Window root;
 char *program;
 
-#define TIMEOUT_INTERRUPTED 200
+#define TIMEOUT_INTERRUPTED 350
 #define TIMEOUT_NORMAL 1000
 
 static void int_handler(int) __attribute__((noreturn));
 static void parse_output(Block *);
 static void signal_handler(int, siginfo_t *, void *);
 static void spawn_block(Block *, int);
-static volatile int timeout = TIMEOUT_NORMAL;
+static volatile sig_atomic_t timeout = TIMEOUT_NORMAL;
 
 int main(int argc, char **argv) {
     program = argv[0];
@@ -169,13 +169,13 @@ int main(int argc, char **argv) {
                 }
 
                 if (complete.tv_sec < 1) {
-                    timeout = TIMEOUT_INTERRUPTED;
                     complete.tv_sec = 0;
                     complete.tv_nsec = 999999999 - complete.tv_nsec;
-                    nanosleep(&complete, NULL);
-                    timeout = TIMEOUT_NORMAL;
+                    if (nanosleep(&complete, NULL) < 0)
+                        continue;
                 }
                 seconds += 1;
+                timeout = TIMEOUT_NORMAL;
             }
             for (int i = 0; i < LENGTH(blocks); i += 1) {
                 Block *block = &blocks[i];
@@ -202,6 +202,7 @@ int main(int argc, char **argv) {
                     spawn_block(block, 0);
             }
             seconds += 1;
+            timeout = TIMEOUT_NORMAL;
         }
         {
             char status_new[LENGTH(blocks)*(MAX_BLOCK_OUTPUT_LENGTH + 1) + 2] = {0};
@@ -223,7 +224,6 @@ int main(int argc, char **argv) {
 
             XStoreName(display, root, status_new);
             XFlush(display);
-            timeout = TIMEOUT_NORMAL;
         }
     }
 }
