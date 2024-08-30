@@ -143,7 +143,6 @@ int main(int argc, char **argv) {
         if (ready < 0) {
             if (errno == EINTR) {
                 interrupted = true; 
-                fprintf(stderr, "Interrupted\n");
                 continue;
             } else {
                 error("Error polling: %s\n", strerror(errno));
@@ -167,11 +166,13 @@ int main(int argc, char **argv) {
                     block->function(0, block);
             }
             if (!interrupted) {
+                struct timespec complete;
+
                 if (clock_gettime(CLOCK, &t1) < 0) {
                     fprintf(stderr, "Error getting clock: %s\n", strerror(errno));
                     exit(EXIT_FAILURE);
                 }
-                struct timespec complete;
+
                 complete.tv_sec = t1.tv_sec - t0.tv_sec;
                 complete.tv_nsec = t1.tv_nsec - t0.tv_nsec;
                 if (complete.tv_nsec < 0) {
@@ -180,7 +181,6 @@ int main(int argc, char **argv) {
                 }
 
                 if (complete.tv_sec < 1) {
-                    printf("PAUSING MORE...\n");
                     complete.tv_sec = 0;
                     complete.tv_nsec = 999999999 - complete.tv_nsec;
                     nanosleep(&complete, NULL);
@@ -219,7 +219,7 @@ int main(int argc, char **argv) {
             // Apparently double '\0' means end of bar to dwm
             *pointer = '\0';
             *(pointer+1) = '\0';
-            system("dunstify XStoreName");
+
             XStoreName(display, root, status_new);
             XFlush(display);
             interrupted = false;
