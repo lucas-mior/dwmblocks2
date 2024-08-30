@@ -26,7 +26,7 @@ display () {
 
 case $1 in
     1) vol_out.sh toggle ; display ;;
-    2) audio_toggle.bash ; display ;;
+    2) audiotoggle.bash ; display ;;
     3) st -e pulsemixer  ; display ;;
     4) vol_out.sh up     ; display ;;
     5) vol_out.sh down   ; display ;;
