@@ -54,7 +54,7 @@ block_clock(int button, Block *block) {
             execlp("sh", "sh", "-c",
                    "yad --calendar --date-format='%A, %x'"
 				   " --undecorated --fixed --no-buttons "
-                   "| tr -d '\n' | xsel -b");
+                   "| tr -d '\n' | xsel -b", NULL);
             exit(EXIT_SUCCESS);
         }
         break;
