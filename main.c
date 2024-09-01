@@ -204,7 +204,7 @@ int main(int argc, char **argv) {
             timeout = TIMEOUT_NORMAL;
         }
         {
-            char status_new[LENGTH(blocks)*(MAX_BLOCK_OUTPUT_LENGTH + 1) + 2] = {0};
+            char status_new[LENGTH(blocks)*MAX_BLOCK_OUTPUT_LENGTH] = {0};
             char *pointer = status_new;
 
             for (int i = 0; i < LENGTH(blocks); i += 1) {
@@ -285,15 +285,15 @@ void spawn_block(Block *block, int button) {
 
 void parse_output(Block *block) {
     isize r;
-    usize left = MAX_BLOCK_OUTPUT_LENGTH - 2;
+    usize space = MAX_BLOCK_OUTPUT_LENGTH - LENGTH(blocks) - 1;
     char *string = block->output + 1;
 
     sigprocmask(SIG_BLOCK, &(block->mask), NULL);
 
-    while ((r = read(*block->fd, string, left)) > 0) {
+    while ((r = read(*block->fd, string, space)) > 0) {
         string += r;
-        left -= (usize) r;
-        if (left <= 0)
+        space -= (usize) r;
+        if (space <= 0)
             break;
     }
 
