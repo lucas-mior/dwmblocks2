@@ -145,7 +145,6 @@ int main(int argc, char **argv) {
         int ready = poll(pipes, LENGTH(blocks), timeout);
         if (ready < 0) {
             if (errno == EINTR) {
-                timeout = TIMEOUT_INTERRUPTED;
                 continue;
             } else {
                 error("Error polling: %s\n", strerror(errno));
