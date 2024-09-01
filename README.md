@@ -68,20 +68,6 @@ $ sudo make install
 In order to use the blocks, you have to put them in your
 `PATH` and also set the environmental variables (see `blocks.h`).
 
-### Programs used by default blocks
-- dunstify
-- bluetoothctl
-- redshift
-- bright
-- xclip
-- [clipsim](https://github.com/lucas-mior/clipsim)
-- dash
-- mpc
-- nmcli
-- simple-mtpfs
-- android-file-transfer
-- iwgetid
-
 ## License
 dwmblocks2 is licensed under GPLv2,
 block scripts in `blocks/` are licensed under AGPL.
