@@ -285,7 +285,7 @@ void spawn_block(Block *block, int button) {
 
 void parse_output(Block *block) {
     isize r;
-    usize space = MAX_BLOCK_OUTPUT_LENGTH - LENGTH(blocks) - 1;
+    usize space = sizeof(block->output) - 1;
     char *string = block->output + 1;
 
     sigprocmask(SIG_BLOCK, &(block->mask), NULL);
