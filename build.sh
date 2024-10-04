@@ -37,9 +37,9 @@ if [ $CC = "clang" ]; then
 fi
 
 if [ "$target" = "debug" ]; then
-    CFLAGS="$CFLAGS -g -fsanitize=undefined "
+    CFLAGS="$CFLAGS -g -fsanitize=undefined -DDWMBLOCKS2_DEBUG=1"
 else
-    CFLAGS="$CFLAGS -O2 -flto "
+    CFLAGS="$CFLAGS -O2 -flto -DDWMBLOCKS2_DEBUG=0"
 fi
 
 case "$target" in

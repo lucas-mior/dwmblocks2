@@ -211,13 +211,28 @@ int main(int argc, char **argv) {
                 Block *block = &blocks[i];
                 char *string = block->output;
                 usize size = (usize) block->length;
-                if (size) {
+                if (size > 1) {
                     memcpy(pointer, string, size);
                     pointer += size;
                 }
                 if (i == (LENGTH(blocks) / 2)) {
                     *pointer = DWM_BAR_SEPARATOR;
                     pointer += 1;
+                }
+            }
+
+            if (DWMBLOCKS2_DEBUG) {
+                if (seconds == 10) {
+                    char *name = "dwmblocks2.txt";
+                    FILE *file;
+                    if (!(file = fopen(name, "w"))) {
+                        error("Error opening %s: %s\n", name, strerror(errno));
+                        exit(EXIT_FAILURE);
+                    }
+                    fwrite(status_new,
+                           sizeof (*status_new), sizeof(status_new),
+                           file);
+                    fclose(file);
                 }
             }
 
