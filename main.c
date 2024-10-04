@@ -358,6 +358,21 @@ void parse_output(Block *block) {
         block->length += 1;
         block->length += 1; // because of the first char with signal number
     }
+    for (int32 i = 0; i < (block->length - 1); i += 1) {
+        while ((uchar)string[i] < ' ') {
+            fprintf(stderr,
+                    "Warning: ascii control char char '%x' @ %d from %s\n",
+                    string[i], i, block->command);
+
+            block->length -= 1;
+            if (block->length <= i)
+                goto final;
+
+            memmove(&string[i], &string[i+1],
+                    (block->length - i)*sizeof(*string));
+        }
+    }
+final:
     if (block->length <= 0) {
         WRITE_ERROR("Block length is less than or equal to zero.\n");
         exit(EXIT_FAILURE);
