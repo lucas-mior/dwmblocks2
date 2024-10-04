@@ -360,10 +360,6 @@ void parse_output(Block *block) {
     }
     for (int32 i = 0; i < (block->length - 1); i += 1) {
         while ((uchar)string[i] < ' ') {
-            fprintf(stderr,
-                    "Warning: ascii control char char '%x' @ %d from %s\n",
-                    string[i], i, block->command);
-
             block->length -= 1;
             if (block->length <= i)
                 goto final;
