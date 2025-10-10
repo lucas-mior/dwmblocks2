@@ -38,12 +38,14 @@ Block blocks[] = {
 {NULL, "block_drives_mount.sh", "DWMBLOCKS2_DRIVES1",        60},
 {NULL, "block_phone.sh",        "DWMBLOCKS2_DRIVES2",        60},
 {NULL, "block_written.sh",      "DWMBLOCKS2_UPTIME",         10},
+{NULL, "block_diskusage.sh",    "DWMBLOCKS2_DRIVES1",        60},
 {NULL, "block_music.sh",        "DWMBLOCKS2_MUSIC",          60},
 {NULL, "block_memory.sh",       "DWMBLOCKS2_RAM",            60},
 {NULL, "block_temperature.sh",  "DWMBLOCKS2_CPU",            60},
 {NULL, "block_mining.sh",       "DWMBLOCKS2_CPU",            10},
 {NULL, "block_ip.sh",           "DWMBLOCKS2_NETWORK",        60},
 {NULL, "block_bluetooth.sh",    "DWMBLOCKS2_BLUETOOTH",      60},
+{NULL, "block_joystick.sh",     "DWMBLOCKS2_JOYSTICK",      60},
 };
 
 #endif

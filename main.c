@@ -230,7 +230,7 @@ int main(int argc, char **argv) {
                         exit(EXIT_FAILURE);
                     }
                     fwrite(status_new,
-                           sizeof (*status_new), sizeof(status_new),
+                           sizeof(*status_new), sizeof(status_new),
                            file);
                     fclose(file);
                 }

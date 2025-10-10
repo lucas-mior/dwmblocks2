@@ -61,7 +61,7 @@ error(char *format, ...) {
     char buffer[BUFSIZ];
 
     va_start(args, format);
-    n = vsnprintf(buffer, sizeof (buffer) - 1, format, args);
+    n = vsnprintf(buffer, sizeof(buffer), format, args);
     va_end(args);
 
     if (n < 0) {
