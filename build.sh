@@ -27,6 +27,7 @@ program="dwmblocks2"
 
 CFLAGS="$CFLAGS -std=c99 -D_DEFAULT_SOURCE "
 CFLAGS="$CFLAGS -Wextra -Wall -Wno-unused-macros -Wno-missing-field-initializers "
+CFLAGS="$CFLAGS -Wno-unused-function"
 LDFLAGS="$LDFLAGS -lm $(pkg-config x11 --libs)"
 
 CC=${CC:-cc}

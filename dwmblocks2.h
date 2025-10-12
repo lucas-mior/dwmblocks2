@@ -46,6 +46,7 @@ typedef struct Block {
     int *fd;
     char output[MAX_BLOCK_OUTPUT_LENGTH];
     int length;
+    int32 padding;
     sigset_t mask;
 } Block;
 

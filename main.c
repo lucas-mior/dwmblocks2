@@ -134,6 +134,7 @@ int main(int argc, char **argv) {
     }
     while (true) {
         static int seconds = 1;
+        int ready;
         struct timespec t0;
         struct timespec t1;
 
@@ -142,7 +143,7 @@ int main(int argc, char **argv) {
             exit(EXIT_FAILURE);
         }
 
-        int ready = poll(pipes, LENGTH(blocks), timeout);
+        ready = poll(pipes, LENGTH(blocks), timeout);
         if (ready < 0) {
             if (errno == EINTR) {
                 continue;
@@ -365,7 +366,7 @@ void parse_output(Block *block) {
                 goto final;
 
             memmove(&string[i], &string[i+1],
-                    (block->length - i)*sizeof(*string));
+                    (usize)(block->length - i)*sizeof(*string));
         }
     }
 final:
