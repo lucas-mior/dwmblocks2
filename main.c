@@ -247,6 +247,7 @@ void spawn_block(Block *block, int button) {
     int pipefd[2];
     char button_str[2] = {'0' + (char) button, '\0'};
     char *argv[3] = { block->command, button_str, NULL };
+    char *error_message;
 
     if (block->function) {
         block->function(button, block);
@@ -261,8 +262,9 @@ void spawn_block(Block *block, int button) {
     }
 
     if (pipe(pipefd) < 0) {
+        error_message = strerror(errno);
         WRITE_ERROR("Error creating pipe: ");
-        WRITE_ERROR(strerror(errno));
+        WRITE_ERROR(error_message);
         WRITE_ERROR("\n");
         *block->fd = -1;
         return;
@@ -274,16 +276,18 @@ void spawn_block(Block *block, int button) {
         dup2(pipefd[1], STDOUT_FILENO);
         close(pipefd[1]);
         execvp(argv[0], argv);
+        error_message = strerror(errno);
 
         WRITE_ERROR("Error executing ");
         WRITE_ERROR(block->command);
         WRITE_ERROR(": ");
-        WRITE_ERROR(strerror(errno));
+        WRITE_ERROR(error_message);
         WRITE_ERROR(".\n");
         _exit(EXIT_FAILURE);
     case -1:
+        error_message = strerror(errno);
         WRITE_ERROR("Error forking: ");
-        WRITE_ERROR(strerror(errno));
+        WRITE_ERROR(error_message);
         WRITE_ERROR(".\n");
 
         close(pipefd[0]);
@@ -314,10 +318,11 @@ void parse_output(Block *block) {
     }
 
     if (r < 0) {
+        char *error_message = strerror(errno);
         WRITE_ERROR("Error reading from block ");
         WRITE_ERROR(block->command);
         WRITE_ERROR(": ");
-        WRITE_ERROR(strerror(errno));
+        WRITE_ERROR(error_message);
         WRITE_ERROR(".\n");
     }
 
@@ -408,8 +413,9 @@ void int_handler(int unused) {
             WRITE_ERROR(itoa(*block->fd, num));
             WRITE_ERROR("...\n");
             if (close(*block->fd) < 0) {
+                char *error_message = strerror(errno);
                 WRITE_ERROR("Error closing: ");
-                WRITE_ERROR(strerror(errno));
+                WRITE_ERROR(error_message);
                 WRITE_ERROR(".\n");
             }
         }

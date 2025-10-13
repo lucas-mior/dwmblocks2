@@ -31,6 +31,7 @@ CFLAGS="$CFLAGS -Wno-unused-function -Wno-constant-logical-operand"
 LDFLAGS="$LDFLAGS -lm $(pkg-config x11 --libs)"
 
 CC=${CC:-cc}
+CC=clang
 if [ $CC = "clang" ]; then
     CFLAGS="$CFLAGS -Weverything "
     CFLAGS="$CFLAGS -Wno-unsafe-buffer-usage -Wno-format-nonliteral "
