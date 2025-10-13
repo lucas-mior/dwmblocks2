@@ -410,7 +410,7 @@ void int_handler(int unused) {
         char num[16];
         if (*block->fd >= 0) {
             WRITE_ERROR("closing block ");
-            WRITE_ERROR(itoa(*block->fd, num));
+            WRITE_ERROR(itoa2(*block->fd, num));
             WRITE_ERROR("...\n");
             if (close(*block->fd) < 0) {
                 char *error_message = strerror(errno);
