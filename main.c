@@ -161,7 +161,8 @@ main(int argc, char **argv) {
                 struct timespec complete;
 
                 if (clock_gettime(CLOCK, &t1) < 0) {
-                    fprintf(stderr, "Error getting clock: %s\n", strerror(errno));
+                    fprintf(stderr, "Error getting clock: %s\n",
+                            strerror(errno));
                     exit(EXIT_FAILURE);
                 }
 
@@ -238,7 +239,8 @@ main(int argc, char **argv) {
                         error("Error opening %s: %s\n", name, strerror(errno));
                         exit(EXIT_FAILURE);
                     }
-                    fwrite(status_new, sizeof(*status_new), sizeof(status_new), file);
+                    fwrite(status_new, sizeof(*status_new), sizeof(status_new),
+                           file);
                     fclose(file);
                 }
             }
@@ -381,7 +383,8 @@ parse_output(Block *block) {
                 goto final;
             }
 
-            memmove(&string[i], &string[i + 1], (usize)(block->length - i)*sizeof(*string));
+            memmove(&string[i], &string[i + 1],
+                    (usize)(block->length - i)*sizeof(*string));
         }
     }
 final:
