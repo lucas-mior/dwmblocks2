@@ -28,9 +28,10 @@ static void signal_handler(int, siginfo_t *, void *);
 static void spawn_block(Block *, int);
 static volatile sig_atomic_t timeout = TIMEOUT_NORMAL;
 
-int main(int argc, char **argv) {
+int
+main(int argc, char **argv) {
     program = argv[0];
-    (void) argc;
+    (void)argc;
     if (setlocale(LC_ALL, "") == NULL) {
         error("Error setting locale. Check your locale configuration.\n");
         exit(EXIT_FAILURE);
@@ -77,19 +78,21 @@ int main(int argc, char **argv) {
             block->signal = atoi(signal_string);
             if (block->signal <= 0) {
                 error("Invalid signal for block %d."
-                      " Signals must be grater than 0.\n", i);
+                      " Signals must be grater than 0.\n",
+                      i);
                 exit(EXIT_FAILURE);
             }
             block->signal += SIGRTMIN;
             if (block->signal >= SIGRTMAX) {
                 error("Invalid signal for block."
-                      " Signals must be lower than %d.\n", SIGRTMAX - SIGRTMIN);
+                      " Signals must be lower than %d.\n",
+                      SIGRTMAX - SIGRTMIN);
                 exit(EXIT_FAILURE);
             }
 
             // used by dwm to send proper signal number back to dwmblocks2
-            block->output[0] = (char) (block->signal - SIGRTMIN);
-            block->output[1] = (char) '\0';
+            block->output[0] = (char)(block->signal - SIGRTMIN);
+            block->output[1] = (char)'\0';
             block->length = 0;
 
             block->fd = &(pipes[i].fd);
@@ -109,8 +112,9 @@ int main(int argc, char **argv) {
             sigemptyset(&(signal_this.sa_mask));
             for (int j = 0; j < LENGTH(blocks); j += 1) {
                 Block *other = &blocks[j];
-                if (j != i)
+                if (j != i) {
                     sigaddset(&signal_this.sa_mask, other->signal);
+                }
             }
             sigaction(block->signal, &signal_this, NULL);
             sigaddset(&signal_external.sa_mask, block->signal);
@@ -171,8 +175,9 @@ int main(int argc, char **argv) {
                 if (complete.tv_sec < 1) {
                     complete.tv_sec = 0;
                     complete.tv_nsec = 999999999 - complete.tv_nsec;
-                    if (nanosleep(&complete, NULL) < 0)
+                    if (nanosleep(&complete, NULL) < 0) {
                         continue;
+                    }
                 }
                 seconds += 1;
                 timeout = TIMEOUT_NORMAL;
@@ -189,17 +194,20 @@ int main(int argc, char **argv) {
                     error("Error polling: Error condition.\n");
                     pipes[i].fd = -1;
                 }
-                if (block->function)
+                if (block->function) {
                     block->function(0, block);
+                }
             }
         } else {
             for (int i = 0; i < LENGTH(blocks); i += 1) {
                 Block *block = &blocks[i];
 
-                if (block->interval == 0)
+                if (block->interval == 0) {
                     continue;
-                if ((seconds % block->interval) == 0)
+                }
+                if ((seconds % block->interval) == 0) {
                     spawn_block(block, 0);
+                }
             }
             seconds += 1;
             timeout = TIMEOUT_NORMAL;
@@ -211,7 +219,7 @@ int main(int argc, char **argv) {
             for (int i = 0; i < LENGTH(blocks); i += 1) {
                 Block *block = &blocks[i];
                 char *string = block->output;
-                usize size = (usize) block->length;
+                usize size = (usize)block->length;
                 if (size > 1) {
                     memcpy(pointer, string, size);
                     pointer += size;
@@ -230,9 +238,7 @@ int main(int argc, char **argv) {
                         error("Error opening %s: %s\n", name, strerror(errno));
                         exit(EXIT_FAILURE);
                     }
-                    fwrite(status_new,
-                           sizeof(*status_new), sizeof(status_new),
-                           file);
+                    fwrite(status_new, sizeof(*status_new), sizeof(status_new), file);
                     fclose(file);
                 }
             }
@@ -243,10 +249,11 @@ int main(int argc, char **argv) {
     }
 }
 
-void spawn_block(Block *block, int button) {
+void
+spawn_block(Block *block, int button) {
     int pipefd[2];
-    char button_str[2] = {'0' + (char) button, '\0'};
-    char *argv[3] = { block->command, button_str, NULL };
+    char button_str[2] = {'0' + (char)button, '\0'};
+    char *argv[3] = {block->command, button_str, NULL};
     char *error_message;
 
     if (block->function) {
@@ -303,7 +310,8 @@ void spawn_block(Block *block, int button) {
     return;
 }
 
-void parse_output(Block *block) {
+void
+parse_output(Block *block) {
     isize r;
     usize space = sizeof(block->output);
     char *string = block->output + 1;
@@ -312,9 +320,10 @@ void parse_output(Block *block) {
 
     while ((r = read(*block->fd, string, space)) > 0) {
         string += r;
-        space -= (usize) r;
-        if (space <= 0)
+        space -= (usize)r;
+        if (space <= 0) {
             break;
+        }
     }
 
     if (r < 0) {
@@ -340,7 +349,7 @@ void parse_output(Block *block) {
         block->length = 0;
         return;
     }
-    block->length = (int) (string - (block->output + 1));
+    block->length = (int)(string - (block->output + 1));
 
     string = block->output + 1;
     string[block->length] = '\0';
@@ -355,23 +364,24 @@ void parse_output(Block *block) {
     while (IS_SPACE(string[block->length - 1])) {
         string[block->length - 1] = '\0';
         block->length -= 1;
-        if (block->length == 0)
+        if (block->length == 0) {
             return;
+        }
     }
     if (block->length > 0) {
         string[block->length] = ' ';
         string[block->length + 1] = '\0';
         block->length += 1;
-        block->length += 1; // because of the first char with signal number
+        block->length += 1;  // because of the first char with signal number
     }
     for (int32 i = 0; i < (block->length - 1); i += 1) {
         while ((uchar)string[i] < ' ') {
             block->length -= 1;
-            if (block->length <= i)
+            if (block->length <= i) {
                 goto final;
+            }
 
-            memmove(&string[i], &string[i+1],
-                    (usize)(block->length - i)*sizeof(*string));
+            memmove(&string[i], &string[i + 1], (usize)(block->length - i)*sizeof(*string));
         }
     }
 final:
@@ -382,9 +392,10 @@ final:
     return;
 }
 
-void signal_handler(int signum, siginfo_t *signal_info, void *ucontext) {
+void
+signal_handler(int signum, siginfo_t *signal_info, void *ucontext) {
     int button = 0;
-    (void) ucontext;
+    (void)ucontext;
 
     if (signum == SIGUSR1) {
         // number send by dwm
@@ -396,14 +407,16 @@ void signal_handler(int signum, siginfo_t *signal_info, void *ucontext) {
 
     for (int i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
-        if (block->signal == signum)
+        if (block->signal == signum) {
             spawn_block(block, button);
+        }
     }
     return;
 }
 
-void int_handler(int unused) {
-    (void) unused;
+void
+int_handler(int unused) {
+    (void)unused;
 
     for (int i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];

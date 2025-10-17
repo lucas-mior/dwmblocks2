@@ -43,9 +43,8 @@ block_clock(int button, Block *block) {
         localtime_r(&seconds_since_epoch, &t);
 
         // TODO: use async-safe strftime
-        n = strftime(string, MAX_BLOCK_OUTPUT_LENGTH - 1,
-                     "📅 %a %d/%m %T ", &t);
-        block->length = (int) n + 1;
+        n = strftime(string, MAX_BLOCK_OUTPUT_LENGTH - 1, "📅 %a %d/%m %T ", &t);
+        block->length = (int)n + 1;
     }
 
     switch (button) {
@@ -53,8 +52,9 @@ block_clock(int button, Block *block) {
         if (fork() == 0) {
             execlp("sh", "sh", "-c",
                    "yad --calendar --date-format='%A, %x'"
-				   " --undecorated --fixed --no-buttons "
-                   "| tr -d '\n' | xsel -b", NULL);
+                   " --undecorated --fixed --no-buttons "
+                   "| tr -d '\n' | xsel -b",
+                   NULL);
             exit(EXIT_SUCCESS);
         }
         break;
