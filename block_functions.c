@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef BLOCK_FUNCTIONS_C
+#if !defined(BLOCK_FUNCTIONS_C)
 #define BLOCK_FUNCTIONS_C
 
 #include <locale.h>
@@ -77,7 +77,7 @@ block_clock(int button, Block *block) {
     return;
 }
 
-#ifndef TESTING_THIS_FILE
+#if !defined(TESTING_THIS_FILE)
 #define TESTING_THIS_FILE 0
 #endif
 

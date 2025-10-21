@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef BLOCKS_H
+#if !defined(BLOCKS_H)
 #define BLOCKS_H
 
 #include "dwmblocks2.h"

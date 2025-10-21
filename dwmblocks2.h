@@ -1,4 +1,4 @@
-#ifndef DWMBLOCKS2_H
+#if !defined(DWMBLOCKS2_H)
 #define DWMBLOCKS2_H
 
 #include <X11/Xlib.h>
@@ -10,7 +10,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#ifndef INTEGERS
+#if !defined(INTEGERS)
 #define INTEGERS
 typedef unsigned char uchar;
 typedef unsigned short ushort;
