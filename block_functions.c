@@ -25,11 +25,6 @@
 
 #include "dwmblocks2.h"
 
-#pragma push_macro("TESTING_THIS_FILE")
-#define TESTING_THIS_FILE 0
-
-#pragma pop_macro("TESTING_THIS_FILE")
-
 static void
 block_clock(int button, Block *block) {
     if (block) {
@@ -75,11 +70,7 @@ block_clock(int button, Block *block) {
     return;
 }
 
-#if !defined(TESTING_THIS_FILE)
-#define TESTING_THIS_FILE 0
-#endif
-
-#if TESTING_THIS_FILE
+#if __INCLUDE_LEVEL__ == 0
 #include <assert.h>
 
 int
