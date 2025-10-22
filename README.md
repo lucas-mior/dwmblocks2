@@ -62,8 +62,8 @@ esac
 ```sh
 $ git clone https://github.com/lucas-mior/dwmblocks2
 $ cd dwmblocks2
-$ make
-$ sudo make install
+$ ./build.sh
+$ sudo ./build.sh install
 ```
 In order to use the blocks, you have to put them in your
 `PATH` and also set the environmental variables (see `blocks.h`).
