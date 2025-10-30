@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# shellcheck disable=SC2086
+
 testing () {
     for src in *.c; do
         [ "$src" = "$main" ] && continue
@@ -15,7 +17,7 @@ testing () {
 
         set +x 
     done
-    rm *.exe
+    rm -- *.exe
 }
 
 target="${1:-build}"
@@ -25,13 +27,15 @@ DESTDIR="${DESTDIR:-/}"
 main="main.c"
 program="dwmblocks2"
 
-CFLAGS="$CFLAGS -std=c99 -D_DEFAULT_SOURCE "
-CFLAGS="$CFLAGS -Wextra -Wall -Wno-unused-macros -Wno-missing-field-initializers "
-CFLAGS="$CFLAGS -Wno-unused-function -Wno-constant-logical-operand"
+CFLAGS="$CFLAGS -std=c99 -D_DEFAULT_SOURCE"
+CFLAGS="$CFLAGS -Wextra -Wall"
+CFLAGS="$CFLAGS -Wno-unused-macros -Wno-unused-function"
+CFLAGS="$CFLAGS -Wno-missing-field-initializers"
+CFLAGS="$CFLAGS -Wno-constant-logical-operand"
 LDFLAGS="$LDFLAGS -lm $(pkg-config x11 --libs)"
 
 CC=${CC:-cc}
-if [ $CC = "clang" ]; then
+if [ "$CC" = "clang" ]; then
     CFLAGS="$CFLAGS -Weverything"
     CFLAGS="$CFLAGS -Wno-unsafe-buffer-usage"
     CFLAGS="$CFLAGS -Wno-format-nonliteral"
@@ -46,27 +50,27 @@ else
 fi
 
 case "$target" in
-    "uninstall")
-        set -x
-        rm -f ${DESTDIR}${PREFIX}/bin/${program}
-        rm -f ${DESTDIR}${PREFIX}/man/man1/${program}.1
-        ;;
-    "test")
-        testing
-        ;;
-    "install")
-        [ ! -f $program ] && $0 build
-        set -x
-        install -Dm755 ${program} ${DESTDIR}${PREFIX}/bin/${program}
-        install -Dm644 ${program}.1 ${DESTDIR}${PREFIX}/man/man1/${program}.1
-        ;;
-    "build"|"debug")
-        ctags --kinds-C=+l *.h *.c 2> /dev/null || true
-        vtags.sed tags > .tags.vim 2> /dev/null || true
-        set -x
-        $CC $CFLAGS -o ${program} "$main" $LDFLAGS
-        ;;
-    *)
-        echo "usage: $0 [ uninstall / test / install / build / debug ]"
-        ;;
+"uninstall")
+    set -x
+    rm -f "${DESTDIR}${PREFIX}/bin/${program}"
+    rm -f "${DESTDIR}${PREFIX}/man/man1/${program}.1"
+    ;;
+"test")
+    testing
+    ;;
+"install")
+    [ ! -f $program ] && $0 build
+    set -x
+    install -Dm755 "${program}"  "${DESTDIR}${PREFIX}/bin/${program}"
+    install -Dm644 "${program}.1" "${DESTDIR}${PREFIX}/man/man1/${program}.1"
+    ;;
+"build"|"debug")
+    ctags --kinds-C=+l -- *.h *.c 2> /dev/null || true
+    vtags.sed tags > .tags.vim 2> /dev/null || true
+    set -x
+    $CC $CFLAGS -o ${program} "$main" $LDFLAGS
+    ;;
+*)
+    echo "usage: $0 [ uninstall / test / install / build / debug ]"
+    ;;
 esac
