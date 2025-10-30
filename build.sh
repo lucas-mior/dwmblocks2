@@ -34,6 +34,7 @@ CC=${CC:-cc}
 if [ $CC = "clang" ]; then
     CFLAGS="$CFLAGS -Weverything "
     CFLAGS="$CFLAGS -Wno-unsafe-buffer-usage -Wno-format-nonliteral "
+    CFLAGS="$CFLAGS -Wno-implicit-void-ptr-cast"
     CFLAGS="$CFLAGS -Wno-disabled-macro-expansion "
 fi
 

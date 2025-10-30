@@ -17,7 +17,6 @@ static struct pollfd pipes[LENGTH(blocks)];
 
 static Display *display;
 static Window root;
-char *program;
 
 #define TIMEOUT_INTERRUPTED 350
 #define TIMEOUT_NORMAL 1000
