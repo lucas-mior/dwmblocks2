@@ -64,6 +64,12 @@ block_clock(int button, Block *block) {
             exit(EXIT_SUCCESS);
         }
         break;
+    case 6:
+        if (fork() == 0) {
+            execlp("st", "st", "-e", "vim", __FILE__, NULL);
+            exit(EXIT_SUCCESS);
+        }
+        break;
     default:
         break;
     }
