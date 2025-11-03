@@ -32,7 +32,7 @@ block_clock(int button, Block *block) {
         time_t seconds_since_epoch;
         struct tm t;
         char *string = block->output + 1;
-        size_t n;
+        int32 n;
         seconds_since_epoch = time(NULL);
         localtime_r(&seconds_since_epoch, &t);
 
@@ -44,10 +44,10 @@ block_clock(int button, Block *block) {
             n = snprintf(string, MAX_BLOCK_OUTPUT_LENGTH - 1, "📅 %ld ",
                          seconds_since_epoch);
         } else {
-            n = strftime(string, MAX_BLOCK_OUTPUT_LENGTH - 1, "📅 %a %d/%m %T ",
-                         &t);
+            n = (int32)strftime(string, MAX_BLOCK_OUTPUT_LENGTH - 1,
+                                "📅 %a %d/%m %T ", &t);
         }
-        block->length = (int)n + 1;
+        block->length = n + 1;
     }
 
     switch (button) {
