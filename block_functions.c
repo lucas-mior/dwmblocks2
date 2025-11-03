@@ -27,6 +27,7 @@
 
 static void
 block_clock(int button, Block *block) {
+    static bool show_epoch = false;
     if (block) {
         time_t seconds_since_epoch;
         struct tm t;
@@ -36,8 +37,16 @@ block_clock(int button, Block *block) {
         localtime_r(&seconds_since_epoch, &t);
 
         // TODO: use async-safe strftime
-        n = strftime(string, MAX_BLOCK_OUTPUT_LENGTH - 1, "📅 %a %d/%m %T ",
-                     &t);
+        if (button == 7) {
+            show_epoch = !show_epoch;
+        }
+        if (show_epoch) {
+            n = snprintf(string, MAX_BLOCK_OUTPUT_LENGTH - 1, "📅 %ld ",
+                         seconds_since_epoch);
+        } else {
+            n = strftime(string, MAX_BLOCK_OUTPUT_LENGTH - 1, "📅 %a %d/%m %T ",
+                         &t);
+        }
         block->length = (int)n + 1;
     }
 
