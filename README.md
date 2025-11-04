@@ -8,12 +8,10 @@ dwmblocks2 & # put this line in your xinitrc
 
 ## Configuration
 Edit `blocks.h`.
-By default it uses all blocks in `blocks/` directory,
-plus the clock block.
-You can use external programs or C functions of
-prototype `void function_name(int, Block *)`,
-defined in `block_functions.c` and declared in `block_functions.h`.
-Checkout the clock block for an example.
+By default it uses all blocks in `blocks/` directory, plus the clock block.  You
+can use external programs or C functions of prototype `void function_name(int,
+Block *)`, defined in `block_functions.c`. Checkout the clock block for an
+example.
 
 ## Notes
 - Each command specificed on `blocks.h` is not interpreted by the shell,
