@@ -255,7 +255,7 @@ spawn_block(Block *block, int button) {
     int pipefd[2];
     char button_str[2] = {'0' + (char)button, '\0'};
     char *argv[3] = {block->command, button_str, NULL};
-    char *error_message;
+    char error_message[1024];
 
     if (block->function) {
         block->function(button, block);
@@ -270,7 +270,7 @@ spawn_block(Block *block, int button) {
     }
 
     if (pipe(pipefd) < 0) {
-        error_message = strerror(errno);
+        strerror_r(errno, error_message, sizeof(error_message));
         WRITE_ERROR("Error creating pipe: ");
         WRITE_ERROR(error_message);
         WRITE_ERROR("\n");
@@ -284,7 +284,7 @@ spawn_block(Block *block, int button) {
         dup2(pipefd[1], STDOUT_FILENO);
         close(pipefd[1]);
         execvp(argv[0], argv);
-        error_message = strerror(errno);
+        strerror_r(errno, error_message, sizeof(error_message));
 
         WRITE_ERROR("Error executing ");
         WRITE_ERROR(block->command);
@@ -293,7 +293,7 @@ spawn_block(Block *block, int button) {
         WRITE_ERROR(".\n");
         _exit(EXIT_FAILURE);
     case -1:
-        error_message = strerror(errno);
+        strerror_r(errno, error_message, sizeof(error_message));
         WRITE_ERROR("Error forking: ");
         WRITE_ERROR(error_message);
         WRITE_ERROR(".\n");
@@ -316,6 +316,7 @@ parse_output(Block *block) {
     isize r;
     usize space = sizeof(block->output);
     char *string = block->output + 1;
+    char error_message[1024];
 
     sigprocmask(SIG_BLOCK, &(block->mask), NULL);
 
@@ -328,7 +329,7 @@ parse_output(Block *block) {
     }
 
     if (r < 0) {
-        char *error_message = strerror(errno);
+        strerror_r(errno, error_message, sizeof(error_message));
         WRITE_ERROR("Error reading from block ");
         WRITE_ERROR(block->command);
         WRITE_ERROR(": ");
@@ -419,6 +420,7 @@ signal_handler(int signum, siginfo_t *signal_info, void *ucontext) {
 void
 int_handler(int unused) {
     (void)unused;
+    char error_message[1024];
 
     for (int i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
@@ -428,7 +430,7 @@ int_handler(int unused) {
             WRITE_ERROR(itoa2(*block->fd, num));
             WRITE_ERROR("...\n");
             if (close(*block->fd) < 0) {
-                char *error_message = strerror(errno);
+                strerror_r(errno, error_message, sizeof(error_message));
                 WRITE_ERROR("Error closing: ");
                 WRITE_ERROR(error_message);
                 WRITE_ERROR(".\n");
