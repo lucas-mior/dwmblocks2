@@ -419,8 +419,8 @@ signal_handler(int signum, siginfo_t *signal_info, void *ucontext) {
 
 void
 int_handler(int unused) {
-    (void)unused;
     char error_message[1024];
+    (void)unused;
 
     for (int i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
