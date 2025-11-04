@@ -21,7 +21,6 @@
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include "dwmblocks2.h"
 
@@ -84,16 +83,5 @@ block_clock(int button, Block *block) {
     }
     return;
 }
-
-#if __INCLUDE_LEVEL__ == 0
-#include <assert.h>
-
-int
-main(void) {
-    assert(true);
-    exit(EXIT_SUCCESS);
-}
-
-#endif
 
 #endif
