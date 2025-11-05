@@ -156,6 +156,7 @@ main(int argc, char **argv) {
             }
         }
         if (ready > 0) {
+            error("nready:%d\n", ready);
             if (timeout == TIMEOUT_NORMAL) {
                 struct timespec complete;
 
