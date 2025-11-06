@@ -90,9 +90,9 @@ static char *program;
 #define SIZEOF(X) (int64)sizeof(X)
 
 #if !defined(SIZEKB)
-#define SIZEKB(X) ((size_t)(X)*1024ul)
-#define SIZEMB(X) ((size_t)(X)*1024ul*1024ul)
-#define SIZEGB(X) ((size_t)(X)*1024ul*1024ul*1024ul)
+#define SIZEKB(X) ((int64)(X)*1024l)
+#define SIZEMB(X) ((int64)(X)*1024l*1024l)
+#define SIZEGB(X) ((int64)(X)*1024l*1024l*1024l)
 #endif
 
 #if !defined(LENGTH)
@@ -128,7 +128,7 @@ static char *program;
         int8: PRINT_VAR_EVAL("%d", variable),                                  \
         int16: PRINT_VAR_EVAL("%d", variable),                                 \
         int32: PRINT_VAR_EVAL("%d", variable),                                 \
-        int64: PRINT_VAR_EVAL("%ld", variable),                                \
+        int64: PRINT_VAR_EVAL("%lld", (long long)variable),                                \
         uint8: PRINT_VAR_EVAL("%u", variable),                                 \
         uint16: PRINT_VAR_EVAL("%u", variable),                                \
         uint32: PRINT_VAR_EVAL("%u", variable),                                \
@@ -289,7 +289,7 @@ basename2(char *path) {
 
 #if OS_UNIX
 static void *
-xmmap_commit(size_t *size) {
+xmmap_commit(int64 *size) {
     void *p;
 
     if (util_page_size == 0) {
@@ -303,18 +303,18 @@ xmmap_commit(size_t *size) {
 
     do {
         if ((*size >= SIZEMB(2)) && FLAGS_HUGE_PAGES) {
-            p = mmap(NULL, *size, PROT_READ | PROT_WRITE,
+            p = mmap(NULL, (size_t)*size, PROT_READ | PROT_WRITE,
                      MAP_ANONYMOUS | MAP_PRIVATE | MAP_POPULATE
                          | FLAGS_HUGE_PAGES,
                      -1, 0);
             if (p != MAP_FAILED) {
-                *size = UTIL_ALIGN(*size, SIZEMB(2));
+                *size = (int64)UTIL_ALIGN((size_t)size, (size_t)SIZEMB(2));
                 break;
             }
         }
-        p = mmap(NULL, *size, PROT_READ | PROT_WRITE,
+        p = mmap(NULL, (size_t)*size, PROT_READ | PROT_WRITE,
                  MAP_ANONYMOUS | MAP_PRIVATE | MAP_POPULATE, -1, 0);
-        *size = UTIL_ALIGN(*size, util_page_size);
+        *size = (int64)UTIL_ALIGN((size_t)*size, util_page_size);
     } while (0);
     if (p == MAP_FAILED) {
         error("Error in mmap(%zu): %s.\n", *size, strerror(errno));
@@ -323,15 +323,15 @@ xmmap_commit(size_t *size) {
     return p;
 }
 static void
-xmunmap(void *p, size_t size) {
-    if (munmap(p, size) < 0) {
-        error("Error in munmap(%p, %zu): %s.\n", p, size, strerror(errno));
+xmunmap(void *p, int64 size) {
+    if (munmap(p, (size_t)size) < 0) {
+        error("Error in munmap(%p, %lld): %s.\n", p, size, strerror(errno));
     }
     return;
 }
 #else
 static void *
-xmmap_commit(size_t *size) {
+xmmap_commit(int64 *size) {
     void *p;
 
     if (util_page_size == 0) {
@@ -344,9 +344,10 @@ xmmap_commit(size_t *size) {
         }
     }
 
-    p = VirtualAlloc(NULL, *size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+    p = VirtualAlloc(NULL, (size_t)*size, MEM_COMMIT | MEM_RESERVE,
+                     PAGE_READWRITE);
     if (p == NULL) {
-        fprintf(stderr, "Error in VirtualAlloc(%zu): %lu.\n", *size,
+        fprintf(stderr, "Error in VirtualAlloc(%lld): %lu.\n", (long long)*size,
                 GetLastError());
         fatal(EXIT_FAILURE);
     }
@@ -370,7 +371,7 @@ xmalloc(int64 size) {
         fatal(EXIT_FAILURE);
     }
     if ((p = malloc((size_t)size)) == NULL) {
-        error("Failed to allocate %zu bytes.\n", size);
+        error("Failed to allocate %lld bytes.\n", (long long)size);
         fatal(EXIT_FAILURE);
     }
     return p;
@@ -381,7 +382,7 @@ xrealloc(void *old, const int64 size) {
     void *p;
     uint64 old_save = (uint64)old;
     if (size <= 0) {
-        error("Error in xmalloc: invalid size = %ld.\n", size);
+        error("Error in xmalloc: invalid size = %lld.\n", (long long)size);
         fatal(EXIT_FAILURE);
     }
     if ((p = realloc(old, (usize)size)) == NULL) {
@@ -844,7 +845,7 @@ send_signal(const char *executable, const int32 signal_number) {
             close(cmdline);
             continue;
         }
-        if (memmem(command, r, executable, (size_t)len)) {
+        if (memmem(command, (size_t)r, executable, (size_t)len)) {
             if (kill(pid, signal_number) < 0) {
                 error("Error sending signal %d to program %s (pid %d): %s.\n",
                       signal_number, executable, pid, strerror(errno));
