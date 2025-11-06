@@ -384,8 +384,7 @@ parse_output(Block *block) {
                 goto final;
             }
 
-            memmove(&string[i], &string[i + 1],
-                    (usize)(block->length - i)*sizeof(*string));
+            memmove64(&string[i], &string[i + 1], (block->length - i)*sizeof(*string));
         }
     }
 final:
