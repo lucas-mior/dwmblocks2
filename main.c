@@ -220,9 +220,9 @@ main(int argc, char **argv) {
             for (int i = 0; i < LENGTH(blocks); i += 1) {
                 Block *block = &blocks[i];
                 char *string = block->output;
-                usize size = (usize)block->length;
+                int64 size = block->length;
                 if (size > 1) {
-                    memcpy(pointer, string, size);
+                    memcpy64(pointer, string, size);
                     pointer += size;
                 }
                 if (i == (LENGTH(blocks) / 2)) {
@@ -239,7 +239,7 @@ main(int argc, char **argv) {
                         error("Error opening %s: %s\n", name, strerror(errno));
                         exit(EXIT_FAILURE);
                     }
-                    fwrite(status_new, sizeof(*status_new), sizeof(status_new),
+                    fwrite64(status_new, sizeof(*status_new), sizeof(status_new),
                            file);
                     fclose(file);
                 }
@@ -314,16 +314,16 @@ spawn_block(Block *block, int button) {
 
 void
 parse_output(Block *block) {
-    isize r;
-    usize space = sizeof(block->output);
+    int64 r;
+    int64 space = sizeof(block->output);
     char *string = block->output + 1;
     char error_message[1024];
 
     sigprocmask(SIG_BLOCK, &(block->mask), NULL);
 
-    while ((r = read(*block->fd, string, space)) > 0) {
+    while ((r = read64(*block->fd, string, space)) > 0) {
         string += r;
-        space -= (usize)r;
+        space -= r;
         if (space <= 0) {
             break;
         }
