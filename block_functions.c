@@ -40,8 +40,8 @@ block_clock(int button, Block *block) {
             show_epoch = !show_epoch;
         }
         if (show_epoch) {
-            n = snprintf(string, MAX_BLOCK_OUTPUT_LENGTH - 1, "📅 %ld ",
-                         seconds_since_epoch);
+            n = snprintf(string, MAX_BLOCK_OUTPUT_LENGTH - 1, "📅 %lld ",
+                         (llong)seconds_since_epoch);
         } else {
             n = (int32)strftime(string, MAX_BLOCK_OUTPUT_LENGTH - 1,
                                 "📅 %a %d/%m %T ", &t);
