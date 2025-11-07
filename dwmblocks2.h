@@ -30,7 +30,7 @@ typedef uint32_t uint32;
 typedef uint64_t uint64;
 #endif
 
-#define LENGTH(X) ((isize) (sizeof(X) / sizeof(*X)))
+#define LENGTH(X) ((int64)(sizeof(X) / sizeof(*X)))
 #define MAX_BLOCK_OUTPUT_LENGTH 80
 #define IS_SPACE(X) ((X == ' ') || (X == '\t') || (X == '\n'))
 #define WRITE_ERROR(X) do { write(STDERR_FILENO, X, strlen(X)); } while (0)
