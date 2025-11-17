@@ -9,7 +9,7 @@ DESTDIR="${DESTDIR:-/}"
 main="main.c"
 program="dwmblocks2"
 
-CFLAGS="$CFLAGS -std=c99 -D_DEFAULT_SOURCE"
+CFLAGS="$CFLAGS -std=c11 -D_DEFAULT_SOURCE"
 CFLAGS="$CFLAGS -Wextra -Wall"
 CFLAGS="$CFLAGS -Wno-unused-macros -Wno-unused-function"
 CFLAGS="$CFLAGS -Wno-missing-field-initializers"
@@ -21,6 +21,8 @@ if [ "$CC" = "clang" ]; then
     CFLAGS="$CFLAGS -Weverything"
     CFLAGS="$CFLAGS -Wno-unsafe-buffer-usage"
     CFLAGS="$CFLAGS -Wno-format-nonliteral"
+    CFLAGS="$CFLAGS -Wno-format-pedantic"
+    CFLAGS="$CFLAGS -Wno-pre-c11-compat"
     CFLAGS="$CFLAGS -Wno-implicit-void-ptr-cast"
     CFLAGS="$CFLAGS -Wno-disabled-macro-expansion "
 fi

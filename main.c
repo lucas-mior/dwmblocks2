@@ -239,8 +239,8 @@ main(int argc, char **argv) {
                         error("Error opening %s: %s\n", name, strerror(errno));
                         exit(EXIT_FAILURE);
                     }
-                    fwrite64(status_new, sizeof(*status_new), sizeof(status_new),
-                           file);
+                    fwrite64(status_new, sizeof(*status_new),
+                             sizeof(status_new), file);
                     fclose(file);
                 }
             }
@@ -384,7 +384,8 @@ parse_output(Block *block) {
                 goto final;
             }
 
-            memmove64(&string[i], &string[i + 1], (block->length - i)*SIZEOF(*string));
+            memmove64(&string[i], &string[i + 1],
+                      (block->length - i)*SIZEOF(*string));
         }
     }
 final:
