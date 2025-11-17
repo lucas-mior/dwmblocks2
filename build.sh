@@ -23,6 +23,8 @@ if [ "$CC" = "clang" ]; then
     CFLAGS="$CFLAGS -Wno-format-nonliteral"
     CFLAGS="$CFLAGS -Wno-format-pedantic"
     CFLAGS="$CFLAGS -Wno-pre-c11-compat"
+    CFLAGS="$CFLAGS -Wno-c++-keyword"
+    CFLAGS="$CFLAGS -Wno-covered-switch-default"
     CFLAGS="$CFLAGS -Wno-implicit-void-ptr-cast"
     CFLAGS="$CFLAGS -Wno-disabled-macro-expansion "
 fi
