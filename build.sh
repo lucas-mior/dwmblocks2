@@ -42,7 +42,12 @@ case "$target" in
     rm -f "${DESTDIR}${PREFIX}/man/man1/${program}.1"
     ;;
 "install")
-    [ ! -f $program ] && $0 build
+    if [ ! -f $program ]; then
+        if [ "$(whoami)" = "root" ]; then
+            runuser="runuser -u lucas"
+        fi
+        $runuser $0 build
+    fi
     set -x
     install -Dm755 "${program}"  "${DESTDIR}${PREFIX}/bin/${program}"
     install -Dm644 "${program}.1" "${DESTDIR}${PREFIX}/man/man1/${program}.1"
