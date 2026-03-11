@@ -96,10 +96,10 @@
 #define TESTING_util 0
 #endif
 
-#if TESTING_util
-static char *program = __FILE__;
-#else
+#if !TESTING_util
 static char *program;
+#else
+static char *program = __FILE__;
 #endif
 
 static void __attribute__((format(printf, 1, 2))) error(char *format, ...);
@@ -119,10 +119,21 @@ static void __attribute__((format(printf, 1, 2))) error(char *format, ...);
 #define SNPRINTF(BUFFER, FORMAT, ...)                                          \
     snprintf2(BUFFER, sizeof(BUFFER), FORMAT, __VA_ARGS__)
 #endif
-#if !defined(STRING_FROM_STRINGS)
-#define STRING_FROM_STRINGS(BUFFER, SEP, ARRAY, LENGTH)                        \
-    string_from_strings(BUFFER, sizeof(BUFFER), SEP, ARRAY, LENGTH)
+#if !defined(STRFTIME)
+#define STRFTIME(BUFFER, FORMAT, TIME) \
+    strftime2(BUFFER, sizeof(BUFFER), FORMAT, TIME)
 #endif
+
+#define STRUCT_ARRAY_SIZE(struct_object, ArrayType, array_length) \
+    (int64)(SIZEOF(*(struct_object)) + (array_length*SIZEOF(ArrayType)))
+
+#define SWAP(x, y) do { __typeof__(x) SWAP = x; x = y; y = SWAP; } while (0)
+
+#define STRING_FROM_ARRAY(BUFFER, SEP, ARRAY, LENGTH) \
+_Generic((ARRAY), \
+    double *: string_from_doubles, \
+    char **: string_from_strings \
+)(BUFFER, sizeof(BUFFER), SEP, ARRAY, LENGTH)
 
 #if !defined(DEBUGGING)
 #define DEBUGGING 0
@@ -157,6 +168,7 @@ static void __attribute__((format(printf, 1, 2))) error(char *format, ...);
 #pragma clang diagnostic ignored "-Wdouble-promotion"
 #endif
 
+// Note: NEVER delete lines with // clang-format
 // clang-format off
 
 #endif
@@ -196,7 +208,8 @@ static void util_segv_handler(int32) __attribute__((noreturn));
 static char *itoa2(long, char *);
 static long atoi2(char *);
 INLINE void *memchr64(void *pointer, int32 value, int64 size);
-static int xclose(int *fd, char *filename);
+static int xclose(char *file, int line, int *fd, char *fd_var_name,
+                  char *filename);
 
 #if !defined(CAT)
 #define CAT_(a, b) a##b
@@ -435,18 +448,45 @@ X64(fread)
 
 #undef X64
 
+static void
+qsort64(void *base, int64 n, int64 size,
+        int (*compar)(const void *, const void *)) {
+    if ((size_t)size >= (SIZE_MAX / (size_t)n)) {
+        error("Error in %s: Overflow (%lld*%lld)\n", __func__, (llong)size,
+              (llong)n);
+        fatal(EXIT_FAILURE);
+    }
+    if ((size <= 0) || (n <= 0)) {
+        error("Error in %s: Invalid size(%lld) or n(%lld)\n", __func__,
+              (llong)size, (llong)n);
+        fatal(EXIT_FAILURE);
+    }
+    if ((ullong)size >= (ullong)SIZE_MAX) {
+        error("Error in %s: Size (%lld) is bigger than SIZEMAX\n", __func__,
+              (llong)size);
+        fatal(EXIT_FAILURE);
+    }
+    if ((ullong)n >= (ullong)SIZE_MAX) {
+        error("Error in %s: Number (%lld) is bigger than SIZEMAX\n", __func__,
+              (llong)size);
+        fatal(EXIT_FAILURE);
+    }
+    qsort(base, (size_t)n, (size_t)size, compar);
+    return;
+}
+
 #if OS_WINDOWS
-static uint32
+static int32
 util_nthreads(void) {
     SYSTEM_INFO sysinfo;
     memset64(&sysinfo, 0, SIZEOF(sysinfo));
     GetSystemInfo(&sysinfo);
-    return sysinfo.dwNumberOfProcessors;
+    return (int32)sysinfo.dwNumberOfProcessors;
 }
 #else
-static uint32
+static int32
 util_nthreads(void) {
-    return (uint32)sysconf(_SC_NPROCESSORS_ONLN);
+    return (int32)sysconf(_SC_NPROCESSORS_ONLN);
 }
 #endif
 
@@ -504,6 +544,10 @@ xmalloc(int64 size) {
     if ((p = malloc((size_t)size)) == NULL) {
         error("Failed to allocate %lld bytes.\n", (llong)size);
         fatal(EXIT_FAILURE);
+    }
+
+    if (DEBUGGING && !RUNNING_ON_VALGRIND) {
+        memset64(p, 0xCD, size);
     }
     return p;
 }
@@ -717,7 +761,7 @@ xpthread_join(pthread_t thread, void **thread_return) {
 }
 
 static int32 __attribute__((format(printf, 3, 4)))
-snprintf2(char *buffer, int size, char *format, ...) {
+snprintf2(char *buffer, int64 size, char *format, ...) {
     int n;
     va_list args;
 
@@ -725,83 +769,95 @@ snprintf2(char *buffer, int size, char *format, ...) {
     n = vsnprintf(buffer, (size_t)size, format, args);
     va_end(args);
 
-    if (n <= 0) {
-        error("Error in snprintf %s.\n", format);
-        fatal(EXIT_FAILURE);
-    }
-    if (n >= size) {
-        error("Error in snprintf %s: Buffer is too small.\n", format);
+    if ((n < 0) || (n >= size)) {
+        fprintf(stderr, "Error in vsnprintf(%s) (n = %lld\n", format, (llong)n);
         fatal(EXIT_FAILURE);
     }
     return n;
 }
 
-static void
+static int64
+strftime2(char *buffer, int64 size, char *format, struct tm *time_info) {
+    int64 n;
+
+    n = (int64)strftime(buffer, (size_t)size, format, time_info);
+    if ((n <= 0) || (n >= size)) {
+        error("Error in strftime(%s) (n = %lld).\n", format, (llong)n);
+        fatal(EXIT_FAILURE);
+    }
+    return n;
+}
+
+static int32
 util_filename_from(char *buffer, int64 size, int fd) {
-    char *unknown = "<unknown filename>";
-    int64 unknown_len = strlen64(unknown);
 #if OS_LINUX
     char linkpath[64];
     ssize_t len;
 
     SNPRINTF(linkpath, "/proc/self/fd/%d", fd);
     if ((len = readlink(linkpath, buffer, (size_t)(size - 1))) < 0) {
-        memcpy64(buffer, unknown, unknown_len + 1);
-        return;
+        return -1;
     }
     buffer[len] = '\0';
-    return;
+    return 0;
 #elif OS_MAC
     static char buffer2[PATH_MAX];
     int64 len;
 
     if (fcntl(fd, F_GETPATH, buffer2) < 0) {
-        memcpy64(buffer, unknown, unknown_len + 1);
-        return;
+        return -1;
     }
     len = MIN(strlen64(buffer2), size - 1);
     memcpy64(buffer, buffer2, len + 1);
-    return;
+    return 0;
 #elif OS_WINDOWS
     HANDLE h;
     DWORD len;
     intptr_t h2 = _get_osfhandle(fd);
 
     if ((h = (HANDLE)h2) == INVALID_HANDLE_VALUE) {
-        memcpy64(buffer, unknown, unknown_len + 1);
-        return;
+        return -1;
     }
 
     len = GetFinalPathNameByHandleA(h, buffer, (DWORD)size,
                                     FILE_NAME_NORMALIZED);
 
     if ((len <= 0) || (len >= size)) {
-        memcpy64(buffer, unknown, unknown_len + 1);
-        return;
+        return -1;
     }
 
     if (strncmp(buffer, "\\\\?\\", 4) == 0) {
         memmove(buffer, buffer + 4, len - 3);
     }
 
-    return;
+    return 0;
 #else
     (void)size;
     (void)fd;
-    memcpy(buffer, unknown, unknown_len + 1);
-    return;
+    (void)buffer;
+    return -1;
 #endif
 }
 
 static int
-xclose(int *fd, char *filename) {
-    if (close(*fd) < 0) {
-        char buffer[4096];
-        if (filename == NULL) {
-            util_filename_from(buffer, sizeof(buffer), *fd);
+xclose(char *file, int line, int *fd, char *fd_var_name, char *filename) {
+#if DEBUGGING
+    char buffer[4096];
+    if (filename == NULL) {
+        if (util_filename_from(buffer, sizeof(buffer), *fd) < 0) {
+            filename = fd_var_name;
+        } else {
             filename = buffer;
         }
-        error("Error closing %s: %s.\n", filename, strerror(errno));
+    }
+#else
+    if (filename == NULL) {
+        filename = fd_var_name;
+    }
+#endif
+    if (close(*fd) < 0) {
+        error("%s:%d Error closing %s: %s.\n", file, line, filename,
+              strerror(errno));
         *fd = -1;
         return -1;
     }
@@ -809,9 +865,18 @@ xclose(int *fd, char *filename) {
     return 0;
 }
 
-#define xclose_1(...) xclose(__VA_ARGS__, NULL)
-#define xclose_2(...) xclose(__VA_ARGS__)
+#define xclose_1(FD)       xclose(__FILE__, __LINE__, FD, #FD, NULL)
+#define xclose_2(FD, NAME) xclose(__FILE__, __LINE__, FD, #FD, NAME)
 #define XCLOSE(...) SELECT_ON_NUM_ARGS(xclose_, __VA_ARGS__)
+
+static int
+xunlink(char *filename) {
+    if (unlink(filename) < 0) {
+        error("Error in unlink(%s): %s.\n", filename, strerror(errno));
+        return -1;
+    }
+    return 0;
+}
 
 #if OS_WINDOWS
 static int
@@ -942,25 +1007,51 @@ util_command(int argc, char **argv) {
         return WEXITSTATUS(status);
     }
 }
+static int
+util_command_launch(int argc, char **argv) {
+    (void)argc;
+
+    switch (fork()) {
+    case 0:
+        if (setsid() < 0) {
+            error("Error in setsid: %s.\n", strerror(errno));
+        }
+        execvp(argv[0], argv);
+        error("\nError executing '%s", argv[0]);
+        for (int j = 1; j < argc; j += 1) {
+            error(" %s", argv[j]);
+        }
+        error("': %s.\n", strerror(errno));
+        return -1;
+    case -1:
+        error("Error forking: %s.\n", strerror(errno));
+        fatal(EXIT_FAILURE);
+    default:
+        return 0;
+    }
+}
 #endif
 
-static void
-string_from_strings(char *buffer, int32 size, char *sep, char **array,
-                    int32 array_length) {
-    int32 n = 0;
-
-    for (int32 i = 0; i < (array_length - 1); i += 1) {
-        int32 space = size - n;
-        int32 m = snprintf2(buffer + n, space, "%s%s", array[i], sep);
-        n += m;
-    }
-    {
-        int32 i = array_length - 1;
-        int32 space = size - n;
-        snprintf2(buffer + n, space, "%s", array[i]);
-    }
-    return;
+#define GENERATE_STRING_FROM_ARRAY(NAME, TYPE, FORMAT) \
+static void \
+string_from_##NAME(char *buffer, int32 size, \
+                   char *sep, TYPE array, int32 array_length) { \
+    int32 n = 0; \
+    for (int32 i = 0; i < (array_length - 1); i += 1) { \
+        int32 space = size - n; \
+        int32 m = snprintf2(buffer + n, space, FORMAT"%s", array[i], sep); \
+        n += m; \
+    } \
+    { \
+        int32 i = array_length - 1; \
+        int32 space = size - n; \
+        snprintf2(buffer + n, space, FORMAT, array[i]); \
+    } \
+    return; \
 }
+
+GENERATE_STRING_FROM_ARRAY(strings, char **, "%s")
+GENERATE_STRING_FROM_ARRAY(doubles, double *, "%f")
 
 void __attribute__((format(printf, 1, 2)))
 error(char *format, ...) {
@@ -972,12 +1063,8 @@ error(char *format, ...) {
     n = vsnprintf(buffer, sizeof(buffer), format, args);
     va_end(args);
 
-    if (n <= 0) {
-        fprintf(stderr, "Error in vsnprintf(%s)\n", format);
-        fatal(EXIT_FAILURE);
-    }
-    if (n >= SIZEOF(buffer)) {
-        fprintf(stderr, "Error in vsnprintf(%s): Buffer too small.\n", format);
+    if ((n < 0) || (n >= SIZEOF(buffer))) {
+        fprintf(stderr, "Error in vsnprintf(%s) (n = %lld\n", format, (llong)n);
         fatal(EXIT_FAILURE);
     }
 
@@ -1023,6 +1110,7 @@ fatal(int status) {
     }
 }
 
+// Note: NEVER delete lines with // clang-format
 // clang-format off
 void
 util_segv_handler(int32 unused) {
@@ -1064,10 +1152,7 @@ util_die_notify(char *program_name, char *format, ...) {
     n = vsnprintf(buffer, sizeof(buffer), format, args);
     va_end(args);
 
-    if (n < 0) {
-        fatal(EXIT_FAILURE);
-    }
-    if (n >= SIZEOF(buffer)) {
+    if ((n < 0) || (n >= SIZEOF(buffer))) {
         fatal(EXIT_FAILURE);
     }
 
@@ -1087,6 +1172,9 @@ util_memdup(void *source, int64 size) {
     return p;
 }
 
+// Note: NEVER delete lines with // clang-format
+// clang-format off
+
 #if OS_UNIX
 static int32
 util_copy_file_sync(char *destination, char *source) {
@@ -1102,8 +1190,8 @@ util_copy_file_sync(char *destination, char *source) {
     }
 
     if ((destination_fd
-         = open(destination, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR))
-        < 0) {
+             = open(destination,
+                    O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR)) < 0) {
         error("Error opening %s for writing: %s.\n", destination,
               strerror(errno));
         XCLOSE(&source_fd, source);
@@ -1138,9 +1226,15 @@ util_copy_file_sync(char *destination, char *source) {
     return 0;
 }
 
+// clang-format on
+
+#if !defined(MAX_FILES_COPY)
+#define MAX_FILES_COPY 256
+#endif
+
 typedef struct UtilCopyFilesAsync {
-    struct pollfd *pipes;
-    int *dests;
+    struct pollfd pipes[MAX_FILES_COPY];
+    int dests[MAX_FILES_COPY];
     int32 nfds;
     int32 unused;
 } UtilCopyFilesAsync;
@@ -1168,11 +1262,17 @@ util_copy_file_async(char *destination, char *source, int *dest_fd) {
 
 static void *
 util_copy_file_async_thread(void *arg) {
-    UtilCopyFilesAsync *pipe_thread = arg;
-    int32 nfds = pipe_thread->nfds;
-    struct pollfd *pipes = pipe_thread->pipes;
-    int *dests = pipe_thread->dests;
-    int32 left = nfds;
+    UtilCopyFilesAsync *copy_files = arg;
+    struct pollfd *pipes = copy_files->pipes;
+    int *dests = copy_files->dests;
+    int32 left = copy_files->nfds;
+
+    if (copy_files->nfds >= LENGTH(copy_files->pipes)) {
+        error("Error in %s:"
+              " too many files for UtilCopyFilesAsync definition.\n",
+              __func__);
+        fatal(EXIT_FAILURE);
+    }
 
     while (left > 0) {
         char buffer[BUFSIZ];
@@ -1180,53 +1280,43 @@ util_copy_file_async_thread(void *arg) {
         int64 w;
         int64 n;
 
-        switch (n = poll(pipes, (nfds_t)nfds, 1000)) {
-        case 0:
+        n = poll(pipes, (nfds_t)copy_files->nfds, 1000);
+        if (n == 0) {
             break;
-        case -1:
-            error("Error in poll(nfds=%lld): %s.\n", (llong)nfds,
+        }
+        if (n < 0) {
+            error("Error in poll(nfds=%lld): %s.\n", (llong)copy_files->nfds,
                   strerror(errno));
             break;
-        default:
-            for (int32 i = 0; i < nfds; i += 1) {
-                if (n <= 0) {
+        }
+        for (int32 i = 0; i < copy_files->nfds; i += 1) {
+            if (n <= 0) {
+                break;
+            }
+            if (!(pipes[i].revents & POLL_IN)) {
+                pipes[i].revents = 0;
+                continue;
+            }
+            n -= 1;
+            while ((r = read64(pipes[i].fd, buffer, sizeof(buffer))) > 0) {
+                if ((w = write64(dests[i], buffer, r)) != r) {
+                    if (w < 0) {
+                        error("Error writing: %s.\n", strerror(errno));
+                    }
                     break;
                 }
-                if (!(pipes[i].revents & POLL_IN)) {
-                    pipes[i].revents = 0;
-                    continue;
-                }
-                n -= 1;
-                while ((r = read64(pipes[i].fd, buffer, sizeof(buffer))) > 0) {
-                    if ((w = write64(dests[i], buffer, r)) != r) {
-                        if (w < 0) {
-                            error("Error writing: %s.\n", strerror(errno));
-                        }
-                        XCLOSE(&dests[i]);
-                        XCLOSE(&pipes[i].fd);
-
-                        dests[i] = -1;
-                        pipes[i].fd = -1;
-                        left -= 1;
-                        pipes[i].revents = 0;
-                        continue;
-                    }
-                }
-                if (r < 0) {
-                    error("Error reading: %s.\n", strerror(errno));
-                }
-                XCLOSE(&dests[i]);
-                XCLOSE(&pipes[i].fd);
-
-                dests[i] = -1;
-                pipes[i].fd = -1;
-                left -= 1;
-
-                error("Finished saving file %d.\n", i);
-                pipes[i].revents = 0;
             }
+            if (r < 0) {
+                error("Error reading: %s.\n", strerror(errno));
+            }
+            XCLOSE(&dests[i]);
+            XCLOSE(&pipes[i].fd);
+
+            left -= 1;
+            pipes[i].revents = 0;
         }
     }
+    free(copy_files);
     pthread_exit(NULL);
     return NULL;
 }
@@ -1410,6 +1500,7 @@ util_equal_files(char *filename_a, char *filename_b) {
             void *map_a;
             void *map_b;
 
+            // Note: NEVER delete lines with // clang-format
             // clang-format off
             map_a = mmap(NULL, (size_t)stat_a.st_size,
                          PROT_READ, MAP_PRIVATE, fd_a, 0);
@@ -1468,6 +1559,81 @@ out:
     return equal;
 }
 
+INLINE double
+rad2deg(double radians) {
+    const double RAD2DEG = 180.0 / 3.141592653589793;
+    return radians*RAD2DEG;
+}
+
+INLINE double
+deg2rad(double degrees) {
+    const double DEG2RAD = 3.141592653589793 / 180.0;
+    return degrees*DEG2RAD;
+}
+
+static int64
+bytes_pretty(char *buffer, int64 raw) {
+    char *suffixes[] = {"B", "kB", "MB", "GB", "TB", "PB"};
+    double aux_pretty;
+    int i;
+    int32 n;
+
+    if (raw <= 1023) {
+        n = snprintf2(buffer, 32, "%lldB", (llong)raw);
+        return n;
+    }
+
+    aux_pretty = (double)raw;
+    i = 0;
+    while ((aux_pretty >= 1024) && (i < LENGTH(suffixes))) {
+        aux_pretty /= 1024;
+        i += 1;
+    }
+
+    if (aux_pretty >= 1000) {
+        n = snprintf2(buffer, 32, "%.1f%s", aux_pretty, suffixes[i]);
+    } else if (aux_pretty >= 100) {
+        n = snprintf2(buffer, 32, "%.2f%s", aux_pretty, suffixes[i]);
+    } else if (aux_pretty >= 10) {
+        n = snprintf2(buffer, 32, "%.3f%s", aux_pretty, suffixes[i]);
+    } else {
+        n = snprintf2(buffer, 32, "%.4f%s", aux_pretty, suffixes[i]);
+    }
+
+    return n;
+}
+
+static char *
+shell_escape(char *path) {
+    int64 len;
+    int64 count;
+    char *escaped;
+    char *write_ptr;
+
+    len = strlen64(path);
+    count = 0;
+    for (int64 i = 0; i < len; i += 1) {
+        if (path[i] == '\'') {
+            count += 1;
+        }
+    }
+
+    escaped = xmalloc(len + (count*3) + 1);
+    write_ptr = escaped;
+
+    for (int64 i = 0; i < len; i += 1) {
+        if (path[i] == '\'') {
+            memcpy64(write_ptr, "'\\''", 4);
+            write_ptr += 4;
+        } else {
+            *write_ptr = path[i];
+            write_ptr += 1;
+        }
+    }
+    *write_ptr = '\0';
+    return escaped;
+}
+
 #if TESTING_util
 
 static void
@@ -1487,8 +1653,16 @@ write_file(char *path, void *data, int64 len) {
 }
 #define WRITE_FILE(PATH, STRING) write_file(PATH, STRING, strlen64(STRING))
 
+static volatile sig_atomic_t received_signal = false;
+static void
+signal_handler(int signal_number) {
+    (void)signal_number;
+    received_signal = true;
+    return;
+}
+
 int
-main(void) {
+main(int argc, char **argv) {
     char buffer[32];
     void *p1 = xmalloc(SIZEMB(1));
     void *p2 = xcalloc(10, SIZEMB(1));
@@ -1502,13 +1676,27 @@ main(void) {
     char *bases[] = {
         "cccc", "cc", "c", "c", "cccc", "cccc", "cccc",
     };
+    (void)argc;
+
+    if (OS_LINUX) {
+        struct sigaction signal_action;
+        signal_action.sa_handler = signal_handler;
+        sigemptyset(&signal_action.sa_mask);
+        signal_action.sa_flags = SA_RESTART;
+        if (sigaction(SIGUSR1, &signal_action, NULL) != 0) {
+            error2("Error in sigaction: %s.\n", strerror(errno));
+            exit(EXIT_FAILURE);
+        }
+        send_signal(argv[0], SIGUSR1);
+        ASSERT(received_signal);
+    }
 
     memset64(p1, 0, SIZEMB(1));
     memcpy64(p1, string, strlen64(string));
     memset64(p2, 0, SIZEMB(1));
     p3 = xstrdup(p1);
 
-    assert(!strcmp(string, p3));
+    ASSERT_EQUAL(string, p3);
 
     srand((uint)time(NULL));
     for (int i = 0; i < 10; i += 1) {
@@ -1518,12 +1706,12 @@ main(void) {
 
     for (int64 i = 0; i < LENGTH(paths); i += 1) {
         char *path = paths[i];
-        assert(!strcmp(basename2(path), bases[i]));
+        ASSERT_EQUAL(basename2(path), bases[i]);
     }
 
     if (OS_WINDOWS) {
         char *path2 = "aa\\cc";
-        assert(!strcmp(basename2(path2), "cc"));
+        ASSERT_EQUAL(basename2(path2), "cc");
     }
 
     {
@@ -1548,54 +1736,59 @@ main(void) {
 
         /* Uncomment below to trigger error */
         /* WRITE_FILE(a, "data"); */
-        /* unlink(b); */
+        /* xunlink(b); */
         /* error("Expected error below:\n"); */
         /* assert(!util_equal_files(a, b)); */
     }
 
     {
+        // Note: NEVER delete lines with // clang-format
+        // clang-format off
         const char characters[] = "abcdefghijklmnopqrstuvwxyz1234567890";
         char buffer2[4096];
-        char filename2[256];
+        char name2[256];
         char buffer3[4096];
-        char *filename = "/tmp/test";
+        char *name = "/tmp/test";
         int fd;
 
-        if ((fd
-             = open(filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR))
-            < 0) {
-            error("Error opening %s: %s.\n", filename, strerror(errno));
+        if ((fd = open(name,
+                       O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR)) < 0) {
+            error("Error opening %s: %s.\n", name, strerror(errno));
             fatal(EXIT_FAILURE);
         }
 
         util_filename_from(buffer2, sizeof(buffer2), fd);
-        ASSERT_EQUAL(realpath(filename, buffer3), buffer2);
-        unlink(filename);
+        ASSERT_EQUAL(realpath(name, buffer3), buffer2);
+        xunlink(name);
 
         XCLOSE(&fd);
 
-        for (int32 i = 0; i < (SIZEOF(filename2) - 1); i += 1) {
+        for (int32 i = 0; i < (SIZEOF(name2) - 1); i += 1) {
             uint32 c = (uint32)rand() % (sizeof(characters) - 1);
-            filename2[i] = characters[c];
+            name2[i] = characters[c];
         }
-        filename2[SIZEOF(filename2) - 1] = '\0';
+        name2[SIZEOF(name2) - 1] = '\0';
 
-        if ((fd
-             = open(filename2, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR))
-            < 0) {
-            error("Error opening %s: %s.\n", filename2, strerror(errno));
+        if ((fd = open(name2,
+                       O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR)) < 0) {
+            error("Error opening %s: %s.\n", name2, strerror(errno));
             fatal(EXIT_FAILURE);
         }
 
         util_filename_from(buffer2, sizeof(buffer2), fd);
-        ASSERT_EQUAL(realpath(filename2, buffer3), buffer2);
+        ASSERT_EQUAL(realpath(name2, buffer3), buffer2);
         XCLOSE(&fd);
-        unlink(filename2);
+        xunlink(name2);
+        // clang-format on
     }
 
     free(p1);
     free(p2);
     free(p3);
+
+    ASSERT_EQUAL(deg2rad(180.0), 3.141592653589793);
+    ASSERT_EQUAL(rad2deg(3.141592653589793), 180.0);
+
     exit(EXIT_SUCCESS);
 }
 
