@@ -142,7 +142,7 @@ main(int argc, char **argv) {
         struct timespec t1;
 
         if (clock_gettime(CLOCK, &t0) < 0) {
-            fprintf(stderr, "Error getting clock: %s\n", strerror(errno));
+            error("Error getting clock: %s\n", strerror(errno));
             exit(EXIT_FAILURE);
         }
 
@@ -161,7 +161,7 @@ main(int argc, char **argv) {
                 struct timespec complete;
 
                 if (clock_gettime(CLOCK, &t1) < 0) {
-                    fprintf(stderr, "Error getting clock: %s\n",
+                    error("Error getting clock: %s\n",
                             strerror(errno));
                     exit(EXIT_FAILURE);
                 }
