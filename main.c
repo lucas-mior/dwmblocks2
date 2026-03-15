@@ -137,7 +137,7 @@ main(int argc, char **argv) {
     }
     while (true) {
         static int seconds = 1;
-        int ready;
+        int nready;
         struct timespec t0;
         struct timespec t1;
 
@@ -146,8 +146,8 @@ main(int argc, char **argv) {
             exit(EXIT_FAILURE);
         }
 
-        ready = poll(pipes, LENGTH(blocks), timeout);
-        if (ready < 0) {
+        nready = poll(pipes, LENGTH(blocks), timeout);
+        if (nready < 0) {
             if (errno == EINTR) {
                 continue;
             } else {
@@ -155,14 +155,13 @@ main(int argc, char **argv) {
                 exit(EXIT_FAILURE);
             }
         }
-        if (ready > 0) {
-            error("nready:%d\n", ready);
+        if (nready > 0) {
+            error("nready:%d\n", nready);
             if (timeout == TIMEOUT_NORMAL) {
                 struct timespec complete;
 
                 if (clock_gettime(CLOCK, &t1) < 0) {
-                    error("Error getting clock: %s\n",
-                            strerror(errno));
+                    error("Error getting clock: %s\n", strerror(errno));
                     exit(EXIT_FAILURE);
                 }
 
