@@ -913,7 +913,9 @@ xclose(char *file, int line, int *fd, char *fd_var_name, char *filename) {
     if (close(*fd) < 0) {
         char error_buffer[4096];
         char itoa_buffer[32];
+
         strerror_r(errno, error_buffer, sizeof(error_buffer));
+
         WRITE_ERROR(file);
         WRITE_ERROR(":");
         WRITE_ERROR(itoa2(line, itoa_buffer));
@@ -922,6 +924,7 @@ xclose(char *file, int line, int *fd, char *fd_var_name, char *filename) {
         WRITE_ERROR(": ");
         WRITE_ERROR(error_buffer);
         WRITE_ERROR(".\n");
+
         *fd = -1;
         return -1;
     }
