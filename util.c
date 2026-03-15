@@ -127,6 +127,8 @@ static void __attribute__((format(printf, 1, 2))) error(char *format, ...);
     strftime2(BUFFER, sizeof(BUFFER), FORMAT, TIME)
 #endif
 
+#define WRITE_ERROR(X) do { write(STDERR_FILENO, X, strlen(X)); } while (0)
+
 #define STRUCT_ARRAY_SIZE(struct_object, ArrayType, array_length) \
     (int64)(SIZEOF(*(struct_object)) + (array_length*SIZEOF(ArrayType)))
 
@@ -894,6 +896,7 @@ static int
 xclose(char *file, int line, int *fd, char *fd_var_name, char *filename) {
 #if DEBUGGING
     char buffer[4096];
+
     if (filename == NULL) {
         if (util_filename_from(buffer, sizeof(buffer), *fd) < 0) {
             filename = fd_var_name;
@@ -906,9 +909,19 @@ xclose(char *file, int line, int *fd, char *fd_var_name, char *filename) {
         filename = fd_var_name;
     }
 #endif
+
     if (close(*fd) < 0) {
-        error("%s:%d Error closing %s: %s.\n", file, line, filename,
-              strerror(errno));
+        char error_buffer[4096];
+        char itoa_buffer[32];
+        strerror_r(errno, error_buffer, sizeof(error_buffer));
+        WRITE_ERROR(file);
+        WRITE_ERROR(":");
+        WRITE_ERROR(itoa2(line, itoa_buffer));
+        WRITE_ERROR(" Error closing ");
+        WRITE_ERROR(filename);
+        WRITE_ERROR(": ");
+        WRITE_ERROR(error_buffer);
+        WRITE_ERROR(".\n");
         *fd = -1;
         return -1;
     }

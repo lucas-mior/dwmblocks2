@@ -33,7 +33,6 @@ typedef uint64_t uint64;
 #define LENGTH(X) ((int64)(sizeof(X) / sizeof(*X)))
 #define MAX_BLOCK_OUTPUT_LENGTH 80
 #define IS_SPACE(X) ((X == ' ') || (X == '\t') || (X == '\n'))
-#define WRITE_ERROR(X) do { write(STDERR_FILENO, X, strlen(X)); } while (0)
 #define DWM_BAR_SEPARATOR ((char) 0x01)
 
 typedef struct Block {
