@@ -265,8 +265,7 @@ spawn_block(Block *block, int button) {
     sigprocmask(SIG_BLOCK, &(block->mask), NULL);
 
     if (*block->fd >= 0) {
-        close(*block->fd);
-        *block->fd = -1;
+        XCLOSE(block->fd, block->command);
     }
 
     if (pipe(pipefd) < 0) {
