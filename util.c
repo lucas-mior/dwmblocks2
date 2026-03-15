@@ -1782,10 +1782,12 @@ dirname2(char *buffer, int64 size, char *path) {
 }
 
 static void
-normalize(char *path) {
+normalize(char *path, int32 length) {
     char *p = path;
     int64 off = 0;
-    int32 length = strlen32(path);
+    if (length < 0) {
+        length = strlen32(path);
+    }
 
     PRINTLN(path);
 
