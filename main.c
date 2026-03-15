@@ -279,9 +279,9 @@ spawn_block(Block *block, int button) {
 
     switch (fork()) {
     case 0:
-        close(pipefd[0]);
+        XCLOSE(&pipefd[0]);
         dup2(pipefd[1], STDOUT_FILENO);
-        close(pipefd[1]);
+        XCLOSE(&pipefd[1]);
         execvp(argv[0], argv);
         strerror_r(errno, error_message, sizeof(error_message));
 
@@ -297,12 +297,12 @@ spawn_block(Block *block, int button) {
         WRITE_ERROR(error_message);
         WRITE_ERROR(".\n");
 
-        close(pipefd[0]);
-        close(pipefd[1]);
+        XCLOSE(&pipefd[0]);
+        XCLOSE(&pipefd[1]);
         *block->fd = -1;
         break;
     default:
-        close(pipefd[1]);
+        XCLOSE(&pipefd[1]);
         *block->fd = pipefd[0];
     }
 
@@ -336,8 +336,7 @@ parse_output(Block *block) {
         WRITE_ERROR(".\n");
     }
 
-    close(*block->fd);
-    *block->fd = -1;
+    XCLOSE(block->fd);
 
     sigprocmask(SIG_UNBLOCK, &(block->mask), NULL);
 
@@ -428,7 +427,7 @@ int_handler(int unused) {
             WRITE_ERROR("closing block ");
             WRITE_ERROR(itoa2(*block->fd, num));
             WRITE_ERROR("...\n");
-            if (close(*block->fd) < 0) {
+            if (XCLOSE(block->fd) < 0) {
                 strerror_r(errno, error_message, sizeof(error_message));
                 WRITE_ERROR("Error closing: ");
                 WRITE_ERROR(error_message);
