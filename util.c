@@ -35,6 +35,7 @@
 #include <float.h>
 
 #include "generic.c"
+#include "minmax.c"
 
 #if defined(__linux__)
 #define OS_LINUX 1
@@ -127,7 +128,7 @@ static void __attribute__((format(printf, 1, 2))) error(char *format, ...);
     strftime2(BUFFER, sizeof(BUFFER), FORMAT, TIME)
 #endif
 
-#define WRITE_ERROR(X) do { write(STDERR_FILENO, X, strlen(X)); } while (0)
+#define WRITE_ERROR(X) do { write64(STDERR_FILENO, X, strlen32(X)); } while (0)
 
 #define STRUCT_ARRAY_SIZE(struct_object, ArrayType, array_length) \
     (int64)(SIZEOF(*(struct_object)) + (array_length*SIZEOF(ArrayType)))
@@ -199,11 +200,6 @@ _Generic((SIZE), \
 #endif
 #if !defined(ALIGN)
 #define ALIGN(x) UTIL_ALIGN(x, ALIGNMENT)
-#endif
-
-#if !defined(MIN)
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
 #endif
 
 // clang-format on
@@ -539,14 +535,17 @@ util_nthreads(void) {
 #endif
 
 static char *
-basename2(char *path) {
-    int64 left = strlen32(path);
+basename2(char *path, int32 full_length, int32 *base_len) {
+    int32 left = full_length;
     char *end = path + left - 1;
     char *fslash = NULL;
     char *bslash = NULL;
     char *p = path;
 
     if (left == 1) {
+        if (base_len) {
+            *base_len = 1;
+        }
         return p;
     }
 
@@ -559,9 +558,15 @@ basename2(char *path) {
         }
 
         if ((fslash == NULL) && (bslash == NULL)) {
+            if (base_len) {
+                *base_len = full_length - (int32)(p - path);
+            }
             return p;
         }
         if ((fslash == end) || (bslash == end)) {
+            if (base_len) {
+                *base_len = full_length - (int32)(p - path);
+            }
             return p;
         }
         if (fslash > bslash) {
@@ -891,6 +896,18 @@ util_filename_from(char *buffer, int64 size, int fd) {
     return -1;
 #endif
 }
+
+#if OS_WINDOWS
+static int
+strerror_r(int errnum, char *buffer, size_t size) {
+    char *error_message = strerror(errnum);
+    int32 len = strlen32(error_message);
+    memcpy64(buffer, error_message, MIN(len + 1, size - 1));
+    buffer[size] = '\0';
+    return 0;
+}
+
+#endif
 
 static int
 xclose(char *file, int line, int *fd, char *fd_var_name, char *filename) {
@@ -1782,27 +1799,30 @@ dirname2(char *buffer, int64 size, char *path) {
 }
 
 static void
-normalize(char *path, int32 length) {
+normalize(char *path, int32 *length) {
     char *p = path;
     int64 off = 0;
-    if (length < 0) {
-        length = strlen32(path);
+    if (*length < 0) {
+        *length = strlen32(path);
     }
 
-    PRINTLN(path);
-
-    while ((p = memmem64(path + off, length - off, "//", 2))) {
+    while ((p = memmem64(path + off, *length - off, "//", 2))) {
         off = p - path;
 
-        memmove64(&p[0], &p[1], length - off);
-        length -= 1;
+        memmove64(&p[0], &p[1], *length - off);
+        *length -= 1;
+    }
+
+    while ((path[0] == '.') && (path[1] == '/') && (*length > 2)) {
+        memmove64(&path[0], &path[2], *length - 1);
+        *length -= 2;
     }
 
     off = 0;
-    while ((p = memmem64(path + off, length - off, "/./", 3))) {
+    while ((p = memmem64(path + off, *length - off, "/./", 3))) {
         off = p - path;
 
-        memmove64(&p[1], &p[3], length - off - 2);
+        memmove64(&p[1], &p[3], *length - off - 2);
         length -= 2;
     }
 
@@ -1862,6 +1882,7 @@ main(int argc, char **argv) {
     char *string = __FILE__;
 
     (void)argc;
+    (void)argv;
 
     if (OS_LINUX) {
         struct sigaction signal_action;
@@ -1893,28 +1914,41 @@ main(int argc, char **argv) {
         // Note: NEVER delete lines with // clang-format
         // clang-format off
         char *paths[] = {
-            "/aaaa/bbbb/cccc", "/aa/bb/cc", "/a/b/c",    "a/b/c",
+            "/aaaa/bbbb/cccc", "/aa/bb/cc",  "/a/b/c",    "a/b/c",
             "a/b/cccc",        "a/bb/cccc", "aaaa/cccc", "/aaaa",
-            "/",               "//",        "/a/",       "/a/b/",
-            "./",              "..",        "././",      "./a/",
+            "/",               "//",          "/a/",       "/a/b/",
+            "./",              "..",          "././",      "./a/",
         };
         char *bases[] = {
-            "cccc",            "cc",        "c",         "c",
-            "cccc",            "cccc",      "cccc",      "aaaa",
-            "/",               "/",         "a/",        "b/",
-            "./",              "..",        "./",        "a/",
+            "cccc",            "cc",          "c",         "c",
+            "cccc",            "cccc",        "cccc",      "aaaa",
+            "/",               "/",           "a/",        "b/",
+            "./",              "..",          "./",        "a/",
         };
         char *dirs[] = {
-            "/aaaa/bbbb",      "/aa/bb",    "/a/b",      "a/b",
-            "a/b",             "a/bb",      "aaaa",      "/",
-            "/",               "/",         "/",          "/a",
-            ".",               ".",         ".",         ".",
+            "/aaaa/bbbb",      "/aa/bb",      "/a/b",      "a/b",
+            "a/b",             "a/bb",        "aaaa",      "/",
+            "/",               "/",           "/",         "/a",
+            ".",               ".",           ".",         ".",
+        };
+        char *normalized[] = {
+            "/aaaa/bbbb/cccc", "/aa/bb/cc",   "/a/b/c",    "a/b/c",
+            "a/b/cccc",        "a/bb/cccc",   "aaaa/cccc", "/aaaa",
+            "/",               "/",           "/a/",       "/a/b/",
+            "./",              "..",          "./",        "a/",
         };
         // clang-format on
         for (int64 i = 0; i < LENGTH(paths); i += 1) {
             char *path = paths[i];
             char *base = bases[i];
-            ASSERT_EQUAL(basename2(path), base);
+            ASSERT_EQUAL(basename2(path, strlen32(path), NULL), base);
+        }
+        for (int64 i = 0; i < LENGTH(paths); i += 1) {
+            char *copy = xstrdup(paths[i]);
+            int len = strlen32(copy);
+            normalize(copy, &len);
+            ASSERT_EQUAL(copy, normalized[i]);
+            free(copy);
         }
 
         for (int64 i = 0; i < LENGTH(paths); i += 1) {
@@ -1931,7 +1965,7 @@ main(int argc, char **argv) {
 
     if (OS_WINDOWS) {
         char *path2 = "aa\\cc";
-        ASSERT_EQUAL(basename2(path2), "cc");
+        ASSERT_EQUAL(basename2(path2, strlen32(path2), NULL), "cc");
     }
 
     {
