@@ -7,6 +7,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <sys/param.h>
+#undef MIN
+#undef MAX
 #include <sys/wait.h>
 #include <unistd.h>
 
