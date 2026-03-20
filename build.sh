@@ -2,6 +2,10 @@
 
 # shellcheck disable=SC2086
 
+set -e
+alias trace_on='set -x'
+alias trace_off='{ set +x; } 2>/dev/null'
+
 target="${1:-build}"
 PREFIX="${PREFIX:-/usr/local}"
 DESTDIR="${DESTDIR:-/}"
@@ -53,10 +57,11 @@ case "$target" in
     install -Dm644 "${program}.1" "${DESTDIR}${PREFIX}/man/man1/${program}.1"
     ;;
 "build"|"debug")
+    trace_on
     ctags --kinds-C=+l -- *.h *.c 2> /dev/null || true
     vtags.sed tags > .tags.vim 2> /dev/null || true
-    set -x
     $CC $CFLAGS -o ${program} "$main" $LDFLAGS
+    trace_off
     ;;
 *)
     echo "usage: $0 [ uninstall / install / build / debug ]"
