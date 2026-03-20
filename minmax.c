@@ -105,11 +105,6 @@ GENERATE_COMPARE_INTEGERS_SAME_SIGN(unsigned, >,  max)
 
 #undef GENERATE_COMPARE_INTEGERS_SAME_SIGN
 
-// clang-format on
-
-// Note: NEVER delete lines with // clang-format
-// clang-format off
-
 #define GENERATE_COMPARE_SIGNED_UNSIGNED(MODE, SYMBOL) \
 static llong \
 get_signed_unsigned_##MODE(llong var1, ullong var2) { \
@@ -171,8 +166,8 @@ _Generic((VAR2), \
     uchar:   SIGNED_UNSIGNED(MODE, VAR1, VAR2, TYPE1, TYPE_UCHAR  ), \
     ushort:  SIGNED_UNSIGNED(MODE, VAR1, VAR2, TYPE1, TYPE_USHORT ), \
     uint:    SIGNED_UNSIGNED(MODE, VAR1, VAR2, TYPE1, TYPE_UINT   ), \
-    ulong:   SIGNED_UNSIGNED(MODE, VAR1, VAR2, TYPE1, TYPE_ULONG  ), \
-    ullong:  SIGNED_UNSIGNED(MODE, VAR1, VAR2, TYPE1, TYPE_ULLONG ), \
+    ulong:   BOTH_LDOUBLE(MODE,    VAR1, VAR2, TYPE1, TYPE_ULONG  ), \
+    ullong:  BOTH_LDOUBLE(MODE,    VAR1, VAR2, TYPE1, TYPE_ULLONG ), \
     float:   BOTH_LDOUBLE(MODE,    VAR1, VAR2, TYPE1, TYPE_FLOAT  ), \
     double:  BOTH_LDOUBLE(MODE,    VAR1, VAR2, TYPE1, TYPE_DOUBLE ), \
     ldouble: BOTH_LDOUBLE(MODE,    VAR1, VAR2, TYPE1, TYPE_LDOUBLE), \
@@ -254,8 +249,10 @@ _Generic((VAR1), \
     ldouble: FIRST_LDOUBLE(MODE,  VAR1, VAR2, TYPE_LDOUBLE)  \
 )
 
+#if !defined(MIN)
 #define MIN(VAR1, VAR2) MINMAX_COMPARE(min, VAR1, VAR2)
 #define MAX(VAR1, VAR2) MINMAX_COMPARE(max, VAR1, VAR2)
+#endif
 
 // clang-format on
 
@@ -292,17 +289,17 @@ main(void) {
     }{
         long a = -1;
         ulong b = 0;
-        long min = MIN(a, b);
-        long max = MAX(a, b);
+        long double min = MIN(a, b);
+        long double max = MAX(a, b);
         ASSERT_EQUAL(min, a);
         ASSERT_EQUAL(max, b);
     }{
         long a = MINOF(a);
         ulong b = MAXOF(b);
-        long min = MIN(a, b);
-        long max = MAX(a, b);
+        long double min = MIN(a, b);
+        long double max = MAX(a, b);
         ASSERT_EQUAL(min, a);
-        ASSERT_EQUAL(max, (llong)b);
+        ASSERT_EQUAL(max, (long double)b);
     }{
         ulong a = MINOF(a);
         long b = MAXOF(b);
