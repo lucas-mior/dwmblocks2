@@ -424,8 +424,9 @@ int_handler(int unused) {
         Block *block = &blocks[i];
         char num[16];
         if (*block->fd >= 0) {
+            ITOA(num, *block->fd);
             error_async_safe("closing block ");
-            error_async_safe(itoa2(*block->fd, num));
+            error_async_safe(num);
             error_async_safe("...\n");
             if (XCLOSE(block->fd) < 0) {
                 strerror_r(errno, error_message, sizeof(error_message));

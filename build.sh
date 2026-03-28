@@ -10,6 +10,10 @@ target="${1:-build}"
 PREFIX="${PREFIX:-/usr/local}"
 DESTDIR="${DESTDIR:-/}"
 
+dir=$(dirname "$(readlink -f "$0")")
+cbase="cbase"
+CPPFLAGS="$CPPFLAGS -I "$dir/$cbase""
+
 main="main.c"
 program="dwmblocks2"
 
@@ -60,7 +64,7 @@ case "$target" in
     trace_on
     ctags --kinds-C=+l -- *.h *.c 2> /dev/null || true
     vtags.sed tags > .tags.vim 2> /dev/null || true
-    $CC $CFLAGS -o ${program} "$main" $LDFLAGS
+    $CC $CPPFLAGS $CFLAGS -o ${program} "$main" $LDFLAGS
     trace_off
     ;;
 *)
