@@ -5,7 +5,7 @@ index c53a530..e8b3bfc 100644
 @@ -62,6 +62,8 @@ static const Layout layouts[] = {
  /* helper for spawning shell commands in the pre dwm-5.0 fashion */
  #define SHCMD(cmd) { .v = (const char*[]){ "/bin/sh", "-c", cmd, NULL } }
- 
+
 +#define STATUSBAR "dwmblocks2"
 +
  /* commands */
@@ -60,7 +60,7 @@ index 29cc1a5..67d4e0f 100644
  	Monitor *m;
  	XButtonPressedEvent *ev = &e->xbutton;
 +	char *text, *s, ch;
- 
+
  	click = ClkRootWin;
  	/* focus monitor if necessary */
 @@ -452,9 +458,23 @@ buttonpress(XEvent *e)
@@ -90,7 +90,7 @@ index 29cc1a5..67d4e0f 100644
  	} else if ((c = wintoclient(ev->window))) {
  		focus(c);
 @@ -720,9 +740,24 @@ drawbar(Monitor *m)
- 
+
  	/* draw status first so it can be overdrawn by tags later */
  	if (m == selmon) { /* status is only drawn on selected monitor */
 +		char *text, *s, ch;
@@ -114,12 +114,12 @@ index 29cc1a5..67d4e0f 100644
 +		drw_text(drw, m->ww - statusw + x, 0, tw, bh, 0, text, 0);
 +		tw = statusw;
  	}
- 
+
  	for (c = m->clients; c; c = c->next) {
 @@ -888,6 +923,30 @@ getatomprop(Client *c, Atom prop)
  	return atom;
  }
- 
+
 +pid_t
 +getstatusbarpid()
 +{
@@ -150,7 +150,7 @@ index 29cc1a5..67d4e0f 100644
 @@ -1696,6 +1755,21 @@ sigterm(int unused)
  	quit(&a);
  }
- 
+
 +void
 +sigstatusbar(const Arg *arg)
 +{
@@ -195,4 +195,4 @@ index 29cc1a5..67d4e0f 100644
 +	}
  	drawbar(selmon);
  }
- 
+
