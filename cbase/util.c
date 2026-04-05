@@ -60,6 +60,7 @@
 
 #define OS_UNIX (OS_LINUX || OS_MAC || OS_BSD)
 
+
 #if defined(__GNUC__)
 #define COMPILER_GCC 1
 #define COMPILER_CLANG 0
@@ -644,6 +645,7 @@ static void *
 realloc_debug(char *file, int32 line,
               void *old, int64 old_capacity, int64 new_capacity, int64 obj_size) {
     int64 new_size;
+    (void)old_capacity;
     if (obj_size <= 0) {
         error_impl(file, line,
                    "Error in realloc: invalid object size = %lld.\n",
@@ -880,12 +882,13 @@ xpthread_create(pthread_t *thread, pthread_attr_t *attr,
 }
 
 static void
-xpthread_join(pthread_t thread, void **thread_return) {
+xpthread_join(pthread_t *thread, void **thread_return) {
     int err;
-    if ((err = pthread_join(thread, thread_return))) {
+    if ((err = pthread_join(*thread, thread_return))) {
         error("Error joining thread: %s.\n", strerror(err));
         fatal(EXIT_FAILURE);
     }
+    *thread = 0;
     return;
 }
 

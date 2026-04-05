@@ -107,6 +107,7 @@ main(int argc, char **argv) {
             signal_this.sa_flags = SA_NODEFER | SA_SIGINFO;
             sigemptyset(&(block->mask));
             sigaddset(&(block->mask), block->signal);
+            sigaddset(&(block->mask), SIGUSR1);
 
             sigemptyset(&(signal_this.sa_mask));
             for (int j = 0; j < LENGTH(blocks); j += 1) {

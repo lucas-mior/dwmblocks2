@@ -162,7 +162,7 @@ struct Map {
 
 #define CHECK_COMMON_MAP(FIELD) \
     _Static_assert(offsetof(struct Map, FIELD) == offsetof(struct CommonMap, FIELD), \
-                   "CommonMap and new Map must have the same offset for " #FIELD);
+                   "CommonMap and new Map must have the same offset for " #FIELD)
 
 CHECK_COMMON_MAP(size);
 CHECK_COMMON_MAP(capacity);
