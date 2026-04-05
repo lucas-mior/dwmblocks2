@@ -24,6 +24,7 @@
 
 #include "dwmblocks2.h"
 
+
 static void
 block_clock(int button, Block *block) {
     static bool show_epoch = false;
