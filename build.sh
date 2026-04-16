@@ -38,9 +38,9 @@ if [ "$CC" = "clang" ]; then
 fi
 
 if [ "$target" = "debug" ]; then
-    CFLAGS="$CFLAGS -g -fsanitize=undefined -DDWMBLOCKS2_DEBUG=1"
+    CFLAGS="$CFLAGS -g3 -fsanitize=undefined -DDEBUGGING=1"
 else
-    CFLAGS="$CFLAGS -O2 -flto -DDWMBLOCKS2_DEBUG=0"
+    CFLAGS="$CFLAGS -O2 -flto"
 fi
 
 case "$target" in
@@ -60,6 +60,11 @@ case "$target" in
     install -Dm755 "${program}"  "${DESTDIR}${PREFIX}/bin/${program}"
     install -Dm644 "${program}.1" "${DESTDIR}${PREFIX}/man/man1/${program}.1"
     ;;
+"check")
+    CC=gcc CFLAGS="-fanalyzer" ./build.sh
+    scan-build --view -analyze-headers --status-bugs ./build.sh
+    exit
+    ;;
 "build"|"debug")
     trace_on
     ctags --kinds-C=+l -- *.h *.c 2> /dev/null || true
@@ -68,6 +73,6 @@ case "$target" in
     trace_off
     ;;
 *)
-    echo "usage: $0 [ uninstall / install / build / debug ]"
+    echo "usage: $0 [ uninstall / install / build / debug / check ]"
     ;;
 esac

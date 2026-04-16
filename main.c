@@ -231,7 +231,7 @@ main(int argc, char **argv) {
                 }
             }
 
-            if (DWMBLOCKS2_DEBUG) {
+            if (DEBUGGING) {
                 if (seconds == 10) {
                     char *name = "dwmblocks2.txt";
                     FILE *file;
