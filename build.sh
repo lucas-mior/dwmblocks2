@@ -22,6 +22,7 @@ CFLAGS="$CFLAGS -Wextra -Wall"
 CFLAGS="$CFLAGS -Wno-unused-macros -Wno-unused-function"
 CFLAGS="$CFLAGS -Wno-missing-field-initializers"
 CFLAGS="$CFLAGS -Wno-constant-logical-operand"
+CFLAGS="$CFLAGS -Wno-gnu-union-cast"
 LDFLAGS="$LDFLAGS -lm $(pkg-config x11 --libs)"
 
 CC=${CC:-cc}
