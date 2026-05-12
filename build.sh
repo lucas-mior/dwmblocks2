@@ -38,6 +38,7 @@ if [ "$CC" = "clang" ]; then
     CFLAGS="$CFLAGS -Wno-disabled-macro-expansion "
     CFLAGS="$CFLAGS -Wno-cast-qual"
     CFLAGS="$CFLAGS -Wno-float-equal"
+    CFLAGS="$CFLAGS -Wno-cast-function-type-strict"
 fi
 
 if [ "$target" = "debug" ]; then
