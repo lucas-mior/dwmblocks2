@@ -314,7 +314,7 @@ spawn_block(Block *block, int button) {
 void
 parse_output(Block *block) {
     int64 r;
-    int64 space = sizeof(block->output) - 1;
+    int64 space = sizeof(block->output) - 3;
     char *string = block->output + 1;
     char error_message[1024];
 
