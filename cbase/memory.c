@@ -69,8 +69,6 @@ typedef struct DebugAllocInfo {
 #define HASH_KEY_FIXED_LEN 1
 #define HASH_VALUE_TYPE DebugAllocInfo
 #define HASH_TYPE alloc_map
-#define HASH_PADDING_TYPE2 uint32
-#define HASH_PADDING_TYPE uint32
 #include "hash.c"
 
 static struct Hash_alloc_map *allocations = NULL;
@@ -912,6 +910,7 @@ typedef struct TestFlex {
 typedef struct TestString {
     char *s;
     int32 len;
+    int32 padding;
 } TestString;
 
 #define ASSERT_EXPECTED_FATAL(BLOCK) do { \
@@ -1026,7 +1025,7 @@ int main(void) {
         int64 len = strlen32(original) + 1;
 
         ASSERT(dup != original);
-        ASSERT(strcmp(dup, original) == 0);
+        ASSERT(strequal(dup, original));
         printf("xstrdup successful.\n");
 
         mem_dup = xmemdup(dup, len);

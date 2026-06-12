@@ -164,7 +164,7 @@ toString(char *restrict buf, int64 bufSize, char *restrict fmt, ...) {
 #define snprint(BUF, BSZ, ...) snprint_0((BUF), (BSZ), __VA_ARGS__, (char *)0)
 #define print0(...) fprint_0(stdout, __VA_ARGS__, (char *)0)
 
-#define S(X) toString((char[S_BSZ]){ "" }, S_BSZ, _Generic((X), \
+#define S_(X) toString((char[S_BSZ]){ "" }, S_BSZ, _Generic((X), \
     void *: "%p", \
     char *: "%s", \
     bool: "%i", \
@@ -187,7 +187,7 @@ toString(char *restrict buf, int64 bufSize, char *restrict fmt, ...) {
     ) \
 ), (X))
 
-#define V(X) "", S(X), ""
+#define V(X) "", S_(X), ""
 #define W(X) "", (X), ""
 #define SF(F, X) toString((char[S_BSZ]){ "" }, S_BSZ, (F), (X))
 #define VF(F, X) "", SF((F), (X)), ""
@@ -759,14 +759,14 @@ main(void) {
         FILE *fp;
         int n;
 
-        assert(!strcmp(S(a), "i"));
-        assert(!strcmp(S(b), "able"));
-        assert(!strcmp(S(c), "1"));
-        assert(!strcmp(S((uint)42), "42"));
-        assert(!strcmp(S((long)-42), "-42"));
-        assert(!strcmp(S((ullong)42), "42"));
-        assert(!strcmp(S(true), "1"));
-        assert(!strcmp(S(false), "0"));
+        assert(!strcmp(S_(a), "i"));
+        assert(!strcmp(S_(b), "able"));
+        assert(!strcmp(S_(c), "1"));
+        assert(!strcmp(S_((uint)42), "42"));
+        assert(!strcmp(S_((long)-42), "-42"));
+        assert(!strcmp(S_((ullong)42), "42"));
+        assert(!strcmp(S_(true), "1"));
+        assert(!strcmp(S_(false), "0"));
         assert(!strcmp(SF("0x%02x", 10), "0x0a"));
 
         n = snprint(buf, sizeof(buf),

@@ -6,6 +6,12 @@
 
 #define TOKENIZE_INITIAL_TOKEN_CAPACITY 32
 
+#if defined(__INCLUDE_LEVEL__) && (__INCLUDE_LEVEL__ == 0)
+#define TESTING_meta_tokenize 1
+#elif !defined(TESTING_meta_tokenize)
+#define TESTING_meta_tokenize 0
+#endif
+
 static bool
 char_is_alpha(char c) {
     bool result;
@@ -656,7 +662,7 @@ tokenization_find_matching(Tokenization *tokenization, int32 open_index) {
     } else if (TOKEN_IS(&tokenization->tokens[open_index], "{")) {
         close = "}";
     }
-    if (!close) {
+    if (close == NULL) {
         return -1;
     }
 

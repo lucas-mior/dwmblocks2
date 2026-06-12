@@ -7,6 +7,12 @@
 #include "meta.h"
 #include "util.c"
 
+#if defined(__INCLUDE_LEVEL__) && (__INCLUDE_LEVEL__ == 0)
+#define TESTING_meta_generate 1
+#elif !defined(TESTING_meta_generate)
+#define TESTING_meta_generate 0
+#endif
+
 static StrBuilder
 c_string_literal(char *value, int32 value_len) {
     StrBuilder out = {0};
@@ -79,6 +85,8 @@ emit_string_array_initializer(StrBuilder *out, char *field, char **values,
         int32 fb_len = SNPRINTF(fb, "%s%d", fallback_prefix, i);
         char *value;
         int32 value_len;
+        StrBuilder cs;
+
         if (values[i]) {
             value = values[i];
             value_len = value_lens[i];
@@ -86,7 +94,8 @@ emit_string_array_initializer(StrBuilder *out, char *field, char **values,
             value = fb;
             value_len = fb_len;
         }
-        StrBuilder cs = c_string_literal(value, value_len);
+
+        cs = c_string_literal(value, value_len);
         sb_printf(out, "        %s,\n", cs.data);
         free2(cs.data, cs.cap);
     }
@@ -104,17 +113,20 @@ emit_lens_initializer(StrBuilder *out, char *field, char **values,
 
     sb_printf(out, "    .%s = { ", field);
     for (int32 i = 0; i < count; i += 1) {
-        if (i) {
-            SB_APPEND(out, ", ");
-        }
         char fb[32];
         int32 fb_len = SNPRINTF(fb, "%s%d", fallback_prefix, i);
         int32 value_len;
+
+        if (i > 0) {
+            SB_APPEND(out, ", ");
+        }
+
         if (values[i]) {
             value_len = value_lens[i];
         } else {
             value_len = fb_len;
         }
+
         sb_printf(out, "%d", value_len);
     }
     SB_APPEND(out, " },\n");
