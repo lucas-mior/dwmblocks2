@@ -17,7 +17,7 @@ CPPFLAGS="$CPPFLAGS -I "$dir/$cbase""
 main="main.c"
 program="dwmblocks2"
 
-CFLAGS="$CFLAGS -std=c11 -D_DEFAULT_SOURCE"
+CFLAGS="$CFLAGS -std=c11 -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=700"
 CFLAGS="$CFLAGS -Wextra -Wall"
 CFLAGS="$CFLAGS -Wno-unused-macros"
 CFLAGS="$CFLAGS -Wno-unused-function"

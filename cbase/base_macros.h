@@ -70,7 +70,7 @@
 #undef SIZEOF
 #endif
 #define SIZEOF(X) ((int64)sizeof(X))
-#define LENGTH(x) (int64)((sizeof(x) / sizeof(*x)))
+#define LENGTH(x) (int32)((sizeof(x) / sizeof(*x)))
 #define SWAP(x, y) do { __typeof__(x) SWAP = x; x = y; y = SWAP; } while (0)
 
 #define ALIGN_POWER_OF_2_(SIZE, A) (int64)(((SIZE) + ((A) - 1)) & ~((A) - 1))
@@ -138,6 +138,15 @@ _Generic((SIZE), \
 #define MAP_POPULATE 0
 #endif
 
+#if !defined(MAP_ANON) && defined(MAP_ANONYMOUS)
+#define MAP_ANON MAP_ANONYMOUS
+#elif !defined(MAP_ANONYMOUS) && defined(MAP_ANON)
+#define MAP_ANONYMOUS MAP_ANON
+#elif !defined(MAP_ANONYMOUS) && !defined(MAP_ANON)
+#define MAP_ANON 0
+#define MAP_ANONYMOUS 0
+#endif
+
 #if defined(__GNUC__) || defined(__clang__)
 #define UNUSED __attribute__((unused))
 #else
@@ -145,5 +154,23 @@ _Generic((SIZE), \
 #endif
 
 #define π 3.14159265358979323846264338327950288
+
+#if !defined(__has_builtin)
+  #define __has_builtin(x) 0  // Compatibility with older/alternative compilers
+#endif
+
+#if __has_builtin(__builtin_unreachable)
+  #define UNREACHABLE() __builtin_unreachable()
+#elif defined(_MSC_VER)
+  #define UNREACHABLE() __assume(0)
+#else
+  #define UNREACHABLE() do { } while(0)
+#endif
+
+#if CC_CLANG
+#define ENUM_UNDERLYING_TYPE_ : uint32
+#else
+#define ENUM_UNDERLYING_TYPE_
+#endif
 
 #endif /* BASE_MACROS_H */
