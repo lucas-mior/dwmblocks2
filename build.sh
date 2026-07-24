@@ -66,8 +66,13 @@ case "$target" in
     install -Dm644 "${program}.1" "${DESTDIR}${PREFIX}/man/man1/${program}.1"
     ;;
 "check")
-    CC=gcc CFLAGS="-fanalyzer" ./build.sh
-    scan-build --view -analyze-headers --status-bugs ./build.sh
+    CC=gcc CFLAGS="-fanalyzer -fdiagnostics-color=never" "$0" build
+    CFLAGS="--analyze -Xanalyzer -analyzer-output=text"
+    CFLAGS="$CFLAGS -Xanalyzer -analyzer-werror"
+    CFLAGS="$CFLAGS -Xanalyzer -analyzer-opt-analyze-headers"
+    CFLAGS="$CFLAGS -Wno-unused-command-line-argument"
+    CFLAGS="$CFLAGS -fno-color-diagnostics"
+    CC=clang CFLAGS="$CFLAGS" "$0" build
     exit
     ;;
 "build"|"debug")
