@@ -9,7 +9,9 @@
 #include "dwmblocks2.h"
 #include "blocks.h"
 
-#include "util.c"
+#define CBASE_IMPLEMENT
+#include "cbase.h"
+
 
 #define CLOCK CLOCK_REALTIME
 
