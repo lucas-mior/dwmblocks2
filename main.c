@@ -283,10 +283,13 @@ spawn_block(Block *block, int button) {
 
     if (pipe(pipefd) < 0) {
         strerror_r(errno, error_message, sizeof(error_message));
+
         error_async_safe("Error creating pipe: ");
         error_async_safe(error_message);
         error_async_safe("\n");
+
         *block->fd = -1;
+
         sigprocmask(SIG_UNBLOCK, &(block->mask), NULL);
         return;
     }
