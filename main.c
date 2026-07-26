@@ -56,14 +56,11 @@ main(int argc, char **argv) {
         sigemptyset(&(signal_external.sa_mask));
 
         for (int i = SIGRTMIN; i <= SIGRTMAX; i += 1) {
-            struct sigaction signal_this;
+            struct sigaction signal_this = {0};
 
+            signal_this.sa_handler = SIG_IGN;
             sigemptyset(&(signal_this.sa_mask));
-            sigaddset(&(signal_this.sa_mask), i);
-            signal_int.sa_handler = SIG_IGN;
-            // TODO: signal_this is initialized here, but signal_int is
-            // installed, so the intended per-signal mask is unused.
-            sigaction(i, &signal_int, NULL);
+            sigaction(i, &signal_this, NULL);
         }
 
         for (int i = 0; i < LENGTH(blocks); i += 1) {
