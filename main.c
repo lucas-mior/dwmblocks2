@@ -293,9 +293,7 @@ spawn_block(Block *block, int button) {
     switch (fork()) {
     case 0:
         XCLOSE(&pipefd[0]);
-        // TODO: dup2 failure is ignored, so execvp can run with stdout
-        // still pointing somewhere other than the pipe.
-        dup2(pipefd[1], STDOUT_FILENO);
+        xdup2(pipefd[1], STDOUT_FILENO);
         XCLOSE(&pipefd[1]);
         // TODO: The child inherits block->mask and execs with those signals
         // still blocked.
