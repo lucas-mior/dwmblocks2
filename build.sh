@@ -77,8 +77,8 @@ case "$target" in
     ;;
 "build"|"debug")
     trace_on
-    ctags --kinds-C=+l **/*.h **/*.c || true
-    vtags.sed tags > .tags.vim       || true
+    find . -iname "*.[ch]" -print0 | xargs --verbose -0 ctags --kinds-C=+l+d || true
+    vtags.sed tags | sort | uniq > .tags.vim            || true
     $CC $CPPFLAGS $CFLAGS -o ${program} "$main" $LDFLAGS
     trace_off
     ;;
