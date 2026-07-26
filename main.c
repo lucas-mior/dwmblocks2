@@ -308,9 +308,11 @@ spawn_block(Block *block, int button) {
         error_async_safe(": ");
         error_async_safe(error_message);
         error_async_safe(".\n");
+
         _exit(EXIT_FAILURE);
     case -1:
         strerror_r(errno, error_message, sizeof(error_message));
+
         error_async_safe("Error forking: ");
         error_async_safe(error_message);
         error_async_safe(".\n");
@@ -322,6 +324,7 @@ spawn_block(Block *block, int button) {
     default:
         XCLOSE(&pipefd[1]);
         *block->fd = pipefd[0];
+        break;
     }
 
     sigprocmask(SIG_UNBLOCK, &(block->mask), NULL);
