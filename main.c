@@ -77,8 +77,10 @@ main(int argc, char **argv) {
                 exit(EXIT_FAILURE);
             }
 
-            // TODO: atoi accepts trailing garbage and cannot report overflow,
-            // so invalid environment values can be accepted as signals.
+            if (!util_is_integer(signal_string)) {
+                error("Error: %s is not an integer.\n");
+                exit(EXIT_FAILURE);
+            }
             block->signal = atoi(signal_string);
             if (block->signal <= 0) {
                 error("Invalid signal for block %d."
