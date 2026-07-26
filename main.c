@@ -57,7 +57,7 @@ main(int argc, char **argv) {
         struct sigaction signal_int = {0};
 
         signal_int.sa_handler = int_handler;
-        sigemptyset(&(signal_int.sa_mask));
+        sigfillset(&(signal_int.sa_mask));
         sigaction(SIGINT, &signal_int, NULL);
 
         signal_childs.sa_handler = SIG_DFL;
