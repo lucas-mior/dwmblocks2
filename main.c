@@ -67,7 +67,6 @@ main(int argc, char **argv) {
         }
 
         for (int i = 0; i < LENGTH(blocks); i += 1) {
-            struct sigaction signal_this;
             Block *block = &blocks[i];
             char *signal_string;
 
@@ -112,15 +111,18 @@ main(int argc, char **argv) {
             // always run the newest signal for a block, unless in
             // a critical part of handler, then sigprocmask()
             // is called on block->mask to defer newer execution
-            signal_this.sa_sigaction = signal_handler;
-            signal_this.sa_flags = SA_NODEFER | SA_SIGINFO;
             sigemptyset(&(block->mask));
             sigaddset(&(block->mask), block->signal);
             sigaddset(&(block->mask), SIGUSR1);
+        }
 
+        for (int i = 0; i < LENGTH(blocks); i += 1) {
+            Block *block = &blocks[i];
+            struct sigaction signal_this;
+
+            signal_this.sa_sigaction = signal_handler;
+            signal_this.sa_flags = SA_NODEFER | SA_SIGINFO;
             sigemptyset(&(signal_this.sa_mask));
-            // TODO: Later blocks have not filled other->signal yet, so this
-            // mask misses their signals and may call sigaddset() with 0.
             for (int j = 0; j < LENGTH(blocks); j += 1) {
                 Block *other = &blocks[j];
                 if (j != i) {
