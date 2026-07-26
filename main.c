@@ -41,14 +41,12 @@ main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
     {
-        struct sigaction signal_external;
-        struct sigaction signal_childs;
-        struct sigaction signal_int;
+        struct sigaction signal_external = {0};
+        struct sigaction signal_childs = {0};
+        struct sigaction signal_int = {0};
 
         signal_int.sa_handler = int_handler;
         sigemptyset(&(signal_int.sa_mask));
-        // TODO: signal_int.sa_flags is never initialized before sigaction(),
-        // so SIGINT may inherit garbage flags from stack memory.
         sigaction(SIGINT, &signal_int, NULL);
 
         signal_childs.sa_handler = SIG_DFL;
