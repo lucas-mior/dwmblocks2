@@ -38,7 +38,6 @@ static void drain_signal_pipe(void);
 static void fill_handled_signal_mask(sigset_t *);
 static void parse_output(Block *);
 static void signal_handler(int, siginfo_t *, void *);
-static void setup_signal_pipe(void);
 static void spawn_block(Block *, int);
 static void spawn_queued_blocks(void);
 static volatile sig_atomic_t timeout = TIMEOUT_NORMAL;
@@ -66,7 +65,26 @@ main(int argc, char **argv) {
         sigemptyset(&(signal_childs.sa_mask));
         sigemptyset(&(signal_external.sa_mask));
 
-        setup_signal_pipe();
+        if (pipe(signal_pipe) < 0) {
+            error("Error creating signal pipe: %s\n", strerror(errno));
+            exit(EXIT_FAILURE);
+        }
+        for (int i = 0; i < LENGTH(signal_pipe); i += 1) {
+            int flags = fcntl(signal_pipe[i], F_GETFL);
+
+            if (flags < 0) {
+                error("Error getting signal pipe flags: %s\n", strerror(errno));
+                exit(EXIT_FAILURE);
+            }
+            if (fcntl(signal_pipe[i], F_SETFL, flags | O_NONBLOCK) < 0) {
+                error("Error setting signal pipe flags: %s\n", strerror(errno));
+                exit(EXIT_FAILURE);
+            }
+        }
+
+        pipes[SIGNAL_PIPE_INDEX].fd = signal_pipe[0];
+        pipes[SIGNAL_PIPE_INDEX].events = POLLIN;
+        pipes[SIGNAL_PIPE_INDEX].revents = 0;
 
         for (int i = SIGRTMIN; i <= SIGRTMAX; i += 1) {
             struct sigaction signal_this = {0};
@@ -316,31 +334,6 @@ fill_handled_signal_mask(sigset_t *mask) {
     for (int i = 0; i < LENGTH(blocks); i += 1) {
         sigaddset(mask, blocks[i].signal);
     }
-    return;
-}
-
-void
-setup_signal_pipe(void) {
-    if (pipe(signal_pipe) < 0) {
-        error("Error creating signal pipe: %s\n", strerror(errno));
-        exit(EXIT_FAILURE);
-    }
-    for (int i = 0; i < LENGTH(signal_pipe); i += 1) {
-        int flags = fcntl(signal_pipe[i], F_GETFL);
-
-        if (flags < 0) {
-            error("Error getting signal pipe flags: %s\n", strerror(errno));
-            exit(EXIT_FAILURE);
-        }
-        if (fcntl(signal_pipe[i], F_SETFL, flags | O_NONBLOCK) < 0) {
-            error("Error setting signal pipe flags: %s\n", strerror(errno));
-            exit(EXIT_FAILURE);
-        }
-    }
-
-    pipes[SIGNAL_PIPE_INDEX].fd = signal_pipe[0];
-    pipes[SIGNAL_PIPE_INDEX].events = POLLIN;
-    pipes[SIGNAL_PIPE_INDEX].revents = 0;
     return;
 }
 
