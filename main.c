@@ -78,7 +78,7 @@ main(int argc, char **argv) {
             }
 
             if (!util_is_integer(signal_string)) {
-                error("Error: %s is not an integer.\n");
+                error("Error: %s is not an integer.\n", signal_string);
                 exit(EXIT_FAILURE);
             }
             block->signal = atoi(signal_string);
