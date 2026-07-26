@@ -10,10 +10,7 @@
 #if !defined(HASH_H)
 #define HASH_H
 
-#include <math.h>
-#include <sys/types.h>
-#include <time.h>
-
+#include "libc.h"
 #include "base_macros.h"
 #include "primitives.h"
 #include "rapidhash.h"
@@ -129,7 +126,7 @@ CAT(hash_print_summary_, HASH_TYPE)(struct Map *map) {
     (void)map;
     /* fprintf(stderr, "struct Hash%s {\n", QUOTE(HASH_TYPE)); */
     /* fprintf(stderr, "  name: %s\n", map->name); */
-    /* fprintf(stderr, "  size: %lldB\n", (llong)map->size); */
+    /* fprintf(stderr, "  size: %lldB\n", map->size); */
     /* fprintf(stderr, "  capacity: %u\n", map->capacity); */
     /* fprintf(stderr, "  bitmask: 0x%X\n", map->bitmask); */
     /* fprintf(stderr, "  length: %u\n", map->length); */
@@ -798,8 +795,6 @@ hash_expected_collisions(void *map) {
 #if !OS_UNIX
 #error "hash.c tests only work on unix systems"
 #endif
-
-#include <assert.h>
 
 // Have to add these declarations so that clangd does not complain
 struct Hash_map_by_value;
