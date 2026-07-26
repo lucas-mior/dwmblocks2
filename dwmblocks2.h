@@ -20,6 +20,8 @@
 #define MAX_BLOCK_OUTPUT_LENGTH 80
 #define IS_SPACE(X) ((X == ' ') || (X == '\t') || (X == '\n'))
 #define DWM_BAR_SEPARATOR ((char) 0x01)
+#define STATUS_SIGNAL_FIRST 1
+#define STATUS_SIGNAL_LAST ((int)' ' - 1)
 
 typedef struct Block {
     void (*function)(int, struct Block *);

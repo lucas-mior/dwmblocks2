@@ -95,7 +95,7 @@ main(int argc, char **argv) {
             }
 
             // used by dwm to send proper signal number back to dwmblocks2
-            block->output[0] = (char)(block->signal - SIGRTMIN);
+            block->output[0] = (char)(block->signal - SIGRTMIN + 1);
             block->output[1] = (char)'\0';
             block->length = 0;
 
@@ -408,6 +408,7 @@ signal_handler(int signum, siginfo_t *signal_info, void *ucontext) {
         // number send by dwm
         signum = signal_info->si_value.sival_int >> 3;
         button = signal_info->si_value.sival_int & 7;
+        signum -= 1;
     }
 
     timeout = TIMEOUT_INTERRUPTED;
