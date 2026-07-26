@@ -35,6 +35,8 @@ block_clock(int button, Block *block) {
         block->length = n + 1;
     }
 
+    // TODO: The fork() calls below ignore fork failure, and a failed execlp()
+    // exits with success instead of reporting the click action failure.
     switch (button) {
     case 1:
         if (fork() == 0) {
@@ -43,25 +45,25 @@ block_clock(int button, Block *block) {
                    " --undecorated --fixed --no-buttons "
                    "| tr -d '\n' | xsel -b",
                    NULL);
-            exit(EXIT_SUCCESS);
+            exit(EXIT_FAILURE);
         }
         break;
     case 2:
         if (fork() == 0) {
             execlp("printscreen.sh", "printscreen.sh", "tela", NULL);
-            exit(EXIT_SUCCESS);
+            exit(EXIT_FAILURE);
         }
         break;
     case 3:
         if (fork() == 0) {
             execlp("killall", "killall", "yad", NULL);
-            exit(EXIT_SUCCESS);
+            exit(EXIT_FAILURE);
         }
         break;
     case 6:
         if (fork() == 0) {
             execlp("st", "st", "-e", "vim", __FILE__, NULL);
-            exit(EXIT_SUCCESS);
+            exit(EXIT_FAILURE);
         }
         break;
     default:

@@ -47,6 +47,8 @@ main(int argc, char **argv) {
 
         signal_int.sa_handler = int_handler;
         sigemptyset(&(signal_int.sa_mask));
+        // TODO: signal_int.sa_flags is never initialized before sigaction(),
+        // so SIGINT may inherit garbage flags from stack memory.
         sigaction(SIGINT, &signal_int, NULL);
 
         signal_childs.sa_handler = SIG_DFL;
@@ -61,6 +63,8 @@ main(int argc, char **argv) {
             sigemptyset(&(signal_this.sa_mask));
             sigaddset(&(signal_this.sa_mask), i);
             signal_int.sa_handler = SIG_IGN;
+            // TODO: signal_this is initialized here, but signal_int is
+            // installed, so the intended per-signal mask is unused.
             sigaction(i, &signal_int, NULL);
         }
 
@@ -79,6 +83,8 @@ main(int argc, char **argv) {
                 exit(EXIT_FAILURE);
             }
 
+            // TODO: atoi accepts trailing garbage and cannot report overflow,
+            // so invalid environment values can be accepted as signals.
             block->signal = atoi(signal_string);
             if (block->signal <= 0) {
                 error("Invalid signal for block %d."
@@ -87,6 +93,8 @@ main(int argc, char **argv) {
                 exit(EXIT_FAILURE);
             }
             block->signal += SIGRTMIN;
+            // TODO: SIGRTMAX is a valid realtime signal, but this rejects
+            // the documented maximum value SIGRTMAX - SIGRTMIN.
             if (block->signal >= SIGRTMAX) {
                 error("Invalid signal for block."
                       " Signals must be lower than %d.\n",
@@ -115,6 +123,8 @@ main(int argc, char **argv) {
             sigaddset(&(block->mask), SIGUSR1);
 
             sigemptyset(&(signal_this.sa_mask));
+            // TODO: Later blocks have not filled other->signal yet, so this
+            // mask misses their signals and may call sigaddset() with 0.
             for (int j = 0; j < LENGTH(blocks); j += 1) {
                 Block *other = &blocks[j];
                 if (j != i) {
@@ -280,14 +290,19 @@ spawn_block(Block *block, int button) {
         error_async_safe(error_message);
         error_async_safe("\n");
         *block->fd = -1;
+        // TODO: Returning here leaves block->mask blocked for the process.
         return;
     }
 
     switch (fork()) {
     case 0:
         XCLOSE(&pipefd[0]);
+        // TODO: dup2 failure is ignored, so execvp can run with stdout
+        // still pointing somewhere other than the pipe.
         dup2(pipefd[1], STDOUT_FILENO);
         XCLOSE(&pipefd[1]);
+        // TODO: The child inherits block->mask and execs with those signals
+        // still blocked.
         execvp(argv[0], argv);
         strerror_r(errno, error_message, sizeof(error_message));
 
@@ -401,6 +416,8 @@ final:
 
 void
 signal_handler(int signum, siginfo_t *signal_info, void *ucontext) {
+    // TODO: This handler calls spawn_block(), which uses non-async-signal-safe
+    // code and can run while the main loop is modifying the same block state.
     int button = 0;
     (void)ucontext;
 
@@ -408,6 +425,8 @@ signal_handler(int signum, siginfo_t *signal_info, void *ucontext) {
         // number send by dwm
         signum = signal_info->si_value.sival_int >> 3;
         button = signal_info->si_value.sival_int & 7;
+        // TODO: This decodes a relative status byte, but the comparison below
+        // uses block->signal, which stores SIGRTMIN plus that value.
         signum -= 1;
     }
 
