@@ -8,6 +8,7 @@
 #include <signal.h>
 #include <errno.h>
 #include <locale.h>
+#include <fcntl.h>
 
 #include "dwmblocks2.h"
 #include "blocks.h"
@@ -18,7 +19,13 @@
 
 #define CLOCK CLOCK_REALTIME
 
-static struct pollfd pipes[LENGTH(blocks)];
+static struct pollfd pipes[LENGTH(blocks) + 1];
+
+#define SIGNAL_PIPE_INDEX LENGTH(blocks)
+
+static int signal_pipe[2] = {-1, -1};
+static sigset_t handled_signal_mask;
+static volatile sig_atomic_t block_spawn_requests[LENGTH(blocks)];
 
 static Display *display;
 static Window root;
@@ -27,9 +34,13 @@ static Window root;
 #define TIMEOUT_NORMAL 1000
 
 static void int_handler(int) __attribute__((noreturn));
+static void drain_signal_pipe(void);
+static void fill_handled_signal_mask(sigset_t *);
 static void parse_output(Block *);
 static void signal_handler(int, siginfo_t *, void *);
+static void setup_signal_pipe(void);
 static void spawn_block(Block *, int);
+static void spawn_queued_blocks(void);
 static volatile sig_atomic_t timeout = TIMEOUT_NORMAL;
 
 int
@@ -54,6 +65,8 @@ main(int argc, char **argv) {
 
         sigemptyset(&(signal_childs.sa_mask));
         sigemptyset(&(signal_external.sa_mask));
+
+        setup_signal_pipe();
 
         for (int i = SIGRTMIN; i <= SIGRTMAX; i += 1) {
             struct sigaction signal_this = {0};
@@ -115,21 +128,17 @@ main(int argc, char **argv) {
             sigaddset(&(block->mask), SIGUSR1);
         }
 
+        fill_handled_signal_mask(&handled_signal_mask);
+        fill_handled_signal_mask(&(signal_external.sa_mask));
+
         for (int i = 0; i < LENGTH(blocks); i += 1) {
             Block *block = &blocks[i];
             struct sigaction signal_this;
 
             signal_this.sa_sigaction = signal_handler;
-            signal_this.sa_flags = SA_NODEFER | SA_SIGINFO;
-            sigemptyset(&(signal_this.sa_mask));
-            for (int j = 0; j < LENGTH(blocks); j += 1) {
-                Block *other = &blocks[j];
-                if (j != i) {
-                    sigaddset(&signal_this.sa_mask, other->signal);
-                }
-            }
+            signal_this.sa_flags = SA_SIGINFO;
+            fill_handled_signal_mask(&(signal_this.sa_mask));
             sigaction(block->signal, &signal_this, NULL);
-            sigaddset(&signal_external.sa_mask, block->signal);
         }
 
         signal_external.sa_sigaction = signal_handler;
@@ -159,18 +168,26 @@ main(int argc, char **argv) {
             exit(EXIT_FAILURE);
         }
 
-        nready = poll(pipes, LENGTH(blocks), timeout);
+        nready = poll(pipes, LENGTH(pipes), timeout);
         if (nready < 0) {
             if (errno == EINTR) {
-                continue;
+                drain_signal_pipe();
+                spawn_queued_blocks();
             } else {
                 error("Error polling: %s\n", strerror(errno));
                 exit(EXIT_FAILURE);
             }
         }
         if (nready > 0) {
-            error("nready:%d\n", nready);
-            if (timeout == TIMEOUT_NORMAL) {
+            bool block_events = false;
+
+            for (int i = 0; i < LENGTH(blocks); i += 1) {
+                if (pipes[i].revents != 0) {
+                    block_events = true;
+                    break;
+                }
+            }
+            if (block_events && (timeout == TIMEOUT_NORMAL)) {
                 struct timespec complete;
 
                 if (clock_gettime(CLOCK, &t1) < 0) {
@@ -195,23 +212,35 @@ main(int argc, char **argv) {
                 seconds += 1;
                 timeout = TIMEOUT_NORMAL;
             }
-            for (int i = 0; i < LENGTH(blocks); i += 1) {
-                Block *block = &blocks[i];
-                if (pipes[i].revents & POLLHUP) {
-                    parse_output(block);
-                    continue;
-                } else if (pipes[i].revents & POLLNVAL) {
-                    error("Error polling: Invalid fd.\n");
-                    pipes[i].fd = -1;
-                } else if (pipes[i].revents & POLLERR) {
-                    error("Error polling: Error condition.\n");
-                    pipes[i].fd = -1;
-                }
-                if (block->function) {
-                    block->function(0, block);
+            if (block_events) {
+                for (int i = 0; i < LENGTH(blocks); i += 1) {
+                    Block *block = &blocks[i];
+                    if (pipes[i].revents & POLLHUP) {
+                        parse_output(block);
+                        continue;
+                    } else if (pipes[i].revents & POLLNVAL) {
+                        error("Error polling: Invalid fd.\n");
+                        pipes[i].fd = -1;
+                    } else if (pipes[i].revents & POLLERR) {
+                        error("Error polling: Error condition.\n");
+                        pipes[i].fd = -1;
+                    }
+                    if (block->function) {
+                        block->function(0, block);
+                    }
                 }
             }
-        } else {
+            if (pipes[SIGNAL_PIPE_INDEX].revents & POLLIN) {
+                drain_signal_pipe();
+            } else if (pipes[SIGNAL_PIPE_INDEX].revents & POLLNVAL) {
+                error("Error polling: Invalid signal pipe fd.\n");
+                exit(EXIT_FAILURE);
+            } else if (pipes[SIGNAL_PIPE_INDEX].revents & POLLERR) {
+                error("Error polling: Signal pipe error condition.\n");
+                exit(EXIT_FAILURE);
+            }
+            spawn_queued_blocks();
+        } else if (nready == 0) {
             for (int i = 0; i < LENGTH(blocks); i += 1) {
                 Block *block = &blocks[i];
 
@@ -224,6 +253,7 @@ main(int argc, char **argv) {
             }
             seconds += 1;
             timeout = TIMEOUT_NORMAL;
+            spawn_queued_blocks();
         }
         {
             char status_new[LENGTH(blocks)*MAX_BLOCK_OUTPUT_LENGTH] = {0};
@@ -261,6 +291,91 @@ main(int argc, char **argv) {
             XFlush(display);
         }
     }
+}
+
+
+void
+drain_signal_pipe(void) {
+    char buffer[128];
+    int64 r;
+
+    while ((r = read64(signal_pipe[0], buffer, sizeof(buffer))) > 0) {
+        continue;
+    }
+    if ((r < 0) && (errno != EAGAIN) && (errno != EWOULDBLOCK)) {
+        error("Error reading signal pipe: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+    return;
+}
+
+void
+fill_handled_signal_mask(sigset_t *mask) {
+    sigemptyset(mask);
+    sigaddset(mask, SIGUSR1);
+    for (int i = 0; i < LENGTH(blocks); i += 1) {
+        sigaddset(mask, blocks[i].signal);
+    }
+    return;
+}
+
+void
+setup_signal_pipe(void) {
+    if (pipe(signal_pipe) < 0) {
+        error("Error creating signal pipe: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+    for (int i = 0; i < LENGTH(signal_pipe); i += 1) {
+        int flags = fcntl(signal_pipe[i], F_GETFL);
+
+        if (flags < 0) {
+            error("Error getting signal pipe flags: %s\n", strerror(errno));
+            exit(EXIT_FAILURE);
+        }
+        if (fcntl(signal_pipe[i], F_SETFL, flags | O_NONBLOCK) < 0) {
+            error("Error setting signal pipe flags: %s\n", strerror(errno));
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    pipes[SIGNAL_PIPE_INDEX].fd = signal_pipe[0];
+    pipes[SIGNAL_PIPE_INDEX].events = POLLIN;
+    pipes[SIGNAL_PIPE_INDEX].revents = 0;
+    return;
+}
+
+void
+spawn_queued_blocks(void) {
+    int buttons[LENGTH(blocks)];
+    sigset_t old_mask;
+
+    for (int i = 0; i < LENGTH(blocks); i += 1) {
+        buttons[i] = -1;
+    }
+
+    if (sigprocmask(SIG_BLOCK, &handled_signal_mask, &old_mask) < 0) {
+        error("Error blocking signals: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+    for (int i = 0; i < LENGTH(blocks); i += 1) {
+        sig_atomic_t request = block_spawn_requests[i];
+
+        if (request != 0) {
+            buttons[i] = (int)request - 1;
+            block_spawn_requests[i] = 0;
+        }
+    }
+    if (sigprocmask(SIG_SETMASK, &old_mask, NULL) < 0) {
+        error("Error restoring signal mask: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+
+    for (int i = 0; i < LENGTH(blocks); i += 1) {
+        if (buttons[i] >= 0) {
+            spawn_block(&blocks[i], buttons[i]);
+        }
+    }
+    return;
 }
 
 void
@@ -416,40 +531,43 @@ final:
 
 void
 signal_handler(int signum, siginfo_t *signal_info, void *ucontext) {
+    int saved_errno = errno;
     int button = 0;
+    char byte = 1;
     (void)ucontext;
 
     if (signum == SIGUSR1) {
-        // number send by dwm
-        signum = signal_info->si_value.sival_int >> 3;
+        // dwm sends SIGRTMIN + the status byte in the high bits.  The
+        // status byte is one more than the block's relative realtime signal.
+        signum = (signal_info->si_value.sival_int >> 3) - 1;
         button = signal_info->si_value.sival_int & 7;
-        // dwm2 sends (SIGRTMIN + status byte) in the high bits.  The status
-        // byte is block->signal - SIGRTMIN + 1, so subtract one here to recover
-        // the absolute realtime signal stored in block->signal.
-        signum -= 1;
     }
 
     timeout = TIMEOUT_INTERRUPTED;
 
-    // TODO: spawn_block() uses non-async-signal-safe code and can run while the
-    // main loop is modifying the same block state.
     for (int i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
         if (block->signal == signum) {
-            spawn_block(block, button);
+            block_spawn_requests[i] = button + 1;
+            break;
         }
     }
+    if (signal_pipe[1] >= 0) {
+        (void)write(signal_pipe[1], &byte, sizeof(byte));
+    }
+    errno = saved_errno;
     return;
 }
 
 void
 int_handler(int unused) {
-    char error_message[1024];
     (void)unused;
 
     for (int i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
+        char error_message[1024];
         char num[16];
+
         if (*block->fd >= 0) {
             ITOA(num, *block->fd);
             error_async_safe("closing block ");
@@ -463,5 +581,13 @@ int_handler(int unused) {
             }
         }
     }
+
+    if (signal_pipe[0] >= 0) {
+        XCLOSE(&signal_pipe[0]);
+    }
+    if (signal_pipe[1] >= 0) {
+        XCLOSE(&signal_pipe[1]);
+    }
+
     _exit(EXIT_FAILURE);
 }
