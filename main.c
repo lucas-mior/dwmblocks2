@@ -416,8 +416,6 @@ final:
 
 void
 signal_handler(int signum, siginfo_t *signal_info, void *ucontext) {
-    // TODO: This handler calls spawn_block(), which uses non-async-signal-safe
-    // code and can run while the main loop is modifying the same block state.
     int button = 0;
     (void)ucontext;
 
@@ -433,6 +431,8 @@ signal_handler(int signum, siginfo_t *signal_info, void *ucontext) {
 
     timeout = TIMEOUT_INTERRUPTED;
 
+    // TODO: spawn_block() uses non-async-signal-safe code and can run while the
+    // main loop is modifying the same block state.
     for (int i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
         if (block->signal == signum) {
