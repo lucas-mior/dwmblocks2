@@ -299,8 +299,8 @@ main(int argc, char **argv) {
                         error("Error opening %s: %s\n", name, strerror(errno));
                         exit(EXIT_FAILURE);
                     }
-                    fwrite64(status_new, sizeof(*status_new),
-                             sizeof(status_new), file);
+                    fwrite64(status_new,
+                             SIZEOF(*status_new), SIZEOF(status_new), file);
                     fclose(file);
                 }
             }
@@ -314,10 +314,10 @@ main(int argc, char **argv) {
 
 void
 drain_signal_pipe(void) {
-    char buffer[128];
+    char buffer[32];
     int64 r;
 
-    while ((r = read64(signal_pipe[0], buffer, sizeof(buffer))) > 0) {
+    while ((r = read64(signal_pipe[0], buffer, SIZEOF(buffer))) > 0) {
         continue;
     }
     if ((r < 0) && (errno != EAGAIN) && (errno != EWOULDBLOCK)) {
@@ -442,7 +442,7 @@ spawn_block(Block *block, int button) {
 void
 parse_output(Block *block) {
     int64 r;
-    int64 space = sizeof(block->output) - 3;
+    int64 space = SIZEOF(block->output) - 3;
     char *string = block->output + 1;
     char error_message[1024];
 
@@ -546,7 +546,7 @@ signal_handler(int signum, siginfo_t *signal_info, void *ucontext) {
         }
     }
     if (signal_pipe[1] >= 0) {
-        (void)write(signal_pipe[1], &byte, sizeof(byte));
+        write64(signal_pipe[1], &byte, SIZEOF(byte));
     }
     errno = saved_errno;
     return;
