@@ -566,7 +566,7 @@ int_handler(int unused) {
     for (int i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
         char error_message[1024];
-        char num[16];
+        char num[32];
 
         if (*block->fd >= 0) {
             ITOA(num, *block->fd);
