@@ -77,8 +77,8 @@ case "$target" in
     ;;
 "build"|"debug")
     trace_on
-    ctags --kinds-C=+l -- *.h *.c 2> /dev/null || true
-    vtags.sed tags > .tags.vim 2> /dev/null || true
+    ctags --kinds-C=+l **/*.h **/*.c || true
+    vtags.sed tags > .tags.vim       || true
     $CC $CPPFLAGS $CFLAGS -o ${program} "$main" $LDFLAGS
     trace_off
     ;;
