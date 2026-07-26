@@ -93,9 +93,7 @@ main(int argc, char **argv) {
                 exit(EXIT_FAILURE);
             }
             block->signal += SIGRTMIN;
-            // TODO: SIGRTMAX is a valid realtime signal, but this rejects
-            // the documented maximum value SIGRTMAX - SIGRTMIN.
-            if (block->signal >= SIGRTMAX) {
+            if (block->signal > SIGRTMAX) {
                 error("Invalid signal for block."
                       " Signals must be lower than %d.\n",
                       SIGRTMAX - SIGRTMIN);
