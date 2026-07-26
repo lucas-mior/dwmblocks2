@@ -287,7 +287,7 @@ spawn_block(Block *block, int button) {
         error_async_safe(error_message);
         error_async_safe("\n");
         *block->fd = -1;
-        // TODO: Returning here leaves block->mask blocked for the process.
+        sigprocmask(SIG_UNBLOCK, &(block->mask), NULL);
         return;
     }
 
@@ -296,8 +296,7 @@ spawn_block(Block *block, int button) {
         XCLOSE(&pipefd[0]);
         xdup2(pipefd[1], STDOUT_FILENO);
         XCLOSE(&pipefd[1]);
-        // TODO: The child inherits block->mask and execs with those signals
-        // still blocked.
+        sigprocmask(SIG_UNBLOCK, &(block->mask), NULL);
         execvp(argv[0], argv);
         strerror_r(errno, error_message, sizeof(error_message));
 
