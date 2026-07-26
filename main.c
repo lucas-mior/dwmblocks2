@@ -419,8 +419,9 @@ signal_handler(int signum, siginfo_t *signal_info, void *ucontext) {
         // number send by dwm
         signum = signal_info->si_value.sival_int >> 3;
         button = signal_info->si_value.sival_int & 7;
-        // TODO: This decodes a relative status byte, but the comparison below
-        // uses block->signal, which stores SIGRTMIN plus that value.
+        // dwm2 sends (SIGRTMIN + status byte) in the high bits.  The status
+        // byte is block->signal - SIGRTMIN + 1, so subtract one here to recover
+        // the absolute realtime signal stored in block->signal.
         signum -= 1;
     }
 
