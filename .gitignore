@@ -12,3 +12,5 @@ dwmblocks2
 tags
 .clangd
 temp_delete_me
+*.cmd
+*.o
