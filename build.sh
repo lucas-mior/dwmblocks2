@@ -15,7 +15,7 @@ cbase="cbase"
 CPPFLAGS="$CPPFLAGS -I "$dir/$cbase""
 
 main="main.c"
-program="dwmblocks2"
+program=$(basename "$(readlink -f "$(dirname "$0")")")
 
 CFLAGS="$CFLAGS -std=c11 -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=700"
 CFLAGS="$CFLAGS -Wextra -Wall"
