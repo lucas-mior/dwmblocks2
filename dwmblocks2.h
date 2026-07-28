@@ -5,17 +5,8 @@
 #define DWMBLOCKS2_H
 
 #include <X11/Xlib.h>
-#include <fcntl.h>
-#include <poll.h>
-#include <stdbool.h>
-#include <stdint.h>
-#include <sys/param.h>
-#undef MIN
-#undef MAX
-#include <sys/wait.h>
-#include <unistd.h>
 
-#include "primitives.h"
+#include "cbase.h"
 
 #define MAX_BLOCK_OUTPUT_LENGTH 80
 #define IS_SPACE(X) ((X == ' ') || (X == '\t') || (X == '\n'))

@@ -4,10 +4,7 @@
 #if !defined(BLOCK_FUNCTIONS_C)
 #define BLOCK_FUNCTIONS_C
 
-#include <time.h>
-#include <stdio.h>
-#include <stdlib.h>
-
+#include "cbase.h"
 #include "dwmblocks2.h"
 
 static void

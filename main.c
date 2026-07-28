@@ -1,21 +1,11 @@
 // SPDX-License-Identifier: AGPL
 // Copyright (c) 2026 Lucas Mior
 
-#include <time.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <signal.h>
-#include <errno.h>
-#include <locale.h>
-#include <fcntl.h>
-
 #include "dwmblocks2.h"
 #include "blocks.h"
 
 #define CBASE_IMPLEMENT
 #include "cbase.h"
-
 
 #define CLOCK CLOCK_REALTIME
 
