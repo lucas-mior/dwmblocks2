@@ -65,11 +65,15 @@ if echo "$OS" | grep -q "Linux"; then
     fi
 fi
 
-if [ "$target" = "test" ] && [ -z "${CC:-}" ] && command -v tcc >/dev/null 2>&1; then
-    CC=tcc
-else
-    CC="${CC:-cc}"
-fi
+requested_cc=${CC:-}
+case "$target" in
+"debug"|"test"|"fast_feedback")
+    CC="${requested_cc:-tcc}"
+    ;;
+*)
+    CC="${requested_cc:-cc}"
+    ;;
+esac
 if [ "$CC" = "clang" ]; then
     CFLAGS="$CFLAGS -Weverything"
     CFLAGS="$CFLAGS -Wno-unsafe-buffer-usage"
@@ -96,7 +100,6 @@ case "$target" in
     CFLAGS="$CFLAGS $GNUSOURCE -g3 -O2 -flto -march=native -ftree-vectorize"
     ;;
 "fast_feedback")
-    CC=clang
     CFLAGS="$CFLAGS $GNUSOURCE -Werror"
     ;;
 "test"|"install"|"uninstall")
