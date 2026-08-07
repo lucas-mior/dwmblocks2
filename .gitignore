@@ -13,4 +13,8 @@ tags
 .clangd
 temp_delete_me
 *.cmd
+*temp_delete_me*
+*.cmd
 *.o
+bin/
+*.tar.gz
