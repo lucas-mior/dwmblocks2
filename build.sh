@@ -66,6 +66,8 @@ case "$target" in
     install -Dm755 "${program}"  "${DESTDIR}${PREFIX}/bin/${program}"
     install -Dm644 "${program}.1" "${DESTDIR}${PREFIX}/man/man1/${program}.1"
     ;;
+"test")
+    ;;
 "check")
     CC=gcc CFLAGS="-fanalyzer -fdiagnostics-color=never" "$0" build
     CFLAGS="--analyze -Xanalyzer -analyzer-output=text"
@@ -84,6 +86,6 @@ case "$target" in
     trace_off
     ;;
 *)
-    echo "usage: $0 [ uninstall / install / build / debug / check ]"
+    echo "usage: $0 [ uninstall / install / build / debug / check / test ]"
     ;;
 esac
