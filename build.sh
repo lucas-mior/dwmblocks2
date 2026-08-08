@@ -81,7 +81,7 @@ esac
 build_program () {
     build_tags
     trace_on
-    $CC $CPPFLAGS $CFLAGS -o "$exe" "main.c" $LDFLAGS
+    $CC $CPPFLAGS $CFLAGS -o "$exe" main.c $LDFLAGS
     trace_off
 }
 
