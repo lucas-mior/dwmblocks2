@@ -53,18 +53,15 @@ CFLAGS="$CFLAGS -Wno-unused-macros"
 if [ "$CC" = "clang" ]; then
     CFLAGS="$CFLAGS -Weverything"
     CFLAGS="$CFLAGS -Wno-assign-enum"
-    CFLAGS="$CFLAGS -Wno-bad-function-cast"
     CFLAGS="$CFLAGS -Wno-c++-keyword"
     CFLAGS="$CFLAGS -Wno-covered-switch-default"
     CFLAGS="$CFLAGS -Wno-disabled-macro-expansion"
     CFLAGS="$CFLAGS -Wno-float-equal"
     CFLAGS="$CFLAGS -Wno-format-nonliteral"
-    CFLAGS="$CFLAGS -Wno-ignored-attributes"
     CFLAGS="$CFLAGS -Wno-implicit-int-enum-cast"
     CFLAGS="$CFLAGS -Wno-implicit-void-ptr-cast"
     CFLAGS="$CFLAGS -Wno-pre-c11-compat"
     CFLAGS="$CFLAGS -Wno-unsafe-buffer-usage"
-    CFLAGS="$CFLAGS -Wno-used-but-marked-unused"
 fi
 
 LDFLAGS="$LDFLAGS -lm $(pkg-config x11 --libs)"
