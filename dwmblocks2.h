@@ -4,9 +4,9 @@
 #if !defined(DWMBLOCKS2_H)
 #define DWMBLOCKS2_H
 
-#include <X11/Xlib.h>
-
 #include "cbase.h"
+
+#include <X11/Xlib.h>
 
 #define MAX_BLOCK_OUTPUT_LENGTH 80
 #define IS_SPACE(X) ((X == ' ') || (X == '\t') || (X == '\n'))
