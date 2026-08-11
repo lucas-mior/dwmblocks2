@@ -1,6 +1,0 @@
-
-build.sh [01;38;2;255;000;000mcheck [0;m
-
-build.sh [01;38;2;255;000;000mbuild [0;m
-ctags '--kinds-C=+l+d' ./cbase/arena.c ./cbase/arena.h ./cbase/array.c ./cbase/assertions.c ./cbase/cbase.c ./cbase/clamp.h ./cbase/command.c ./cbase/generic.c ./cbase/hash.c ./cbase/i18n.h ./cbase/libc.h ./cbase/memory.h ./cbase/meta_common.c ./cbase/meta_generate.c ./cbase/meta.h ./cbase/meta_parse.c ./cbase/meta_tokenize.c ./cbase/minmax.c ./cbase/platform_detection.h ./cbase/primitives.h ./cbase/rapidhash.h ./cbase/rw_function.h ./cbase/sfa.h ./cbase/sort.c ./cbase/utf8.c ./cbase/util.c ./cbase/xenums.c ./cbase/try_include.h ./cbase/assertions.h ./cbase/base_macros.h ./cbase/cbase.h ./cbase/memory.c ./cbase/threads.c ./blocks.h ./dwmblocks2.h ./main.c ./block_functions.c
-+ gcc -I/home/lucas/.local/src/dwmblocks2/cbase -fanalyzer -fdiagnostics-color=never -std=c11 -Wfatal-errors -Wextra -Wall -Werror=all -Werror=extra -Werror -Wno-missing-field-initializers -O2 -flto -march=native -ftree-vectorize -o bin/dwmblocks2 main.c -lm -lX11
