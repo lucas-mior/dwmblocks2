@@ -23,7 +23,7 @@ static Window root;
 #define TIMEOUT_INTERRUPTED 350
 #define TIMEOUT_NORMAL 1000
 
-static void int_handler(int) __attribute__((noreturn));
+static noreturn void int_handler(int);
 static void drain_signal_pipe(void);
 static void fill_handled_signal_mask(sigset_t *);
 static void parse_output(Block *);
