@@ -7,11 +7,11 @@ dir=$(dirname "$(readlink -f "$0")")
 . "$dir/cbase/common.sh"
 
 cd "$dir" || exit
-program=$(get_program "$0")
+program=$(common_get_program "$0")
 script=$(basename "$0")
-build_parse_args "$@"
+common_build_parse_args "$@"
 
-build_print_invocation "$script"
+common_build_print_invocation "$script"
 
 PREFIX="${PREFIX:-/usr/local}"
 DESTDIR="${DESTDIR:-/}"
@@ -19,7 +19,7 @@ DESTDIR="${DESTDIR:-/}"
 exe="bin/$program"
 mkdir -p "$(dirname "$exe")"
 
-CC=$(get_compiler "$mode")
+CC=$(common_get_compiler "$mode")
 
 CPPFLAGS="$CPPFLAGS -I$dir/cbase"
 
@@ -68,7 +68,7 @@ test|install|uninstall)
 esac
 
 build_program () {
-    build_tags
+    common_build_tags
     trace_on
     $CC $CPPFLAGS $CFLAGS -o "$exe" main.c $LDFLAGS
     trace_off
@@ -82,7 +82,7 @@ fast_feedback)
 uninstall)
     trace_on
     rm -f "${DESTDIR}${PREFIX}/bin/${program}"
-    uninstall_opt "${program}.1" "${DESTDIR}${PREFIX}/man/man1/${program}.1"
+    common_uninstall_opt "${program}.1" "${DESTDIR}${PREFIX}/man/man1/${program}.1"
     trace_off
     ;;
 install)
@@ -91,11 +91,11 @@ install)
     fi
     trace_on
     install -Dm755 "$exe" "${DESTDIR}${PREFIX}/bin/${program}"
-    install_opt -Dm644 "${program}.1" "${DESTDIR}${PREFIX}/man/man1/${program}.1"
+    common_install_opt -Dm644 "${program}.1" "${DESTDIR}${PREFIX}/man/man1/${program}.1"
     trace_off
     ;;
 test)
-    TEST_EXCLUDE_PATTERN='(^|/)cbase/' test "$target"
+    TEST_EXCLUDE_PATTERN='(^|/)cbase/' common_test "$target"
     exit
     ;;
 check)
