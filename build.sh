@@ -9,9 +9,9 @@ dir=$(dirname "$(readlink -f "$0")")
 cd "$dir" || exit
 program=$(get_program "$0")
 script=$(basename "$0")
-target="${1:-debug}"
+build_parse_args "$@"
 
-printf "\n${script} ${RED}${1:-} ${2:-}$RES\n"
+build_print_invocation "$script"
 
 PREFIX="${PREFIX:-/usr/local}"
 DESTDIR="${DESTDIR:-/}"
@@ -19,7 +19,7 @@ DESTDIR="${DESTDIR:-/}"
 exe="bin/$program"
 mkdir -p "$(dirname "$exe")"
 
-CC=$(get_compiler "$target")
+CC=$(get_compiler "$mode")
 
 CPPFLAGS="$CPPFLAGS -I$dir/cbase"
 
@@ -49,7 +49,7 @@ fi
 
 LDFLAGS="$LDFLAGS -lm $(pkg-config x11 --libs)"
 
-case "$target" in
+case "$mode" in
 debug)
     CFLAGS="$CFLAGS -g3 -Og -fsanitize=undefined"
     CPPFLAGS="$CPPFLAGS -DDEBUGGING=1"
@@ -74,7 +74,7 @@ build_program () {
     trace_off
 }
 
-case "$target" in
+case "$mode" in
 fast_feedback)
     build_program
     LC_ALL=C "$exe"
@@ -95,7 +95,7 @@ install)
     trace_off
     ;;
 test)
-    TEST_EXCLUDE_PATTERN='(^|/)cbase/' test "$2"
+    TEST_EXCLUDE_PATTERN='(^|/)cbase/' test "$target"
     exit
     ;;
 check)
