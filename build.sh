@@ -55,7 +55,7 @@ case "$mode" in
 debug)
     CFLAGS="$CFLAGS -g3 -Og"
     CPPFLAGS="$CPPFLAGS -DDEBUGGING=1"
-    exe="bin/${program}_debug"
+    exe="bin/$program"
     ;;
 build)
     CFLAGS="$CFLAGS -O2 -flto -march=native -ftree-vectorize"
