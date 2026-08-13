@@ -65,7 +65,6 @@ fast_feedback)
 test|install|uninstall)
     ;;
 *)
-    CFLAGS="$CFLAGS -O2"
     ;;
 esac
 
@@ -103,10 +102,20 @@ check)
 
     exit
     ;;
-*)
+build|debug|fast_feedback)
     common_build_tags
     trace_on
     $CC $CPPFLAGS $CFLAGS -o "$exe" main.c $LDFLAGS
     trace_off
+    ;;
+esac
+
+
+case "$mode" in
+build|check|debug|fast_feedback|install|test|uninstall)
+    ;;
+*)
+    echo "Unknown mode $mode"
+    exit 1
     ;;
 esac
