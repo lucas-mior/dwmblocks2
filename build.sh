@@ -69,18 +69,7 @@ test|install|uninstall)
     ;;
 esac
 
-build_program () {
-    common_build_tags
-    trace_on
-    $CC $CPPFLAGS $CFLAGS -o "$exe" main.c $LDFLAGS
-    trace_off
-}
-
 case "$mode" in
-fast_feedback)
-    build_program
-    LC_ALL=C "$exe"
-    ;;
 uninstall)
     trace_on
     rm -f "${DESTDIR}${PREFIX}/bin/${program}"
@@ -115,6 +104,9 @@ check)
     exit
     ;;
 *)
-    build_program
+    common_build_tags
+    trace_on
+    $CC $CPPFLAGS $CFLAGS -o "$exe" main.c $LDFLAGS
+    trace_off
     ;;
 esac
