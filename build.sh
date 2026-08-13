@@ -12,6 +12,14 @@ program=$(common_get_program "$0")
 script=$(basename "$0")
 common_build_parse_args "$@"
 
+case "$mode" in
+build|check|debug|fast_feedback|install|test|uninstall)
+    ;;
+*)
+    common_build_unknown_mode
+    ;;
+esac
+
 common_build_print_invocation "$script"
 
 PREFIX="${PREFIX:-/usr/local}"
@@ -64,7 +72,10 @@ fast_feedback)
     ;;
 test|install|uninstall)
     ;;
+build|check|debug|fast_feedback|install|test|uninstall)
+    ;;
 *)
+    common_build_unknown_mode
     ;;
 esac
 
@@ -89,33 +100,12 @@ test)
     exit
     ;;
 check)
-    set +e
-
-    CC=gcc CFLAGS="-fanalyzer -fdiagnostics-color=never" "$0" build
-
-    CFLAGS="--analyze -Xanalyzer -analyzer-output=text"
-    CFLAGS="$CFLAGS -Xanalyzer -analyzer-werror"
-    CFLAGS="$CFLAGS -Xanalyzer -analyzer-opt-analyze-headers"
-    CFLAGS="$CFLAGS -Wno-unused-command-line-argument"
-    CFLAGS="$CFLAGS -fno-color-diagnostics"
-    CC=clang CFLAGS="$CFLAGS" "$0" build
-
-    exit
+    common_build_run_analyzers build
     ;;
 build|debug|fast_feedback)
     common_build_tags
     trace_on
     $CC $CPPFLAGS $CFLAGS -o "$exe" main.c $LDFLAGS
     trace_off
-    ;;
-esac
-
-
-case "$mode" in
-build|check|debug|fast_feedback|install|test|uninstall)
-    ;;
-*)
-    echo "Unknown mode $mode"
-    exit 1
     ;;
 esac
