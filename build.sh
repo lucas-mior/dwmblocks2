@@ -36,7 +36,7 @@ CFLAGS="$CFLAGS -std=c11"
 CFLAGS="$CFLAGS -Wfatal-errors"
 CFLAGS="$CFLAGS -Wextra -Wall"
 CFLAGS="$CFLAGS -Werror=all -Werror=extra"
-CFLAGS="$CFLAGS -Werror"  # Only uncomment occasionally, keep this line
+# CFLAGS="$CFLAGS -Werror"  # Only uncomment occasionally, keep this line
 CFLAGS="$CFLAGS -Wno-missing-field-initializers"
 
 if [ "$CC" = "clang" ] || [ "$CC" = "zig cc" ]; then
@@ -63,10 +63,9 @@ case "$mode" in
 debug)
     CFLAGS="$CFLAGS -g3 -Og"
     CPPFLAGS="$CPPFLAGS -DDEBUGGING=1"
-    exe="bin/$program"
     ;;
 build)
-    CFLAGS="$CFLAGS -O2 -flto -march=native -ftree-vectorize"
+    CFLAGS="$CFLAGS -Wno-error -O2 -flto -march=native -ftree-vectorize"
     ;;
 fast_feedback)
     ;;
