@@ -109,6 +109,7 @@ main(int argc, char **argv) {
                       i);
                 exit(EXIT_FAILURE);
             }
+#if defined(SIGRTMIN)
             block->signal += SIGRTMIN;
             if (block->signal > SIGRTMAX) {
                 error("Invalid signal for block."
@@ -119,6 +120,9 @@ main(int argc, char **argv) {
 
             // used by dwm to send proper signal number back to dwmblocks2
             block->output[0] = (char)(block->signal - SIGRTMIN + 1);
+#else
+            block->output[0] = (char)block->signal;
+#endif
             block->output[1] = (char)'\0';
             block->length = 0;
 
