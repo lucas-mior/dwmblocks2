@@ -76,6 +76,7 @@ main(int argc, char **argv) {
         pipes[SIGNAL_PIPE_INDEX].events = POLLIN;
         pipes[SIGNAL_PIPE_INDEX].revents = 0;
 
+#if defined(SIGRTMIN)
         for (int i = SIGRTMIN; i <= SIGRTMAX; i += 1) {
             struct sigaction signal_this = {0};
 
@@ -83,6 +84,7 @@ main(int argc, char **argv) {
             sigemptyset(&(signal_this.sa_mask));
             sigaction(i, &signal_this, NULL);
         }
+#endif
 
         for (int i = 0; i < LENGTH(blocks); i += 1) {
             Block *block = &blocks[i];
