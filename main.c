@@ -121,7 +121,7 @@ main(int argc, char **argv) {
             // used by dwm to send proper signal number back to dwmblocks2
             block->output[0] = (char)(block->signal - SIGRTMIN + 1);
 #else
-            block->output[0] = (char)block->signal;
+            block->output[0] = (char)block->signal + 1;
 #endif
             block->output[1] = (char)'\0';
             block->length = 0;
