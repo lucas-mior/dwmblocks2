@@ -68,115 +68,123 @@ jobs:
           ./build.sh build
           ./build.sh test
 
-  freebsd:
-    runs-on: ubuntu-24.04
-    name: FreeBSD VM
-    steps:
-      - uses: actions/checkout@v4
-      - name: Build and Test
-        uses: vmactions/freebsd-vm@v1
-        with:
-          usesh: true
-          run: |
-            pkg install -y \
-              bash \
-              libX11 \
-              pkgconf
-            cc --version
-            pkg-config --version
-            build_deps="x11"
-            pkg-config --libs $build_deps
-            export CPPFLAGS="${CPPFLAGS:-} $(pkg-config --cflags $build_deps)"
-            export LDFLAGS="${LDFLAGS:-} $(pkg-config --libs $build_deps)"
-            ./build.sh build
-            ./build.sh test
-
-  openbsd:
-    runs-on: ubuntu-24.04
-    name: OpenBSD VM
-    steps:
-      - uses: actions/checkout@v4
-      - name: Build and Test
-        uses: vmactions/openbsd-vm@v1
-        with:
-          usesh: true
-          run: |
-            pkg_add \
-              pkgconf
-            export PKG_CONFIG_PATH=/usr/X11R6/lib/pkgconfig:/usr/local/lib/pkgconfig
-            cc --version
-            pkg-config --version
-            build_deps="x11"
-            pkg-config --libs $build_deps
-            export CPPFLAGS="${CPPFLAGS:-} $(pkg-config --cflags $build_deps)"
-            export LDFLAGS="${LDFLAGS:-} $(pkg-config --libs $build_deps)"
-            ./build.sh build
-            ./build.sh test
-
-  netbsd:
-    runs-on: ubuntu-24.04
-    name: NetBSD VM
+  bsd:
+    runs-on: ubuntu-latest
+    name: ${{ matrix.name }} VM
+    timeout-minutes: 25
+    defaults:
+      run:
+        shell: cpa.sh {0} --sync-files runner-to-vm
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: FreeBSD
+            os: freebsd
+            version: "15.1"
+          - name: OpenBSD
+            os: openbsd
+            version: "7.9"
+          - name: NetBSD
+            os: netbsd
+            version: "11.0"
     steps:
       - uses: actions/checkout@v4
 
       - name: Cache NetBSD X sets
+        if: matrix.os == 'netbsd'
         uses: actions/cache@v5
         with:
           path: .cache/netbsd-xsets
           key: netbsd-xsets-dwmblocks2-v1
           restore-keys: |
             netbsd-xsets-dwmblocks2-
-      - name: Build and Test
-        uses: vmactions/netbsd-vm@v1
+
+      - name: Start VM
+        uses: cross-platform-actions/action@v1.4.0
         with:
-          usesh: true
-          run: |
-            netbsd_release=$(uname -r)
-            netbsd_release=${netbsd_release%%_*}
-            netbsd_machine=$(uname -m)
-            case "$netbsd_machine" in
-            x86_64)
-              netbsd_machine=amd64
+          operating_system: ${{ matrix.os }}
+          version: ${{ matrix.version }}
+          shell: sh
+          memory: 4G
+          cpu_count: 2
+
+      - name: Install build deps
+        run: |
+          case "$(uname -s)" in
+          FreeBSD)
+              sudo pkg install -y \
+                  bash \
+                  libX11 \
+                  pkgconf
               ;;
-            esac
-            netbsd_sets_url="https://cdn.netbsd.org/pub/NetBSD"
-            netbsd_sets_url="$netbsd_sets_url/NetBSD-$netbsd_release"
-            netbsd_sets_url="$netbsd_sets_url/$netbsd_machine/binary/sets"
+          OpenBSD)
+              sudo pkg_add pkgconf
+              ;;
+          NetBSD)
+              netbsd_release=$(uname -r)
+              netbsd_release=${netbsd_release%%_*}
+              netbsd_machine=$(uname -m)
+              case "$netbsd_machine" in
+              x86_64)
+                  netbsd_machine=amd64
+                  ;;
+              esac
+              netbsd_sets_url="https://cdn.netbsd.org/pub/NetBSD"
+              netbsd_sets_url="$netbsd_sets_url/NetBSD-$netbsd_release"
+              netbsd_sets_url="$netbsd_sets_url/$netbsd_machine/binary/sets"
 
-            netbsd_xsets_cache="${GITHUB_WORKSPACE:-$PWD}/.cache/netbsd-xsets"
-            netbsd_xsets_cache="$netbsd_xsets_cache/$netbsd_release/$netbsd_machine"
-            mkdir -p "$netbsd_xsets_cache"
-            if [ ! -f /usr/X11R7/lib/pkgconfig/x11.pc ]; then
-              for netbsd_xset in xbase xcomp xetc; do
-                netbsd_xset_file="$netbsd_xsets_cache/$netbsd_xset.tar.xz"
-                if [ ! -f "$netbsd_xset_file" ]; then
-                  ftp -V -o "$netbsd_xset_file" \
-                    "$netbsd_sets_url/$netbsd_xset.tar.xz"
-                fi
-                tar -C / -xpf "$netbsd_xset_file"
-              done
-            fi
-            export PATH="/usr/X11R7/bin:$PATH"
-            export LD_LIBRARY_PATH="/usr/pkg/lib:/usr/X11R7/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+              netbsd_xsets_cache="${GITHUB_WORKSPACE:-$PWD}/.cache/netbsd-xsets"
+              netbsd_xsets_cache="$netbsd_xsets_cache/$netbsd_release"
+              netbsd_xsets_cache="$netbsd_xsets_cache/$netbsd_machine"
+              mkdir -p "$netbsd_xsets_cache"
+              if [ ! -f /usr/X11R7/lib/pkgconfig/x11.pc ]; then
+                  for netbsd_xset in xbase xcomp xetc; do
+                      netbsd_xset_file="$netbsd_xsets_cache/$netbsd_xset.tar.xz"
+                      if [ ! -f "$netbsd_xset_file" ]; then
+                          ftp -V -o "$netbsd_xset_file" \
+                              "$netbsd_sets_url/$netbsd_xset.tar.xz"
+                      fi
+                      sudo tar -C / -xpf "$netbsd_xset_file"
+                  done
+              fi
+              if ! command -v pkgin >/dev/null 2>&1; then
+                  sudo pkg_add pkgin
+              fi
+              sudo pkgin -y install pkgconf
+              ;;
+          esac
+          cc --version
+          pkg-config --version
 
-            PKG_CONFIG_PATH=/usr/X11R7/lib/pkgconfig
-            PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/usr/pkg/lib/pkgconfig"
-            export PKG_CONFIG_PATH
+      - name: Save NetBSD X set cache
+        if: matrix.os == 'netbsd'
+        shell: bash
+        run: cpa.sh --sync-files vm-to-runner
 
-            LDFLAGS="${LDFLAGS:-}"
-            LDFLAGS="$LDFLAGS -Wl,-rpath,/usr/pkg/lib"
-            LDFLAGS="$LDFLAGS -Wl,-rpath,/usr/X11R7/lib"
-            export LDFLAGS
-            if ! command -v pkgin >/dev/null 2>&1; then
-              pkg_add pkgin
-            fi
-            pkgin -y install \
-              pkgconf
-            cc --version
-            pkg-config --version
-            build_deps="x11"
-            pkg-config --libs $build_deps
-            export CPPFLAGS="${CPPFLAGS:-} $(pkg-config --cflags $build_deps)"
-            export LDFLAGS="${LDFLAGS:-} $(pkg-config --libs $build_deps)"
-            ./build.sh build
-            ./build.sh test
+      - name: Build and Test
+        run: |
+          case "$(uname -s)" in
+          OpenBSD)
+              export PKG_CONFIG_PATH=/usr/X11R6/lib/pkgconfig:/usr/local/lib/pkgconfig
+              ;;
+          NetBSD)
+              export PATH="/usr/X11R7/bin:$PATH"
+              export LD_LIBRARY_PATH="/usr/pkg/lib:/usr/X11R7/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+              PKG_CONFIG_PATH=/usr/X11R7/lib/pkgconfig
+              PKG_CONFIG_PATH="$PKG_CONFIG_PATH:/usr/pkg/lib/pkgconfig"
+              export PKG_CONFIG_PATH
+              LDFLAGS="${LDFLAGS:-}"
+              LDFLAGS="$LDFLAGS -Wl,-rpath,/usr/pkg/lib"
+              LDFLAGS="$LDFLAGS -Wl,-rpath,/usr/X11R7/lib"
+              export LDFLAGS
+              ;;
+          *)
+              ;;
+          esac
+          build_deps="x11"
+          pkg-config --libs $build_deps
+          export CPPFLAGS="${CPPFLAGS:-} $(pkg-config --cflags $build_deps)"
+          export LDFLAGS="${LDFLAGS:-} $(pkg-config --libs $build_deps)"
+          ./build.sh build
+          ./build.sh test
