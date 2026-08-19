@@ -219,9 +219,7 @@ main(int argc, char **argv) {
                 if (complete.tv_sec < 1) {
                     complete.tv_sec = 0;
                     complete.tv_nsec = 999999999 - complete.tv_nsec;
-                    if (nanosleep(&complete, NULL) < 0) {
-                        continue;
-                    }
+                    sleep_ns((int64)complete.tv_nsec);
                 }
                 seconds += 1;
                 timeout = TIMEOUT_NORMAL;
