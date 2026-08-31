@@ -36,7 +36,7 @@ Block blocks[] = {
 {NULL, "block_mining.sh",       "DWMBLOCKS2_CPU",            10},
 {NULL, "block_ip.sh",           "DWMBLOCKS2_NETWORK",        60},
 {NULL, "block_bluetooth.sh",    "DWMBLOCKS2_BLUETOOTH",      60},
-{NULL, "block_joystick.sh",     "DWMBLOCKS2_JOYSTICK",      60},
+{NULL, "block_joystick.sh",     "DWMBLOCKS2_JOYSTICK",       60},
 };
 
 #if CC_CLANG
