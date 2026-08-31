@@ -7,6 +7,11 @@
 #include "dwmblocks2.h"
 #include "block_functions.c"
 
+#if CC_CLANG
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-field-initializers"
+#endif
+
 Block blocks[] = {
 /* function | command           signal environment variable |interval */
 {NULL, "block_recording.sh",    "DWMBLOCKS2_RECORD",          0},
@@ -33,5 +38,9 @@ Block blocks[] = {
 {NULL, "block_bluetooth.sh",    "DWMBLOCKS2_BLUETOOTH",      60},
 {NULL, "block_joystick.sh",     "DWMBLOCKS2_JOYSTICK",      60},
 };
+
+#if CC_CLANG
+#pragma clang diagnostic pop
+#endif
 
 #endif
