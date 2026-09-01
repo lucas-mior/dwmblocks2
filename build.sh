@@ -34,8 +34,7 @@ CPPFLAGS="$CPPFLAGS -Icbase"
 
 CFLAGS="$CFLAGS -std=c11"
 CFLAGS="$CFLAGS -Wfatal-errors"
-# CFLAGS="$CFLAGS -Werror"  # Only uncomment occasionally, keep this line
-CFLAGS="$CFLAGS -Wno-missing-field-initializers"
+CFLAGS="$CFLAGS -Werror"  # Only uncomment occasionally, keep this line
 
 LDFLAGS="$LDFLAGS -lm $(pkg-config x11 --libs)"
 
