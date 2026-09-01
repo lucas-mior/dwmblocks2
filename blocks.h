@@ -7,9 +7,9 @@
 #include "dwmblocks2.h"
 #include "block_functions.c"
 
-#if CC_CLANG
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wmissing-field-initializers"
+#if CC_GCC || CC_CLANG
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
 #endif
 
 Block blocks[] = {
@@ -39,8 +39,8 @@ Block blocks[] = {
 {NULL, "block_joystick.sh",     "DWMBLOCKS2_JOYSTICK",       60},
 };
 
-#if CC_CLANG
-#pragma clang diagnostic pop
+#if CC_GCC || CC_CLANG
+#pragma GCC diagnostic pop
 #endif
 
 #endif
