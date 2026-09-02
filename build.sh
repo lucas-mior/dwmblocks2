@@ -43,11 +43,11 @@ debug)
     CPPFLAGS="$CPPFLAGS -DDEBUGGING=1"
     ;;
 debug-fast)
-    CFLAGS="$CFLAGS -Wno-error -g2 -O2 -flto -march=native -ftree-vectorize"
+    CFLAGS="$CFLAGS -g2 -O2 -flto -march=native -ftree-vectorize"
     CPPFLAGS="$CPPFLAGS -DDEBUGGING=1"
     ;;
 build)
-    CFLAGS="$CFLAGS -Wno-error -O2 -flto -march=native -ftree-vectorize"
+    CFLAGS="$CFLAGS -O2 -flto -march=native -ftree-vectorize"
     ;;
 fast_feedback)
     ;;
