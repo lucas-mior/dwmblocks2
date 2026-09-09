@@ -554,19 +554,20 @@ int_handler(int unused) {
         Block *block = &blocks[i];
         char error_message[1024];
         char num[32];
+        int32 num_len;
 
         if (*block->fd >= 0) {
-            ITOA(num, *block->fd);
+            num_len = ITOA(num, *block->fd);
 
-            error_async_safe("closing block ");
-            error_async_safe(num);
-            error_async_safe("...\n");
+            error_async_safe(STRLIT("closing block "));
+            error_async_safe(num, num_len);
+            error_async_safe(STRLIT("...\n"));
 
             if (XCLOSE(block->fd) < 0) {
                 strerror_r(errno, error_message, sizeof(error_message));
-                error_async_safe("Error closing: ");
-                error_async_safe(error_message);
-                error_async_safe(".\n");
+                error_async_safe(STRLIT("Error closing: "));
+                error_async_safe(error_message, strlen32(error_message));
+                error_async_safe(STRLIT(".\n"));
             }
         }
     }
