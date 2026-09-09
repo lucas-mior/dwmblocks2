@@ -415,9 +415,9 @@ spawn_block(Block *block, int button) {
     case -1:
         strerror_r(errno, error_message, sizeof(error_message));
 
-        error_async_safe("Error forking: ");
-        error_async_safe(error_message);
-        error_async_safe(".\n");
+        error_async_safe(STRLIT("Error forking: "));
+        error_async_safe(error_message, strlen32(error_message));
+        error_async_safe(STRLIT(".\n"));
 
         XCLOSE(&pipefd[0]);
         XCLOSE(&pipefd[1]);
@@ -452,11 +452,11 @@ parse_output(Block *block) {
 
     if (r < 0) {
         strerror_r(errno, error_message, sizeof(error_message));
-        error_async_safe("Error reading from block ");
-        error_async_safe(block->command);
-        error_async_safe(": ");
-        error_async_safe(error_message);
-        error_async_safe(".\n");
+        error_async_safe(STRLIT("Error reading from block "));
+        error_async_safe(block->command, strlen32(block->command));
+        error_async_safe(STRLIT(": "));
+        error_async_safe(error_message, strlen32(error_message));
+        error_async_safe(STRLIT(".\n"));
     }
 
     XCLOSE(block->fd);
@@ -464,9 +464,9 @@ parse_output(Block *block) {
     sigprocmask(SIG_UNBLOCK, &(block->mask), NULL);
 
     if ((r < 0) || (string == (block->output + 1))) {
-        error_async_safe("Read nothing from block ");
-        error_async_safe(block->command);
-        error_async_safe(".\n");
+        error_async_safe(STRLIT("Read nothing from block "));
+        error_async_safe(block->command, strlen32(block->command));
+        error_async_safe(STRLIT(".\n"));
 
         string[0] = '\0';
         block->length = 0;
