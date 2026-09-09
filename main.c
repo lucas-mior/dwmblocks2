@@ -477,9 +477,9 @@ parse_output(Block *block) {
     string = block->output + 1;
     string[block->length] = '\0';
     if (block->length == 0) {
-        error_async_safe("Read nothing from block ");
-        error_async_safe(block->command);
-        error_async_safe(".\n");
+        error_async_safe(STRLIT("Read nothing from block "));
+        error_async_safe(block->command, strlen32(block->command));
+        error_async_safe(STRLIT(".\n"));
 
         return;
     }
@@ -510,7 +510,7 @@ parse_output(Block *block) {
     }
 final:
     if (block->length <= 0) {
-        error_async_safe("Block length is less than or equal to zero.\n");
+        error_async_safe(STRLIT("Block length is invalid.\n"));
         exit(EXIT_FAILURE);
     }
     return;
