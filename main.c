@@ -127,6 +127,10 @@ main(int argc, char **argv) {
 #endif
             block->output[1] = (char)'\0';
             block->length = 0;
+            block->command_len = 0;
+            if (block->command != NULL) {
+                block->command_len = strlen32(block->command);
+            }
 
             block->fd = &(pipes[i].fd);
             pipes[i].fd = -1;
@@ -406,7 +410,7 @@ spawn_block(Block *block, int button) {
         strerror_r(errno, error_message, sizeof(error_message));
 
         error_async_safe(STRLIT("Error executing "));
-        error_async_safe(block->command, strlen32(block->command));
+        error_async_safe(block->command, block->command_len);
         error_async_safe(STRLIT(": "));
         error_async_safe(error_message, strlen32(error_message));
         error_async_safe(STRLIT(".\n"));
@@ -453,7 +457,7 @@ parse_output(Block *block) {
     if (r < 0) {
         strerror_r(errno, error_message, sizeof(error_message));
         error_async_safe(STRLIT("Error reading from block "));
-        error_async_safe(block->command, strlen32(block->command));
+        error_async_safe(block->command, block->command_len);
         error_async_safe(STRLIT(": "));
         error_async_safe(error_message, strlen32(error_message));
         error_async_safe(STRLIT(".\n"));
@@ -465,7 +469,7 @@ parse_output(Block *block) {
 
     if ((r < 0) || (string == (block->output + 1))) {
         error_async_safe(STRLIT("Read nothing from block "));
-        error_async_safe(block->command, strlen32(block->command));
+        error_async_safe(block->command, block->command_len);
         error_async_safe(STRLIT(".\n"));
 
         string[0] = '\0';
@@ -478,7 +482,7 @@ parse_output(Block *block) {
     string[block->length] = '\0';
     if (block->length == 0) {
         error_async_safe(STRLIT("Read nothing from block "));
-        error_async_safe(block->command, strlen32(block->command));
+        error_async_safe(block->command, block->command_len);
         error_async_safe(STRLIT(".\n"));
 
         return;

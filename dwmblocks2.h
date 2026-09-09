@@ -19,6 +19,7 @@ typedef struct Block {
     char *command;
     char *signal_var_name;
     int interval;
+    int32 command_len;
     int signal;
     int *fd;
     char output[MAX_BLOCK_OUTPUT_LENGTH];
