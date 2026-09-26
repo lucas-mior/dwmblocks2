@@ -162,6 +162,7 @@ arena_back(Arena *arena, int64 size) {
 
     used = (char *)arena->pos - arena->begin;
     ASSERT_LESS_EQUAL(size, used);
+    ASSERT_ZERO((ullong)size % ALIGNMENT);
 
     arena->pos = (char *)arena->pos - size;
     if (DEBUGGING && (size > 0)) {
