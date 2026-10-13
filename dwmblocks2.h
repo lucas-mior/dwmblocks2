@@ -7,10 +7,13 @@
 #include "cbase.h"
 
 #include <X11/Xlib.h>
+#include <X11/Xatom.h>
 
 #define MAX_BLOCK_OUTPUT_LENGTH 80
 #define IS_SPACE(X) ((X == ' ') || (X == '\t') || (X == '\n'))
 #define DWM_BAR_SEPARATOR ((char) 0x01)
+#define STATUS_PID_PROPERTY "_DWMBLOCKS2_PID"
+#define STATUS_OWNER_SELECTION "_DWMBLOCKS2_OWNER"
 #define STATUS_SIGNAL_FIRST 1
 #define STATUS_SIGNAL_LAST ((int)' ' - 1)
 

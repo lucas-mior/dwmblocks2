@@ -171,6 +171,20 @@ main(int argc, char **argv) {
     root = DefaultRootWindow(display);
 
     {
+        Atom pid_atom = XInternAtom(display, STATUS_PID_PROPERTY, False);
+        Atom owner_atom = XInternAtom(display, STATUS_OWNER_SELECTION, False);
+        Window owner = XCreateSimpleWindow(display, root, 0, 0, 1, 1, 0, 0, 0);
+        ulong identity[2] = {(ulong)getpid(), (ulong)owner};
+
+        // The root property identifies the process and its X11 lifetime.
+        // X11 automatically clears selection ownership when we disconnect.
+        XSetSelectionOwner(display, owner_atom, owner, CurrentTime);
+        XChangeProperty(display, root, pid_atom, XA_CARDINAL, 32,
+                        PropModeReplace, (uchar *)identity, LENGTH(identity));
+        XFlush(display);
+    }
+
+    {
         int64 now = time_monotonic_now();
 
         for (int32 i = 0; i < LENGTH(blocks); i += 1) {

@@ -43,6 +43,19 @@ case $1 in
 esac
 ```
 
+## dwm2 integration and restarts
+The current dwm2 and dwmblocks2 exchange process identity over X11, without
+running `pidof` on bar clicks. On startup, dwmblocks2 publishes the root-window
+property `_DWMBLOCKS2_PID`, containing two 32-bit CARDINAL values: its PID and
+the window ID of its `_DWMBLOCKS2_OWNER` selection owner.
+
+On each click, dwm2 reads the property and confirms that the window still owns
+the selection before sending a signal. It does not cache the PID. If dwmblocks2
+is killed, including with `SIGKILL`, the X server automatically clears selection
+ownership when the connection closes. The old root property may remain, but dwm2
+will not use it. Restarting dwmblocks2 publishes the new identity; restarting
+dwm2 is unnecessary. Rebuild/install both projects to use this protocol.
+
 ## Differences from original dwmblocks
 - It's much lighter, since the shell is avoided on every command spawned.
 - A hard to reproduce bug in which `dwmblocks` would freeze has been fixed.
