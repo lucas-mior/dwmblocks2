@@ -7,7 +7,9 @@
 #include "dwmblocks2.h"
 #include "blocks.h"
 
-#define CLOCK CLOCK_REALTIME
+#define NANOSECONDS_PER_SECOND 1000000000ll
+#define NANOSECONDS_PER_MILLISECOND 1000000ll
+#define STATUS_BUFFER_SIZE (LENGTH(blocks)*MAX_BLOCK_OUTPUT_LENGTH + 2)
 
 static struct pollfd pipes[LENGTH(blocks) + 1];
 
@@ -16,21 +18,18 @@ static struct pollfd pipes[LENGTH(blocks) + 1];
 static int signal_pipe[2] = {-1, -1};
 static sigset_t handled_signal_mask;
 static volatile sig_atomic_t block_spawn_requests[LENGTH(blocks)];
+static int64 next_update_ns[LENGTH(blocks)];
 
 static Display *display;
 static Window root;
-
-#define TIMEOUT_INTERRUPTED 350
-#define TIMEOUT_NORMAL 1000
 
 static noreturn void int_handler(int);
 static void drain_signal_pipe(void);
 static void fill_handled_signal_mask(sigset_t *);
 static void parse_output(Block *);
+static void publish_status(void);
 static void signal_handler(int, siginfo_t *, void *);
 static void spawn_block(Block *, int);
-static void spawn_queued_blocks(void);
-static volatile sig_atomic_t timeout = TIMEOUT_NORMAL;
 
 int
 main(int argc, char **argv) {
@@ -171,141 +170,133 @@ main(int argc, char **argv) {
     }
     root = DefaultRootWindow(display);
 
-    for (int i = 0; i < LENGTH(blocks); i += 1) {
-        Block *block = &blocks[i];
-        spawn_block(block, 0);
-    }
-    while (true) {
-        static int seconds = 1;
-        int nready;
-        struct timespec t0;
-        struct timespec t1;
+    {
+        int64 now = time_monotonic_now();
 
-        if (clock_gettime(CLOCK, &t0) < 0) {
-            error("Error getting clock: %s\n", strerror(errno));
-            exit(EXIT_FAILURE);
+        for (int32 i = 0; i < LENGTH(blocks); i += 1) {
+            Block *block = &blocks[i];
+
+            if (block->interval < 0) {
+                error("Invalid negative interval for block %d.\n", i);
+                exit(EXIT_FAILURE);
+            }
+            if (block->interval > 0) {
+                next_update_ns[i] =
+                    now + (int64)block->interval*NANOSECONDS_PER_SECOND;
+            }
+            spawn_block(block, 0);
+        }
+    }
+    publish_status();
+
+    while (true) {
+        int32 nready;
+        int64 now = time_monotonic_now();
+        int64 wait_ns = INT64_MAX;
+        int32 timeout_ms = -1;
+
+        for (int32 i = 0; i < LENGTH(blocks); i += 1) {
+            if (blocks[i].interval <= 0) {
+                continue;
+            }
+            if (next_update_ns[i] <= now) {
+                wait_ns = 0;
+                break;
+            }
+            if ((next_update_ns[i] - now) < wait_ns) {
+                wait_ns = next_update_ns[i] - now;
+            }
+        }
+        if (wait_ns == 0) {
+            timeout_ms = 0;
+        } else if (wait_ns != INT64_MAX) {
+            if (wait_ns >= (int64)INT32_MAX*NANOSECONDS_PER_MILLISECOND) {
+                timeout_ms = INT32_MAX;
+            } else {
+                // Round up so poll cannot spin before the next deadline.
+                timeout_ms =
+                    (int32)((wait_ns + NANOSECONDS_PER_MILLISECOND - 1)
+                            / NANOSECONDS_PER_MILLISECOND);
+            }
         }
 
-        nready = poll(pipes, LENGTH(pipes), timeout);
+        nready = poll(pipes, LENGTH(pipes), timeout_ms);
         if (nready < 0) {
-            if (errno == EINTR) {
-                drain_signal_pipe();
-                spawn_queued_blocks();
-            } else {
+            if (errno != EINTR) {
                 error("Error polling: %s\n", strerror(errno));
                 exit(EXIT_FAILURE);
             }
-        }
-        if (nready > 0) {
-            bool block_events = false;
+            drain_signal_pipe();
+        } else if (nready > 0) {
+            for (int32 i = 0; i < LENGTH(blocks); i += 1) {
+                Block *block = &blocks[i];
+                int32 events = pipes[i].revents;
 
-            for (int i = 0; i < LENGTH(blocks); i += 1) {
-                if (pipes[i].revents != 0) {
-                    block_events = true;
-                    break;
-                }
-            }
-            if (block_events && (timeout == TIMEOUT_NORMAL)) {
-                struct timespec complete;
-
-                if (clock_gettime(CLOCK, &t1) < 0) {
-                    error("Error getting clock: %s\n", strerror(errno));
-                    exit(EXIT_FAILURE);
-                }
-
-                complete.tv_sec = t1.tv_sec - t0.tv_sec;
-                complete.tv_nsec = t1.tv_nsec - t0.tv_nsec;
-                if (complete.tv_nsec < 0) {
-                    complete.tv_nsec += 999999999;
-                    complete.tv_sec -= 1;
-                }
-
-                if (complete.tv_sec < 1) {
-                    complete.tv_sec = 0;
-                    complete.tv_nsec = 999999999 - complete.tv_nsec;
-                    sleep_ns((int64)complete.tv_nsec);
-                }
-                seconds += 1;
-                timeout = TIMEOUT_NORMAL;
-            }
-            if (block_events) {
-                for (int i = 0; i < LENGTH(blocks); i += 1) {
-                    Block *block = &blocks[i];
-                    if (pipes[i].revents & POLLHUP) {
-                        parse_output(block);
-                        continue;
-                    } else if (pipes[i].revents & POLLNVAL) {
-                        error("Error polling: Invalid fd.\n");
-                        pipes[i].fd = -1;
-                    } else if (pipes[i].revents & POLLERR) {
-                        error("Error polling: Error condition.\n");
-                        pipes[i].fd = -1;
-                    }
-                    if (block->function) {
-                        block->function(0, block);
+                if (events & POLLHUP) {
+                    parse_output(block);
+                } else if (events & (POLLERR | POLLNVAL)) {
+                    error("Error polling block %d: events %d.\n", i, events);
+                    if (*block->fd >= 0) {
+                        XCLOSE(block->fd);
                     }
                 }
             }
+
             if (pipes[SIGNAL_PIPE_INDEX].revents & POLLIN) {
                 drain_signal_pipe();
-            } else if (pipes[SIGNAL_PIPE_INDEX].revents & POLLNVAL) {
-                error("Error polling: Invalid signal pipe fd.\n");
-                exit(EXIT_FAILURE);
-            } else if (pipes[SIGNAL_PIPE_INDEX].revents & POLLERR) {
-                error("Error polling: Signal pipe error condition.\n");
+            } else if (pipes[SIGNAL_PIPE_INDEX].revents
+                       & (POLLERR | POLLNVAL | POLLHUP)) {
+                error("Error polling signal pipe.\n");
                 exit(EXIT_FAILURE);
             }
-            spawn_queued_blocks();
-        } else if (nready == 0) {
-            for (int i = 0; i < LENGTH(blocks); i += 1) {
-                Block *block = &blocks[i];
-
-                if (block->interval == 0) {
-                    continue;
-                }
-                if ((seconds % block->interval) == 0) {
-                    spawn_block(block, 0);
-                }
-            }
-            seconds += 1;
-            timeout = TIMEOUT_NORMAL;
-            spawn_queued_blocks();
         }
+
+        // Deadlines are evaluated after every wake, including signals and I/O.
+        // The newest explicit signal takes priority over a simultaneous tick.
         {
-            char status_new[LENGTH(blocks)*MAX_BLOCK_OUTPUT_LENGTH] = {0};
-            char *pointer = status_new;
+            int32 buttons[LENGTH(blocks)];
+            sigset_t old_mask;
 
-            for (int i = 0; i < LENGTH(blocks); i += 1) {
+            now = time_monotonic_now();
+            for (int32 i = 0; i < LENGTH(blocks); i += 1) {
                 Block *block = &blocks[i];
-                char *string = block->output;
-                int64 size = block->length;
-                if (size > 1) {
-                    memcpy64(pointer, string, size);
-                    pointer += size;
-                }
-                if (i == (LENGTH(blocks) / 2)) {
-                    *pointer = DWM_BAR_SEPARATOR;
-                    pointer += 1;
+
+                buttons[i] = -1;
+                if ((block->interval > 0) && (now >= next_update_ns[i])) {
+                    int64 interval_ns =
+                        (int64)block->interval*NANOSECONDS_PER_SECOND;
+                    int64 elapsed = now - next_update_ns[i];
+
+                    // Skip missed periods instead of accumulating a backlog.
+                    next_update_ns[i] += (elapsed/interval_ns + 1)*interval_ns;
+                    buttons[i] = 0;
                 }
             }
 
-            if (DEBUGGING) {
-                if (seconds == 10) {
-                    char *name = "dwmblocks2.txt";
-                    FILE *file;
-                    if (!(file = fopen(name, "w"))) {
-                        error("Error opening %s: %s\n", name, strerror(errno));
-                        exit(EXIT_FAILURE);
-                    }
-                    fwrite64(status_new,
-                             SIZEOF(*status_new), SIZEOF(status_new), file);
-                    fclose(file);
+            if (sigprocmask(SIG_BLOCK, &handled_signal_mask, &old_mask) < 0) {
+                error("Error blocking signals: %s\n", strerror(errno));
+                exit(EXIT_FAILURE);
+            }
+            for (int32 i = 0; i < LENGTH(blocks); i += 1) {
+                sig_atomic_t request = block_spawn_requests[i];
+
+                if (request != 0) {
+                    buttons[i] = (int32)request - 1;
+                    block_spawn_requests[i] = 0;
                 }
             }
+            if (sigprocmask(SIG_SETMASK, &old_mask, NULL) < 0) {
+                error("Error restoring signal mask: %s\n", strerror(errno));
+                exit(EXIT_FAILURE);
+            }
 
-            XStoreName(display, root, status_new);
-            XFlush(display);
+            for (int32 i = 0; i < LENGTH(blocks); i += 1) {
+                if (buttons[i] >= 0) {
+                    spawn_block(&blocks[i], buttons[i]);
+                }
+            }
         }
+        publish_status();
     }
 }
 
@@ -336,35 +327,57 @@ fill_handled_signal_mask(sigset_t *mask) {
 }
 
 void
-spawn_queued_blocks(void) {
-    int buttons[LENGTH(blocks)];
-    sigset_t old_mask;
+publish_status(void) {
+    static char previous[STATUS_BUFFER_SIZE] = {0};
+    static int64 previous_len;
+    static bool published;
+    char status_new[STATUS_BUFFER_SIZE] = {0};
+    char *pointer = status_new;
+    int64 length;
 
-    for (int i = 0; i < LENGTH(blocks); i += 1) {
-        buttons[i] = -1;
-    }
+    for (int32 i = 0; i < LENGTH(blocks); i += 1) {
+        Block *block = &blocks[i];
 
-    if (sigprocmask(SIG_BLOCK, &handled_signal_mask, &old_mask) < 0) {
-        error("Error blocking signals: %s\n", strerror(errno));
-        exit(EXIT_FAILURE);
-    }
-    for (int i = 0; i < LENGTH(blocks); i += 1) {
-        sig_atomic_t request = block_spawn_requests[i];
-
-        if (request != 0) {
-            buttons[i] = (int)request - 1;
-            block_spawn_requests[i] = 0;
+        if (block->length > 1) {
+            memcpy64(pointer, block->output, block->length);
+            pointer += block->length;
+        }
+        if (i == (LENGTH(blocks) / 2)) {
+            *pointer = DWM_BAR_SEPARATOR;
+            pointer += 1;
         }
     }
-    if (sigprocmask(SIG_SETMASK, &old_mask, NULL) < 0) {
-        error("Error restoring signal mask: %s\n", strerror(errno));
-        exit(EXIT_FAILURE);
+    length = pointer - status_new;
+
+    if (DEBUGGING) {
+        static int64 start_ns;
+        static bool dumped;
+
+        if (start_ns == 0) {
+            start_ns = time_monotonic_now();
+        }
+        if (!dumped && ((time_monotonic_now() - start_ns)
+                        >= 10*NANOSECONDS_PER_SECOND)) {
+            char *name = "dwmblocks2.txt";
+            FILE *file = fopen(name, "w");
+
+            if (file == NULL) {
+                error("Error opening %s: %s\n", name, strerror(errno));
+                exit(EXIT_FAILURE);
+            }
+            fwrite64(status_new, SIZEOF(*status_new), SIZEOF(status_new), file);
+            fclose(file);
+            dumped = true;
+        }
     }
 
-    for (int i = 0; i < LENGTH(blocks); i += 1) {
-        if (buttons[i] >= 0) {
-            spawn_block(&blocks[i], buttons[i]);
-        }
+    if (!published || (previous_len != length)
+        || (memcmp64(previous, status_new, length) != 0)) {
+        XStoreName(display, root, status_new);
+        XFlush(display);
+        memcpy64(previous, status_new, length + 1);
+        previous_len = length;
+        published = true;
     }
     return;
 }
@@ -534,13 +547,10 @@ signal_handler(int signum, siginfo_t *signal_info, void *ucontext) {
         button = signal_info->si_value.sival_int & 7;
     }
 
-    timeout = TIMEOUT_INTERRUPTED;
-
     for (int i = 0; i < LENGTH(blocks); i += 1) {
         Block *block = &blocks[i];
         if (block->signal == signum) {
             block_spawn_requests[i] = button + 1;
-            break;
         }
     }
     if (signal_pipe[1] >= 0) {
