@@ -415,7 +415,7 @@ spawn_block(Block *block, int button) {
     }
 
     if (pipe(pipefd) < 0) {
-        strerror_r(errno, error_message, sizeof(error_message));
+        strerror_r(errno, error_message, SIZEOF(error_message));
 
         error_async_safe(STRLIT("Error creating pipe: "));
         error_async_safe(error_message, strlen32(error_message));
@@ -434,7 +434,7 @@ spawn_block(Block *block, int button) {
         XCLOSE(&pipefd[1]);
         sigprocmask(SIG_UNBLOCK, &(block->mask), NULL);
         execvp(argv[0], argv);
-        strerror_r(errno, error_message, sizeof(error_message));
+        strerror_r(errno, error_message, SIZEOF(error_message));
 
         error_async_safe(STRLIT("Error executing "));
         error_async_safe(block->command, block->cmd_len);
@@ -444,7 +444,7 @@ spawn_block(Block *block, int button) {
 
         _exit(EXIT_FAILURE);
     case -1:
-        strerror_r(errno, error_message, sizeof(error_message));
+        strerror_r(errno, error_message, SIZEOF(error_message));
 
         error_async_safe(STRLIT("Error forking: "));
         error_async_safe(error_message, strlen32(error_message));
@@ -482,7 +482,7 @@ parse_output(Block *block) {
     }
 
     if (r < 0) {
-        strerror_r(errno, error_message, sizeof(error_message));
+        strerror_r(errno, error_message, SIZEOF(error_message));
         error_async_safe(STRLIT("Error reading from block "));
         error_async_safe(block->command, block->cmd_len);
         error_async_safe(STRLIT(": "));
@@ -592,7 +592,7 @@ int_handler(int unused) {
             error_async_safe(STRLIT("...\n"));
 
             if (XCLOSE(block->fd) < 0) {
-                strerror_r(errno, error_message, sizeof(error_message));
+                strerror_r(errno, error_message, SIZEOF(error_message));
                 error_async_safe(STRLIT("Error closing: "));
                 error_async_safe(error_message, strlen32(error_message));
                 error_async_safe(STRLIT(".\n"));
