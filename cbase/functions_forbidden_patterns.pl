@@ -115,10 +115,6 @@ sub check_ryu_source_style {
         if ($line =~ /[ \t\r]+\z/) {
             report_issue("$path:$line_number:trailing whitespace\n");
         }
-        if ($line =~ /^\s*#\s*ifn?def\b/) {
-            report_issue("$path:$line_number:use #if defined or "
-                         . "#if !defined\n");
-        }
         if ($line =~ /^\s*#\s*endif\b[^\n]*\/\//) {
             report_issue("$path:$line_number:use a block comment "
                          . "after #endif\n");
@@ -126,6 +122,21 @@ sub check_ryu_source_style {
     }
     if (length($source) && substr($source, -1) ne "\n") {
         report_issue("$path:$line_number:missing final newline\n");
+    }
+}
+
+# Comments and strings are masked before checking, so only actual
+# preprocessor directives are reported. Apply this to all source files.
+sub check_preprocessor_conditionals {
+    my ($path, $code) = @_;
+    my $line_number = 0;
+
+    for my $line (split /\n/, $code) {
+        $line_number += 1;
+        if ($line =~ /^[ \t]*#[ \t]*(?:ifdef|ifndef)\b/) {
+            report_issue("$path:$line_number:use #if defined or "
+                         . "#if !defined\n");
+        }
     }
 }
 
@@ -744,6 +755,66 @@ sub check_consecutive_bounds_assertions {
     }
 }
 
+# An extra scope-only block at three indentation levels obscures the
+# surrounding control flow. Inspect brace context rather than matching a
+# bare opening brace: initializers and braces belonging to declarations or
+# control-flow constructs are not artificial blocks.
+sub check_deep_artificial_blocks {
+    my ($path, $source, $code) = @_;
+    my @source_lines = split /\n/, $source;
+    my @code_lines = split /\n/, $code;
+    my @initializer_stack;
+    my $previous_code = '';
+    my $continuation = 0;
+
+    for (my $i = 0; $i < @code_lines; $i += 1) {
+        my $line = $code_lines[$i];
+        my $original = $source_lines[$i];
+        my $directive = $continuation || $line =~ /^[ \t]*#/;
+
+        $continuation = $directive && $original =~ /\\[ \t]*\r?\z/;
+        next if $directive;
+
+        while ($line =~ /[{}]/g) {
+            my $brace = $&;
+            my $column = $-[0];
+
+            if ($brace eq '}') {
+                pop @initializer_stack if @initializer_stack;
+                next;
+            }
+
+            my $prefix = substr($line, 0, $column);
+            my $context = $prefix =~ /\S/ ? $prefix : $previous_code;
+            my $initializer = @initializer_stack
+                              && $initializer_stack[-1];
+            my $has_header;
+
+            $context =~ s/\s+\z//;
+            $initializer ||= $context =~ /[=,(]\z/;
+            $has_header = $context =~ /\)\z/
+                          || $context =~ /\b(?:else|do)\z/
+                          || $context =~ /\b(?:struct|union|enum)
+                                         (?:\s+[A-Za-z_][A-Za-z0-9_]*)?
+                                         \z/x
+                          || $context =~ /\b(?:case\b[^;{}]*|default):\z/;
+
+            if (!$initializer && !$has_header && $column >= 12
+                    && $original =~ /\A {12,}/) {
+                my $line_number = $i + 1;
+                report_issue("$path:$line_number:artificial block at "
+                             . "nesting level 3 or more is forbidden\n");
+            }
+            push @initializer_stack, $initializer ? 1 : 0;
+        }
+
+        if ($line =~ /\S/) {
+            $previous_code = $line;
+            $previous_code =~ s/\s+\z//;
+        }
+    }
+}
+
 for my $path (@paths) {
     my $absolute_path = abs_path($path) // $path;
 
@@ -781,8 +852,11 @@ for my $path (@paths) {
     my $code = code_mask($source);
     my $is_ryu = $absolute_path =~ m{(?:\A|/)cbase/ryu/[^/]+\.[ch]\z};
 
+    check_preprocessor_conditionals($path, $code);
     check_consecutive_bounds_assertions($path, $source, $code)
         unless $is_ryu;
+    check_deep_artificial_blocks($path, $source, $code)
+        unless $is_ryu || $path =~ /\.meta\.h\z/;
 
     if ($is_ryu) {
         check_ryu_source_style($path, $source);
