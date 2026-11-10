@@ -314,7 +314,6 @@ main(int argc, char **argv) {
     }
 }
 
-
 void
 drain_signal_pipe(void) {
     char buffer[32];
