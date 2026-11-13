@@ -416,9 +416,9 @@ spawn_block(Block *block, int button) {
     if (pipe(pipefd) < 0) {
         strerror_r(errno, error_message, SIZEOF(error_message));
 
-        error_async_safe(STRLIT("Error creating pipe: "));
+        error_async_safe(SL("Error creating pipe: "));
         error_async_safe(error_message, strlen32(error_message));
-        error_async_safe(STRLIT("\n"));
+        error_async_safe(SL("\n"));
 
         *block->fd = -1;
 
@@ -435,19 +435,19 @@ spawn_block(Block *block, int button) {
         execvp(argv[0], argv);
         strerror_r(errno, error_message, SIZEOF(error_message));
 
-        error_async_safe(STRLIT("Error executing "));
+        error_async_safe(SL("Error executing "));
         error_async_safe(block->command, block->cmd_len);
-        error_async_safe(STRLIT(": "));
+        error_async_safe(SL(": "));
         error_async_safe(error_message, strlen32(error_message));
-        error_async_safe(STRLIT(".\n"));
+        error_async_safe(SL(".\n"));
 
         _exit(EXIT_FAILURE);
     case -1:
         strerror_r(errno, error_message, SIZEOF(error_message));
 
-        error_async_safe(STRLIT("Error forking: "));
+        error_async_safe(SL("Error forking: "));
         error_async_safe(error_message, strlen32(error_message));
-        error_async_safe(STRLIT(".\n"));
+        error_async_safe(SL(".\n"));
 
         XCLOSE(&pipefd[0]);
         XCLOSE(&pipefd[1]);
@@ -482,11 +482,11 @@ parse_output(Block *block) {
 
     if (r < 0) {
         strerror_r(errno, error_message, SIZEOF(error_message));
-        error_async_safe(STRLIT("Error reading from block "));
+        error_async_safe(SL("Error reading from block "));
         error_async_safe(block->command, block->cmd_len);
-        error_async_safe(STRLIT(": "));
+        error_async_safe(SL(": "));
         error_async_safe(error_message, strlen32(error_message));
-        error_async_safe(STRLIT(".\n"));
+        error_async_safe(SL(".\n"));
     }
 
     XCLOSE(block->fd);
@@ -494,9 +494,9 @@ parse_output(Block *block) {
     sigprocmask(SIG_UNBLOCK, &(block->mask), NULL);
 
     if ((r < 0) || (string == (block->output + 1))) {
-        error_async_safe(STRLIT("Read nothing from block "));
+        error_async_safe(SL("Read nothing from block "));
         error_async_safe(block->command, block->cmd_len);
-        error_async_safe(STRLIT(".\n"));
+        error_async_safe(SL(".\n"));
 
         string[0] = '\0';
         block->length = 0;
@@ -507,9 +507,9 @@ parse_output(Block *block) {
     string = block->output + 1;
     string[block->length] = '\0';
     if (block->length == 0) {
-        error_async_safe(STRLIT("Read nothing from block "));
+        error_async_safe(SL("Read nothing from block "));
         error_async_safe(block->command, block->cmd_len);
-        error_async_safe(STRLIT(".\n"));
+        error_async_safe(SL(".\n"));
 
         return;
     }
@@ -540,7 +540,7 @@ parse_output(Block *block) {
     }
 final:
     if (block->length <= 0) {
-        error_async_safe(STRLIT("Block length is invalid.\n"));
+        error_async_safe(SL("Block length is invalid.\n"));
         exit(EXIT_FAILURE);
     }
     return;
@@ -586,15 +586,15 @@ int_handler(int unused) {
         if (*block->fd >= 0) {
             num_len = ITOA(num, *block->fd);
 
-            error_async_safe(STRLIT("closing block "));
+            error_async_safe(SL("closing block "));
             error_async_safe(num, num_len);
-            error_async_safe(STRLIT("...\n"));
+            error_async_safe(SL("...\n"));
 
             if (XCLOSE(block->fd) < 0) {
                 strerror_r(errno, error_message, SIZEOF(error_message));
-                error_async_safe(STRLIT("Error closing: "));
+                error_async_safe(SL("Error closing: "));
                 error_async_safe(error_message, strlen32(error_message));
-                error_async_safe(STRLIT(".\n"));
+                error_async_safe(SL(".\n"));
             }
         }
     }
