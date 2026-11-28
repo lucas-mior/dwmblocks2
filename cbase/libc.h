@@ -225,7 +225,7 @@ char *realpath(char *, char *);
 #endif
 
 #if OS_WINDOWS
-#include <Windows.h>
+#include <windows.h>
 #endif
 
 #if !CC_MSVC
